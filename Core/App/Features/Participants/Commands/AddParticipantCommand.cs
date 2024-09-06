@@ -1,11 +1,12 @@
 namespace SPSS.App.Features.Participants.Commands;
 [Authorize(Roles = CreateParticipant)]
-public sealed record AddParticipantCommand(string Name, int UserId) : IRequest<Response<string>>;
+public sealed record AddParticipantCommand(string Id, string Name, int UserId) : IRequest<Response<string>>;
 
 public sealed class AddParticipantCommandValidator : AbstractValidator<AddParticipantCommand>
 {
     public AddParticipantCommandValidator()
     {
+        RuleFor(x => x.Id).NotEmpty().MaximumLength(50);
         RuleFor(x => x.Name).NotEmpty().MaximumLength(50);
         RuleFor(x => x.UserId).NotEmpty();
     }
@@ -18,7 +19,7 @@ public sealed class AddParticipantCommandHandler(IStorageBroker storage) : IRequ
     public async ValueTask<Response<string>> Handle(AddParticipantCommand request, CancellationToken cancellationToken)
     {
         var normalizedName = request.Name.ToUpper();
-        if (await _storage.Participants.AnyAsync(x => x.NormalizedName.Equals(normalizedName), cancellationToken: cancellationToken))
+        if (await _storage.Participants.AnyAsync(x => x.Id!.Equals(normalizedName), cancellationToken: cancellationToken))
         {
             return Response<string>.BadRequest("Participant with the same name already exists");
         }
@@ -30,8 +31,8 @@ public sealed class AddParticipantCommandHandler(IStorageBroker storage) : IRequ
 
         Participant entity = new()
         {
+            Id = request.Id,
             Name = request.Name,
-            NormalizedName = normalizedName,
             UserId = request.UserId,
             Active = true,
         };

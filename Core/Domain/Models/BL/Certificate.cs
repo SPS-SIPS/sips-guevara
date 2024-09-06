@@ -19,9 +19,9 @@ public sealed class CertificateConfiguration : IEntityTypeConfiguration<Certific
         builder.Ignore(e => e.DomainEvents);
 
         builder.HasKey(e => e.Id);
-        builder.Property(e => e.Id).ValueGeneratedOnAdd();
+        builder.Property(e => e.Id).ValueGeneratedNever();
 
-        builder.Property(e => e.Name).HasMaxLength(50).IsRequired();
+        builder.Property(e => e.Name).IsRequired();
         builder.Property(e => e.ExpireDate).IsRequired();
 
         builder.HasIndex(e => e.ExpireDate);

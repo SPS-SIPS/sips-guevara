@@ -17,8 +17,7 @@ public sealed class GetParticipantsListQueryHandler(IStorageBroker storage, IMap
 
         if (!string.IsNullOrEmpty(request.Name))
         {
-            var normalizedName = request.Name.ToUpper();
-            query = query.Where(x => x.NormalizedName.Contains(normalizedName));
+            query = query.Where(x => x.Name.Contains(request.Name));
         }
 
         if (request.Active.HasValue)

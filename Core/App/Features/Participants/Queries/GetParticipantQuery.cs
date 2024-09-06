@@ -1,7 +1,7 @@
 namespace SPSS.App.Features.Participants.Queries;
 using static SPSS.Domain.Common.KnownClaims;
 [Authorize(Roles = QueryParticipants)]
-public sealed record GetParticipantQuery(int Id) : IRequest<Response<ParticipantDto>>;
+public sealed record GetParticipantQuery(string Id) : IRequest<Response<ParticipantDto>>;
 
 public sealed class GetParticipantQueryValidator : AbstractValidator<GetParticipantQuery>
 {

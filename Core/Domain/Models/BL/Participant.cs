@@ -4,8 +4,6 @@ namespace SPSS.Domain.Models.BL;
 public sealed class Participant : BaseEntity<string>, IAuditableEntity, ISoftDelete
 {
     public string Name { get; set; } = default!;
-    public string NormalizedName { get; set; } = default!;
-
     public User User { get; set; } = default!;
     public int UserId { get; set; }
 
@@ -26,7 +24,7 @@ public sealed class ParticipantConfiguration : IEntityTypeConfiguration<Particip
         builder.Ignore(e => e.DomainEvents);
 
         builder.HasKey(e => e.Id);
-        builder.Property(e => e.Id).ValueGeneratedOnAdd();
+        builder.Property(e => e.Id).ValueGeneratedNever();
 
         builder.Property(e => e.Name).HasMaxLength(50).IsRequired();
 

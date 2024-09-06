@@ -26,19 +26,12 @@ public sealed class EditParticipantCommandHandler(IStorageBroker storage) : IReq
             return Response<string>.NotFound("Participant not found");
         }
 
-        var normalizedName = request.Name.ToUpper();
-        if (entity.NormalizedName != normalizedName && await _storage.Participants.AnyAsync(x => x.NormalizedName.Equals(normalizedName), cancellationToken: cancellationToken))
-        {
-            return Response<string>.BadRequest("Participant with the same name already exists");
-        }
-
         if (entity.UserId != request.UserId && await _storage.Participants.AnyAsync(x => x.UserId.Equals(request.UserId), cancellationToken: cancellationToken))
         {
             return Response<string>.BadRequest("User already has a participant");
         }
 
         entity.Name = request.Name;
-        entity.NormalizedName = normalizedName;
         entity.UserId = request.UserId;
         entity.Active = request.Active ?? entity.Active;
 

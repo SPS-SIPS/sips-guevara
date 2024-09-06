@@ -25,7 +25,6 @@ namespace SPSS.Infrastructure.Migrations
             modelBuilder.Entity("SPSS.Domain.Models.BL.Certificate", b =>
                 {
                     b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("text")
                         .HasColumnName("id");
 
@@ -43,8 +42,7 @@ namespace SPSS.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
+                        .HasColumnType("text")
                         .HasColumnName("name");
 
                     b.Property<string>("ParticipantId")
@@ -114,7 +112,6 @@ namespace SPSS.Infrastructure.Migrations
             modelBuilder.Entity("SPSS.Domain.Models.BL.Participant", b =>
                 {
                     b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("text")
                         .HasColumnName("id");
 
@@ -152,11 +149,6 @@ namespace SPSS.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("name");
-
-                    b.Property<string>("NormalizedName")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("normalizedname");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer")
