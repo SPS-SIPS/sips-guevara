@@ -1,0 +1,10 @@
+global using SPSS.Domain.Models.BL;
+global using System.Reflection;
+global using SPSS.App.Attributes;
+global using SPSS.Domain.Exceptions;
+global using SPSS.Domain.Interfaces;
+global using SPSS.Domain.Models.DTOs;
+global using SPSS.Domain.Enums;
+global using Microsoft.Extensions.Logging;
+global using SPSS.Domain.Common;
+global using static SPSS.Domain.Common.KnownClaims;
