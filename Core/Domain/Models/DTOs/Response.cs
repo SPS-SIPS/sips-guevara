@@ -3,8 +3,8 @@
 namespace SPSS.Domain.Models.DTOs;
 public sealed record Response<T>(T Data) : IResponse
 {
-    public bool IsSuccess { get; init; }
-    public int StatusCode { get; set; }
+    public bool IsSuccess { get; init; } = true;
+    public int StatusCode { get; set; } = 200;
     public string Message { get; init; } = string.Empty; // Add the 'required' modifier or declare the property as nullable.
     public int CacheInMins { get; set; } = 0;
     public static Response<T> BadRequest(string message, T? result = default)
