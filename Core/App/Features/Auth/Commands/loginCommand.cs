@@ -21,16 +21,21 @@ public sealed class LoginCommandHandler(IStorageBroker storage, ITokenService to
     {
         var user = await _storage.Users
         .Where(x => x.Phone.Equals(request.Username) || x.Username.Equals(request.Username.ToLower()))
-        .SingleOrDefaultAsync(cancellationToken) ?? throw new BadRequestException("Invalid username or password!");
+        .SingleOrDefaultAsync(cancellationToken);
 
-        if (!user.Active)
+        if (user is null)
         {
-            throw new BadRequestException("Your account is locked or not allowed to login!");
+            return Response<LoginDto>.BadRequest("Invalid username or password!");
         }
 
         if (!_passwordManager.CheckPassword(user, request.Password))
         {
-            throw new BadRequestException("Invalid username or password!");
+            return Response<LoginDto>.BadRequest("Invalid username or password!");
+        }
+
+        if (!user.Active)
+        {
+            return Response<LoginDto>.BadRequest("Your account is locked or not allowed to login!");
         }
 
         await _storage.SaveChangesAsync(cancellationToken);

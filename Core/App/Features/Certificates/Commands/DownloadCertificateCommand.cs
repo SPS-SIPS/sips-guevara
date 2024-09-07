@@ -3,7 +3,7 @@ namespace SPSS.App.Features.Certificates.Commands;
 using Org.BouncyCastle.X509;
 using static SPSS.Domain.Common.KnownClaims;
 [Authorize(Roles = DownloadCertificates)]
-public sealed record DownloadCertificateCommand(string SerialNumber) : IRequest<Response<CertificateDownloadDto>>;
+public sealed record DownloadCertificateCommand(string SerialNumber, string IssuerDN) : IRequest<Response<CertificateDownloadDto>>;
 public sealed class DownloadCertificateCommandValidator : AbstractValidator<DownloadCertificateCommand>
 {
     public DownloadCertificateCommandValidator()
@@ -22,7 +22,8 @@ public sealed class DownloadCertificateCommandHandler(IStorageBroker storage, IC
 
     public async ValueTask<Response<CertificateDownloadDto>> Handle(DownloadCertificateCommand request, CancellationToken cancellationToken)
     {
-        var certResponse = new CertificateDownloadDto { Content = string.Empty, CacheInMins = _settings.CacheInMins ?? 20 };
+        var cacheInMins = _settings.CacheInMins ?? 20;
+        var certResponse = new CertificateDownloadDto { Content = string.Empty };
         var certificate = await _storage.Certificates
         .Where(x => x.Id!.Equals(request.SerialNumber))
         .SingleOrDefaultAsync(cancellationToken);
@@ -88,7 +89,7 @@ public sealed class DownloadCertificateCommandHandler(IStorageBroker storage, IC
 
         certResponse.Content = certPem;
 
-        return new Response<CertificateDownloadDto>(certResponse);
+        return Response<CertificateDownloadDto>.Success(certResponse, cacheInMins);
     }
     private Response<X509Certificate?> RetrieverFromLdap(string serialNumber)
     {

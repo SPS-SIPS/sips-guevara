@@ -3,6 +3,5 @@ namespace SPSS.Domain.Models.DTOs;
 public sealed class CertificateDownloadDto
 {
     public string? Content { get; set; }
-    public int CacheInMins { get; set; }
 }
 

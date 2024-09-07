@@ -1,12 +1,12 @@
 
 
 namespace SPSS.Domain.Models.DTOs;
-
-public sealed record Response<T>(T Data)
+public sealed record Response<T>(T Data) : IResponse
 {
     public bool IsSuccess { get; init; }
     public int StatusCode { get; set; }
     public string Message { get; init; } = string.Empty; // Add the 'required' modifier or declare the property as nullable.
+    public int CacheInMins { get; set; } = 0;
     public static Response<T> BadRequest(string message, T? result = default)
     {
         return new Response<T>(result ?? default!)
@@ -48,13 +48,14 @@ public sealed record Response<T>(T Data)
         };
     }
 
-    public static Response<T> Success(T result)
+    public static Response<T> Success(T result, int cacheInMins)
     {
         return new Response<T>(result)
         {
             IsSuccess = true,
             Message = "Success",
-            StatusCode = 200
+            StatusCode = 200,
+            CacheInMins = cacheInMins
         };
     }
 }

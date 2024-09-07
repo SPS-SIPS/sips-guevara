@@ -36,7 +36,12 @@ public class CorsAndSwagger : IInstaller
              });
              o.OperationFilter<AuthorizeCheckOperationFilter>();
          });
-        services.AddControllers(options => options.Filters.Add<ApiExceptionFilterAttribute>());
+        services.AddControllers(options =>
+        {
+            options.Filters.Add<ApiExceptionFilterAttribute>();
+            options.Filters.Add<ResponseActionFilter>();
+        }
+        );
 
         // cors
         var corsPolicy = new CorsPolicies();
