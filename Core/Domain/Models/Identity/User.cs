@@ -34,11 +34,8 @@ public sealed class UserConfigurations : IEntityTypeConfiguration<User>
         builder.Property(e => e.Id).ValueGeneratedOnAdd();
 
         builder.Property(e => e.Username).HasMaxLength(50).IsRequired();
-        builder.Property(e => e.Phone).IsRequired();
 
-        builder.HasIndex(e => e.Version).IsUnique();
-
-        builder.HasIndex(e => e.Phone).IsUnique();
+        builder.HasIndex(e => e.Version);
         builder.HasIndex(e => e.Username).IsUnique();
         builder.HasMany(e => e.Roles).WithOne(e => e.User).HasForeignKey(e => e.UserId).IsRequired();
     }

@@ -407,16 +407,11 @@ namespace SPSS.Infrastructure.Migrations
                     b.HasKey("Id")
                         .HasName("pk_users");
 
-                    b.HasIndex("Phone")
-                        .IsUnique()
-                        .HasDatabaseName("ix_users_phone");
-
                     b.HasIndex("Username")
                         .IsUnique()
                         .HasDatabaseName("ix_users_username");
 
                     b.HasIndex("Version")
-                        .IsUnique()
                         .HasDatabaseName("ix_users_version");
 
                     b.ToTable("users", (string)null);
