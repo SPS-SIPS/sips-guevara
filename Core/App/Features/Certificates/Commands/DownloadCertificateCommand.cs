@@ -1,5 +1,6 @@
 namespace SPSS.App.Features.Certificates.Commands;
 
+using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.X509;
 using static SPSS.Domain.Common.KnownClaims;
 [Authorize(Roles = DownloadCertificates)]
@@ -35,6 +36,13 @@ public sealed class DownloadCertificateCommandHandler(IStorageBroker storage, II
 
             if (certificate.Active == false)
             {
+                return Response<CertificateDownloadDto>.NotFound("Certificate not found", certResponse);
+            }
+
+            if (certificate.IsRevoked)
+            {
+                certificate.Active = false;
+                await _storage.SaveChangesAsync(cancellationToken);
                 return Response<CertificateDownloadDto>.NotFound("Certificate not found", certResponse);
             }
 
