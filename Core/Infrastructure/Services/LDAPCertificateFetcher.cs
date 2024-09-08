@@ -11,18 +11,15 @@ public sealed class LDAPCertificateFetcher : IDisposable, ICertificateRetriever
     private readonly string _baseDn;
     private readonly LdapConnection _ldapConnection;
     private readonly ILogger<LDAPCertificateFetcher> _logger;
-    private readonly string ldapPath;
-    private readonly string ldapUser;
-    private readonly string ldapPassword;
+    private readonly string _ldapServer;
     public LDAPCertificateFetcher(IConfiguration configuration, ILogger<LDAPCertificateFetcher> logger)
     {
-        var ldapServer = configuration["LDAP:Server"] ?? throw new ArgumentNullException("LDAP:Server");
-        ldapUser = configuration["LDAP:Username"] ?? throw new ArgumentNullException("LDAP:Username");
-        ldapPassword = configuration["LDAP:Password"] ?? throw new ArgumentNullException("LDAP:Password");
+        _ldapServer = configuration["LDAP:Server"] ?? throw new ArgumentNullException("LDAP:Server");
+        var ldapUser = configuration["LDAP:Username"] ?? throw new ArgumentNullException("LDAP:Username");
+        var ldapPassword = configuration["LDAP:Password"] ?? throw new ArgumentNullException("LDAP:Password");
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _baseDn = configuration["LDAP:BaseDN"] ?? throw new ArgumentNullException("LDAP:BaseDN");
-        ldapPath = $"{ldapServer}/{_baseDn}";
-        _ldapConnection = new LdapConnection(ldapServer)
+        _ldapConnection = new LdapConnection(_ldapServer)
         {
             Credential = new NetworkCredential(ldapUser, ldapPassword)
         };
@@ -49,36 +46,37 @@ public sealed class LDAPCertificateFetcher : IDisposable, ICertificateRetriever
 
     public void GetAllCertificates()
     {
-        DirectoryEntry ldapConnection = new(ldapPath, ldapUser, ldapPassword);
-
-        DirectorySearcher searcher = new(ldapConnection)
+        try
         {
-            Filter = "(userCertificate=*)",  // Filter for entries with a userCertificate
-            PageSize = 1000  // Fetch 1000 results per page (adjust as needed)
-        };
+            LdapDirectoryIdentifier identifier = new(_ldapServer, true, false);
+            // Specify that we only need to retrieve the 'userCertificate' attribute
+            var searchFilter = "(userCertificate=*)";
+            // Define the search request
+            SearchRequest searchRequest = new(_baseDn, searchFilter, SearchScope.Subtree, "userCertificate");
 
-        // Specify that we only need to retrieve the 'userCertificate' attribute
-        searcher.PropertiesToLoad.Add("userCertificate");
+            // Send the search request and get the response
+            SearchResponse searchResponse = (SearchResponse)_ldapConnection.SendRequest(searchRequest);
 
-        // Perform the search and iterate over the results
-        SearchResultCollection results = searcher.FindAll();
-
-        foreach (SearchResult result in results)
-        {
-            if (result.Properties.Contains("userCertificate"))
+            // Iterate over search results
+            foreach (SearchResultEntry entry in searchResponse.Entries)
             {
-                // Iterate over each userCertificate (in case there are multiple certificates)
-                foreach (var cert in result.Properties["userCertificate"])
+                foreach (var attr in entry.Attributes["userCertificate"])
                 {
-                    byte[] certificateBytes = (byte[])cert;
-
-                    // Convert the binary certificate to an X509Certificate2 object
-                    _logger.LogInformation("Certificate found, Length: {content}", Convert.ToBase64String(certificateBytes));
+                    // Convert the userCertificate binary data to an X509Certificate2 object
+                    byte[] certificateBytes = (byte[])attr;
                     System.Security.Cryptography.X509Certificates.X509Certificate2 certificate = new(certificateBytes);
-                    // Print certificate details
-                    _logger.LogInformation("Certificate found, Subject: {Subject}, Issuer: {Issuer}, Serial Number: {SerialNumber}", certificate.Subject, certificate.Issuer, certificate.SerialNumber);
+
+                    _logger.LogInformation("Subject: {Subject}, Issuer: {Issuer}, Serial Number: {SerialNumber}", certificate.Subject, certificate.Issuer, certificate.SerialNumber);
                 }
             }
+        }
+        catch (LdapException ldapEx)
+        {
+            Console.WriteLine($"LDAP Error: {ldapEx.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
         }
     }
     private static X509Certificate ParseCertificate(byte[] certData)
