@@ -18,8 +18,10 @@ public class CertificateService(ILogger<CertificateService> logger, IServiceScop
             {
                 using var scope = _serviceScopeFactory.CreateScope();
                 var certificateRetriever = scope.ServiceProvider.GetRequiredService<ICertificateRetriever>();
+                var certificateValidator = scope.ServiceProvider.GetRequiredService<CertificateValidator>();
 
                 certificateRetriever.GetAllCertificates();
+                await certificateValidator.ValidateCertificates(stoppingToken);
 
                 await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
                 _logger.LogInformation("Completing Certificate Service cycle...");
