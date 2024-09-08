@@ -74,6 +74,11 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
             Id = certificate.SubjectDN.ToString(),
             Name = certificate.SubjectDN.ToString(),
             BicNo = certificate.SubjectDN.ToString(),
+            User = new User
+            {
+                Username = certificate.SubjectDN.ToString(),
+                Phone = certificate.SubjectDN.ToString(),
+            }
         };
         var cert = new Domain.Models.BL.Certificate
         {
