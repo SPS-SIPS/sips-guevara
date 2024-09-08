@@ -32,8 +32,6 @@ public sealed class DownloadCertificateCommandHandler(IStorageBroker storage, II
 
         if (certificate is not null)
         {
-            certResponse.Content = certificate.Name;
-
             if (certificate.Active == false)
             {
                 return Response<CertificateDownloadDto>.NotFound("Certificate not found", certResponse);
@@ -53,9 +51,9 @@ public sealed class DownloadCertificateCommandHandler(IStorageBroker storage, II
                 return Response<CertificateDownloadDto>.NotFound("Certificate not found", certResponse);
             }
 
+            certResponse.Content = certificate.Name;
             return Response<CertificateDownloadDto>.Success(certResponse, cacheInMins);
         }
         return Response<CertificateDownloadDto>.NotFound("Certificate not found", certResponse);
-
     }
 }
