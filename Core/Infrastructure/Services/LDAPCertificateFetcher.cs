@@ -88,7 +88,7 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
             catch (Exception ex)
             {
                 _logger.LogError("Error while fetching certificates from LDAP server {Exception}", ex.Message);
-                continue;
+                break;
             }
         } while (searchResponse.Controls.OfType<PageResultResponseControl>().Any());
 
