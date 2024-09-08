@@ -24,38 +24,58 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
             NetworkCredential credential = new(_ldapUser, _ldapPassword);
             LdapConnection connection = new(identifier, credential, AuthType.Basic);
 
-            // Specify that we only need to retrieve the 'userCertificate' attribute
-            var searchFilter = "(userCertificate=*)";
-
             // Set LDAP Protocol Version
             connection.SessionOptions.ProtocolVersion = 3;
 
-            // Define the search request
-            SearchRequest searchRequest = new(_baseDn, searchFilter, SearchScope.Subtree, "userCertificate");
+            // Enable paging by setting up PageResultRequestControl
+            const int pageSize = 1000;  // Set page size (adjust based on your server's limits)
+            PageResultRequestControl pageRequestControl = new(pageSize);
 
-            // Send the search request and get the response
-            SearchResponse searchResponse = (SearchResponse)connection.SendRequest(searchRequest);
-            _logger.LogInformation("Found {Count} certificates", searchResponse.Entries.Count);
-            // Iterate over search results
-            foreach (SearchResultEntry entry in searchResponse.Entries)
+            // Define the search request
+            SearchRequest searchRequest = new(_baseDn, "(userCertificate=*)", SearchScope.Subtree, "userCertificate");
+            searchRequest.Controls.Add(pageRequestControl);
+
+            SearchResponse searchResponse;
+            do
             {
-                _logger.LogInformation("DN: {DistinguishedName}", entry.DistinguishedName);
-                if (entry.Attributes.Contains("userCertificate"))
+                // Send the search request
+                searchResponse = (SearchResponse)connection.SendRequest(searchRequest);
+                _logger.LogInformation("Found {Count} certificates", searchResponse.Entries.Count);
+                // Iterate over search results
+                foreach (SearchResultEntry entry in searchResponse.Entries)
                 {
-                    foreach (var attr in entry.Attributes["userCertificate"])
+                    _logger.LogInformation("DN: {DistinguishedName}", entry.DistinguishedName);
+                    if (entry.Attributes.Contains("userCertificate"))
                     {
-                        byte[] certificateBytes = (byte[])attr;
-                        X509Certificate certificate = new(certificateBytes);
-                        _logger.LogInformation("Subject: {Subject}, Issuer: {Issuer}, Serial Number: {SerialNumber}",
-                        certificate.SubjectDN, certificate.IssuerDN, certificate.SerialNumber);
-                        await SaveCertificate(certificate);
+                        foreach (var attr in entry.Attributes["userCertificate"])
+                        {
+                            byte[] certificateBytes = (byte[])attr;
+                            X509Certificate certificate = new(certificateBytes);
+                            _logger.LogInformation("Subject: {Subject}, Issuer: {Issuer}, Serial Number: {SerialNumber}",
+                            certificate.SubjectDN, certificate.IssuerDN, certificate.SerialNumber);
+                            await SaveCertificate(certificate);
+                        }
                     }
+                    else
+                    {
+                        _logger.LogWarning("No userCertificate found for DN: {DistinguishedName}", entry.DistinguishedName);
+                    }
+                }
+                // Check if more results are available
+                PageResultResponseControl? pageResponseControl = searchResponse.Controls?
+                    .OfType<PageResultResponseControl>()
+                    .FirstOrDefault();
+
+                // If there is a cookie (meaning more results), continue paging
+                if (pageResponseControl != null && pageResponseControl.Cookie.Length > 0)
+                {
+                    pageRequestControl.Cookie = pageResponseControl.Cookie;
                 }
                 else
                 {
-                    _logger.LogWarning("No userCertificate found for DN: {DistinguishedName}", entry.DistinguishedName);
+                    break;  // No more pages
                 }
-            }
+            } while (searchResponse.Controls.OfType<PageResultResponseControl>().Any());
         }
         catch (LdapException ldapEx)
         {
