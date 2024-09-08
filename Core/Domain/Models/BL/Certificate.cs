@@ -4,6 +4,7 @@ public sealed class Certificate : BaseEntity<string>
 {
     public string Name { get; set; } = default!;
     public string Subject { get; set; } = default!;
+    public string Issuer { get; set; } = default!;
 
     public Participant Participant { get; set; } = default!;
     public string ParticipantId { get; set; } = default!;
@@ -33,6 +34,5 @@ public sealed class CertificateConfiguration : IEntityTypeConfiguration<Certific
 
         builder.HasOne(e => e.Participant).WithMany(e => e.Certificates)
             .HasForeignKey(e => e.ParticipantId).IsRequired();
-
     }
 }

@@ -48,6 +48,11 @@ namespace SPSS.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("issuedat");
 
+                    b.Property<string>("Issuer")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("issuer");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text")

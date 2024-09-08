@@ -9,6 +9,7 @@ public sealed class DownloadCertificateCommandValidator : AbstractValidator<Down
     public DownloadCertificateCommandValidator()
     {
         RuleFor(x => x.SerialNumber).NotNull().NotEqual(default(string));
+        RuleFor(x => x.IssuerDN).NotNull().NotEqual(default(string));
     }
 }
 
@@ -21,10 +22,11 @@ public sealed class DownloadCertificateCommandHandler(IStorageBroker storage, II
 
     public async ValueTask<Response<CertificateDownloadDto>> Handle(DownloadCertificateCommand request, CancellationToken cancellationToken)
     {
+        var formateIssuer = request.IssuerDN.ToLower();
         var cacheInMins = _settings.CacheInMins ?? 20;
         var certResponse = new CertificateDownloadDto { Content = string.Empty };
         var certificate = await _storage.Certificates
-        .Where(x => x.Id!.Equals(request.SerialNumber))
+        .Where(x => x.Id!.Equals(request.SerialNumber) && x.Issuer.Contains(formateIssuer))
         .SingleOrDefaultAsync(cancellationToken);
 
         if (certificate is not null)

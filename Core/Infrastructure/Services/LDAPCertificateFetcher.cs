@@ -83,6 +83,7 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
             Id = serialNumber.ToString(),
             Name = ConvertCertificateToPem(certificate),
             Subject = GetCommonName(certificate.SubjectDN.ToString()),
+            Issuer = certificate.IssuerDN.ToString(),
             ExpireDate = certificate.NotAfter,
             IssuedAt = certificate.NotBefore,
             CachedOn = DateTimeOffset.Now,
@@ -94,13 +95,6 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
         await _storage.Certificates.AddAsync(cert, ct);
         await _storage.SaveChangesAsync(ct);
     }
-    private static X509Certificate ParseCertificate(byte[] certData)
-    {
-        var parser = new X509CertificateParser();
-        return parser.ReadCertificate(certData);
-    }
-
-    // remove all the text before the equal from name eg: CN=DBSID take only DBSID
     private static string GetCommonName(string name)
     {
         var cn = name.Split(',').FirstOrDefault(n => n.Contains("CN="));
