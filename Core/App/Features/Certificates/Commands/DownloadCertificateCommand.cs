@@ -26,7 +26,7 @@ public sealed class DownloadCertificateCommandHandler(IStorageBroker storage, II
         var cacheInMins = _settings.CacheInMins ?? 20;
         var certResponse = new CertificateDownloadDto { Content = string.Empty };
         var certificate = await _storage.Certificates
-        .Where(x => x.Id!.Equals(request.SerialNumber) && x.Issuer.Contains(formateIssuer))
+        .Where(x => x.Id!.Equals(request.SerialNumber) && x.Issuer.ToLower().Contains(formateIssuer))
         .SingleOrDefaultAsync(cancellationToken);
 
         if (certificate is not null)
