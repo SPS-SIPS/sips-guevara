@@ -30,30 +30,30 @@ public sealed class DownloadCertificateCommandHandler(IStorageBroker storage, II
         .Where(x => x.Id!.Equals(request.SerialNumber) && x.Issuer.ToLower().Contains(formateIssuer))
         .SingleOrDefaultAsync(cancellationToken);
 
-        if (certificate is not null)
+        if (certificate is null)
         {
-            if (certificate.Active == false)
-            {
-                return Response<CertificateDownloadDto>.NotFound("Certificate not found", certResponse);
-            }
-
-            if (certificate.IsRevoked)
-            {
-                certificate.Active = false;
-                await _storage.SaveChangesAsync(cancellationToken);
-                return Response<CertificateDownloadDto>.NotFound("Certificate not found", certResponse);
-            }
-
-            if (certificate.ExpireDate < DateTimeOffset.UtcNow)
-            {
-                certificate.Active = false;
-                await _storage.SaveChangesAsync(cancellationToken);
-                return Response<CertificateDownloadDto>.NotFound("Certificate not found", certResponse);
-            }
-
-            certResponse.Content = certificate.Name;
-            return Response<CertificateDownloadDto>.Success(certResponse, cacheInMins);
+            return Response<CertificateDownloadDto>.NotFound("Certificate not found", null);
         }
-        return Response<CertificateDownloadDto>.NotFound("Certificate not found", certResponse);
+
+        if (certificate.Active == false)
+        {
+            return Response<CertificateDownloadDto>.NotFound("Certificate not found", null);
+        }
+
+        if (certificate.IsRevoked)
+        {
+            certificate.Active = false;
+            await _storage.SaveChangesAsync(cancellationToken);
+            return Response<CertificateDownloadDto>.NotFound("Certificate not found", null);
+        }
+
+        if (certificate.ExpireDate < DateTimeOffset.UtcNow)
+        {
+            certificate.Active = false;
+            await _storage.SaveChangesAsync(cancellationToken);
+            return Response<CertificateDownloadDto>.NotFound("Certificate not found", null);
+        }
+        certResponse.Content = certificate.Name;
+        return Response<CertificateDownloadDto>.Success(certResponse, cacheInMins);
     }
 }

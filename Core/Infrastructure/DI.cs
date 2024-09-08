@@ -74,7 +74,7 @@ public static class DI
         };
 
         // services.AddCronJob<BackupJob>(new JobConfiguration { Expression = backupConfiguration.Expression, TimeZoneInfo = backupConfiguration.TimeZoneInfo });
-        services.AddHostedService<CertificateFetchingService>();
+        // services.AddHostedService<CertificateFetchingService>();
         // services.AddHostedService<CertificateValidationService>();
         services.AddSingleton(TokenValidationParameters);
         return services;
