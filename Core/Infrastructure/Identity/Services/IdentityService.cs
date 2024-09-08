@@ -16,15 +16,13 @@ public sealed class IdentityService : IIdentityService
             Id = int.TryParse(user.FindFirstValue(JwtRegisteredClaimNames.Sub), out var id) ? id : default;
             Name = user.FindFirstValue(JwtRegisteredClaimNames.Name) ?? "";
             Username = user.FindFirstValue(JwtRegisteredClaimNames.UniqueName) ?? "";
-            StoreIds = GetStores();
-            TenantId = int.TryParse(user.FindFirstValue("tenantId"), out var rn) ? rn : default;
+            TenantId = user.FindFirstValue("tenantId") ?? "";
         }
         else
         {
             Id = -1;
             Name = "Not Logged In";
-            StoreIds = [-1];
-            TenantId = -1;
+            TenantId = "";
             Username = "";
         }
     }
@@ -61,9 +59,7 @@ public sealed class IdentityService : IIdentityService
 
     public string Name { get; }
     public string Username { get; }
-
-    public int[] StoreIds { get; }
-    public int TenantId { get; }
+    public string TenantId { get; }
 
     public bool IsSPSS { get; }
 

@@ -27,6 +27,7 @@ public sealed class TokenService(JwtSettings settings, TokenValidationParameters
                 new System.Security.Claims.Claim(JwtRegisteredClaimNames.Iss, _settings.Issuer),
                 new System.Security.Claims.Claim(JwtRegisteredClaimNames.Aud, _settings.Audience),
                 new System.Security.Claims.Claim(JwtRegisteredClaimNames.Name, user.Username),
+                new System.Security.Claims.Claim("tenantId", user.Participant?.Id ?? ""),
             ]),
             Expires = DateTime.UtcNow.Add(_settings.TokenLifetime),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)

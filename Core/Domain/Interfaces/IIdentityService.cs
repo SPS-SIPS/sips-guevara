@@ -3,8 +3,7 @@ namespace SPSS.Domain.Interfaces;
 public interface IIdentityService
 {
     int Id { get; }
-    int[] StoreIds { get; }
-    int TenantId { get; }
+    string TenantId { get; }
     bool IsAuthenticated { get; }
     string Name { get; }
     string Username { get; }

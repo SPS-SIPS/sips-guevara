@@ -21,6 +21,7 @@ public sealed class LoginCommandHandler(IStorageBroker storage, ITokenService to
     {
         var user = await _storage.Users
         .Where(x => x.Phone.Equals(request.Username) || x.Username.Equals(request.Username.ToLower()))
+        .Include(x => x.Participant)
         .SingleOrDefaultAsync(cancellationToken);
 
         if (user is null)

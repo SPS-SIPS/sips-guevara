@@ -1,8 +1,4 @@
 namespace SPSS.App.Features.Certificates.Commands;
-
-using Org.BouncyCastle.Asn1.Crmf;
-using Org.BouncyCastle.X509;
-using static SPSS.Domain.Common.KnownClaims;
 [Authorize(Roles = DownloadCertificates)]
 public sealed record DownloadCertificateCommand(string SerialNumber, string IssuerDN) : IRequest<Response<CertificateDownloadDto>>;
 public sealed class DownloadCertificateCommandValidator : AbstractValidator<DownloadCertificateCommand>
@@ -26,6 +22,7 @@ public sealed class DownloadCertificateCommandHandler(IStorageBroker storage, II
         var formateIssuer = request.IssuerDN.ToLower();
         var cacheInMins = _settings.CacheInMins ?? 20;
         var certResponse = new CertificateDownloadDto { Content = string.Empty };
+
         var certificate = await _storage.Certificates
         .Where(x => x.Id!.Equals(request.SerialNumber) && x.Issuer.ToLower().Contains(formateIssuer))
         .SingleOrDefaultAsync(cancellationToken);
@@ -54,6 +51,18 @@ public sealed class DownloadCertificateCommandHandler(IStorageBroker storage, II
             return Response<CertificateDownloadDto>.NotFound("Certificate not found", null);
         }
         certResponse.Content = certificate.Name;
+
+        if (_identity.Username != "admin")
+        {
+            certificate.Downloads.Add(new Download
+            {
+                Date = DateTime.UtcNow.ToUniversalTime(),
+                ParticipantId = _identity.TenantId,
+                Username = _identity.Username,
+            });
+
+            await _storage.SaveChangesAsync(cancellationToken);
+        }
         return Response<CertificateDownloadDto>.Success(certResponse, cacheInMins);
     }
 }

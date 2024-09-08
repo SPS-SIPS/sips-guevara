@@ -48,6 +48,7 @@ public sealed class RefreshCommandHandler(IStorageBroker storage, ITokenService 
 
         var user = await _storage.Users
         .Where(x => x.Id.Equals(userId))
+        .Include(x => x.Participant)
         .SingleOrDefaultAsync(cancellationToken) ?? throw new InvalidTokenException("Can't find user");
         if (!user.Active)
         {

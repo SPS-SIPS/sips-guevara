@@ -14,8 +14,7 @@ public sealed class FakeUserService : IIdentityService
     public string Name { get; }
     public string Username { get; }
 
-    public int[] StoreIds => [-1];
-    public int TenantId => -1;
+    public string TenantId => "";
 
     public bool HasClaim(string type) => false;
 
