@@ -89,7 +89,8 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
             CachedOn = DateTimeOffset.Now,
             // check if certificate is not expired
             Active = certificate.NotAfter > DateTimeOffset.Now,
-            Participant = participant
+            Participant = participant,
+            IsRevoked = false,
         };
 
         await _storage.Certificates.AddAsync(cert, ct);
