@@ -35,16 +35,25 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
 
             // Send the search request and get the response
             SearchResponse searchResponse = (SearchResponse)connection.SendRequest(searchRequest);
+            _logger.LogInformation("Found {Count} certificates", searchResponse.Entries.Count);
             // Iterate over search results
             foreach (SearchResultEntry entry in searchResponse.Entries)
             {
                 _logger.LogInformation("DN: {DistinguishedName}", entry.DistinguishedName);
-                foreach (var attr in entry.Attributes["userCertificate"])
+                if (entry.Attributes.Contains("userCertificate"))
                 {
-                    byte[] certificateBytes = (byte[])attr;
-                    X509Certificate certificate = new(certificateBytes);
-                    _logger.LogInformation("Subject: {Subject}, Issuer: {Issuer}, Serial Number: {SerialNumber}", certificate.SubjectDN, certificate.IssuerDN, certificate.SerialNumber);
-                    await SaveCertificate(certificate);
+                    foreach (var attr in entry.Attributes["userCertificate"])
+                    {
+                        byte[] certificateBytes = (byte[])attr;
+                        X509Certificate certificate = new(certificateBytes);
+                        _logger.LogInformation("Subject: {Subject}, Issuer: {Issuer}, Serial Number: {SerialNumber}",
+                        certificate.SubjectDN, certificate.IssuerDN, certificate.SerialNumber);
+                        await SaveCertificate(certificate);
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("No userCertificate found for DN: {DistinguishedName}", entry.DistinguishedName);
                 }
             }
         }
