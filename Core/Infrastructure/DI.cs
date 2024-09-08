@@ -39,8 +39,9 @@ public static class DI
         services.AddSingleton<IPasswordHash, PasswordHash>();
         services.AddSingleton<IPasswordManager, PasswordManager>();
         services.AddSingleton<IEmailSender, EmailSender>();
-        services.AddSingleton<ICertificateRetriever, LDAPCertificateFetcher>();
-        services.AddSingleton<CertificateValidator>();
+
+        services.AddScoped<ICertificateRetriever, LDAPCertificateFetcher>();
+        services.AddScoped<CertificateValidator>();
         services.AddScoped<IFileStorage, FileService>();
 
         var jwtSettings = new JwtSettings();

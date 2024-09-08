@@ -8,7 +8,7 @@ using Org.BouncyCastle.X509;
 namespace SPSS.Infrastructure.Services;
 public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger<LDAPCertificateFetcher> logger, IStorageBroker storage) : ICertificateRetriever
 {
-    private readonly string _baseDn = configuration["LDAP:BaseDN"] ?? throw new ArgumentNullException("LDAP:BaseDN");
+    private readonly string[] _baseDn = configuration.GetSection("LDAP:BaseDN").Get<string[]>() ?? throw new ArgumentNullException("LDAP:BaseDN");
     private readonly ILogger<LDAPCertificateFetcher> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly string _ldapServer = configuration["LDAP:Server"] ?? throw new ArgumentNullException("LDAP:Server");
     private readonly string _ldapUser = configuration["LDAP:Username"] ?? throw new ArgumentNullException("LDAP:Username");
@@ -16,27 +16,35 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
     private readonly IStorageBroker _storage = storage;
     public async Task GetAllCertificates()
     {
-        try
+        foreach (var dn in _baseDn)
         {
-            // Establish LDAP connection
-            LdapDirectoryIdentifier identifier = new(_ldapServer, 389, false, false);  // For plain LDAP
+            await GetCertificateByDN(dn);
+        }
+    }
 
-            NetworkCredential credential = new(_ldapUser, _ldapPassword);
-            LdapConnection connection = new(identifier, credential, AuthType.Basic);
+    private async Task GetCertificateByDN(string dn)
+    {
+        // Establish LDAP connection
+        LdapDirectoryIdentifier identifier = new(_ldapServer, 389, false, false);  // For plain LDAP
 
-            // Set LDAP Protocol Version
-            connection.SessionOptions.ProtocolVersion = 3;
+        NetworkCredential credential = new(_ldapUser, _ldapPassword);
+        LdapConnection connection = new(identifier, credential, AuthType.Basic);
 
-            // Enable paging by setting up PageResultRequestControl
-            const int pageSize = 1000;  // Set page size (adjust based on your server's limits)
-            PageResultRequestControl pageRequestControl = new(pageSize);
+        // Set LDAP Protocol Version
+        connection.SessionOptions.ProtocolVersion = 3;
 
-            // Define the search request
-            SearchRequest searchRequest = new(_baseDn, "(userCertificate=*)", SearchScope.Subtree, "userCertificate");
-            searchRequest.Controls.Add(pageRequestControl);
+        // Enable paging by setting up PageResultRequestControl
+        const int pageSize = 1000;  // Set page size (adjust based on your server's limits)
+        PageResultRequestControl pageRequestControl = new(pageSize);
 
-            SearchResponse searchResponse;
-            do
+        // Define the search request
+        SearchRequest searchRequest = new(dn, "(userCertificate=*)", SearchScope.Subtree, "userCertificate");
+        searchRequest.Controls.Add(pageRequestControl);
+
+        SearchResponse? searchResponse = null;
+        do
+        {
+            try
             {
                 // Send the search request
                 searchResponse = (SearchResponse)connection.SendRequest(searchRequest);
@@ -52,9 +60,10 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
                             byte[] certificateBytes = (byte[])attr;
                             X509Certificate certificate = new(certificateBytes);
                             _logger.LogInformation("Subject: {Subject}, Issuer: {Issuer}, Serial Number: {SerialNumber}",
-                            certificate.SubjectDN, certificate.IssuerDN, certificate.SerialNumber);
+                                certificate.SubjectDN, certificate.IssuerDN, certificate.SerialNumber);
                             await SaveCertificate(certificate);
                         }
+
                     }
                     else
                     {
@@ -63,7 +72,7 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
                 }
                 // Check if more results are available
                 PageResultResponseControl? pageResponseControl = searchResponse.Controls?
-                    .OfType<PageResultResponseControl>()
+                        .OfType<PageResultResponseControl>()
                     .FirstOrDefault();
 
                 // If there is a cookie (meaning more results), continue paging
@@ -75,16 +84,14 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
                 {
                     break;  // No more pages
                 }
-            } while (searchResponse.Controls.OfType<PageResultResponseControl>().Any());
-        }
-        catch (LdapException ldapEx)
-        {
-            Console.WriteLine($"LDAP Error: {ldapEx.Message}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error: {ex.Message}");
-        }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error while fetching certificates from LDAP server {Exception}", ex.Message);
+                continue;
+            }
+        } while (searchResponse.Controls.OfType<PageResultResponseControl>().Any());
+
     }
     private async Task SaveCertificate(X509Certificate certificate, CancellationToken ct = default)
     {
@@ -114,11 +121,11 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
             Name = ConvertCertificateToPem(certificate),
             Subject = GetCommonName(certificate.SubjectDN.ToString()),
             Issuer = certificate.IssuerDN.ToString(),
-            ExpireDate = certificate.NotAfter,
-            IssuedAt = certificate.NotBefore,
-            CachedOn = DateTimeOffset.Now,
+            ExpireDate = certificate.NotAfter.ToUniversalTime(),
+            IssuedAt = certificate.NotBefore.ToUniversalTime(),
+            CachedOn = DateTimeOffset.Now.ToUniversalTime(),
             // check if certificate is not expired
-            Active = certificate.NotAfter > DateTimeOffset.Now,
+            Active = certificate.NotAfter.ToUniversalTime() > DateTimeOffset.Now.ToUniversalTime(),
             Participant = participant,
             IsRevoked = false,
         };
