@@ -20,9 +20,10 @@ public class CertificateFetchingService(ILogger<CertificateFetchingService> logg
                 var certificateRetriever = scope.ServiceProvider.GetRequiredService<ICertificateRetriever>();
                 var certificateValidator = scope.ServiceProvider.GetRequiredService<CertificateValidator>();
 
+                await certificateRetriever.GetAllCertificates();
                 await certificateValidator.ValidateCertificates(stoppingToken);
 
-                await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
+                await Task.Delay(TimeSpan.FromMinutes(10), stoppingToken);
                 _logger.LogInformation("Completing Certificate Fetch Service cycle...");
                 IsHealthy = true;
             }
