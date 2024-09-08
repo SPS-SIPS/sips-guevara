@@ -3,7 +3,7 @@ namespace SPSS.App.Features.Certificates.Queries;
 
 using static SPSS.Domain.Common.KnownClaims;
 [Authorize(Roles = QueryCertificates)]
-public sealed record GetCertificatesListQuery(bool? Active, int? UserId, int? ParticipantId) : PaginationFilter, IRequest<PagedResponse<CertificateDto>>;
+public sealed record GetCertificatesListQuery(bool? Active, bool? IsRevoked, int? UserId, int? ParticipantId) : PaginationFilter, IRequest<PagedResponse<CertificateDto>>;
 
 public sealed class GetCertificatesListQueryHandler(IStorageBroker storage, IMapper mapper, IIdentityService identityService) : IRequestHandler<GetCertificatesListQuery, PagedResponse<CertificateDto>>
 {
@@ -18,6 +18,11 @@ public sealed class GetCertificatesListQueryHandler(IStorageBroker storage, IMap
         if (request.Active.HasValue)
         {
             query = query.Where(x => x.Active.Equals(request.Active.Value));
+        }
+
+        if (request.IsRevoked.HasValue)
+        {
+            query = query.Where(x => x.IsRevoked.Equals(request.IsRevoked.Value));
         }
 
         if (request.UserId.HasValue)
