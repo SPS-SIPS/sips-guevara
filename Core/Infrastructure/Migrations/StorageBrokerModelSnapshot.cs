@@ -40,6 +40,10 @@ namespace SPSS.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expiredate");
 
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("boolean")
+                        .HasColumnName("isrevoked");
+
                     b.Property<DateTimeOffset>("IssuedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("issuedat");

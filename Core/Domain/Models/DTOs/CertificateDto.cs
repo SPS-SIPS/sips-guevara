@@ -8,6 +8,9 @@ public sealed class CertificateDto : IMap<Certificate>
     public DateTimeOffset ExpireDate { get; set; }
     public DateTimeOffset CachedOn { get; set; }
     public Lookup<string> Participant { get; set; } = null!;
+    public string Subject { get; set; } = default!;
+    public DateTimeOffset IssuedAt { get; set; }
+    public bool IsRevoked { get; set; } = false;
     public bool Active { get; set; }
     public void Mapping(Profile profile)
     {
