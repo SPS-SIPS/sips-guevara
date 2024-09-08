@@ -9,11 +9,13 @@ public sealed class LDAPCertificateFetcher : IDisposable, ICertificateRetriever
 {
     private readonly string _baseDn;
     private readonly LdapConnection _ldapConnection;
-    public LDAPCertificateFetcher(IConfiguration configuration)
+    private readonly ILogger<LDAPCertificateFetcher> _logger;
+    public LDAPCertificateFetcher(IConfiguration configuration, ILogger<LDAPCertificateFetcher> logger)
     {
         var ldapServer = configuration["LDAP:Server"] ?? throw new ArgumentNullException("LDAP:Server");
         var username = configuration["LDAP:Username"] ?? throw new ArgumentNullException("LDAP:Username");
         var password = configuration["LDAP:Password"] ?? throw new ArgumentNullException("LDAP:Password");
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _baseDn = configuration["LDAP:BaseDN"] ?? throw new ArgumentNullException("LDAP:BaseDN");
 
         _ldapConnection = new LdapConnection(ldapServer)
@@ -41,6 +43,21 @@ public sealed class LDAPCertificateFetcher : IDisposable, ICertificateRetriever
         return null;
     }
 
+    public void GetAllCertificates()
+    {
+        var searchFilter = $"(userCertificate=*)";
+        var searchRequest = new SearchRequest(_baseDn, searchFilter, SearchScope.Subtree, "userCertificate");
+
+        var searchResponse = (SearchResponse)_ldapConnection.SendRequest(searchRequest);
+
+        foreach (SearchResultEntry entry in searchResponse.Entries)
+        {
+            if (entry.Attributes["userCertificate"]?[0] is byte[] certData)
+            {
+                _logger.LogError("Certificate found {certData}", certData);
+            }
+        }
+    }
     private static X509Certificate ParseCertificate(byte[] certData)
     {
         var parser = new X509CertificateParser();
