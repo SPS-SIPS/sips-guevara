@@ -1,4 +1,3 @@
-using System.DirectoryServices;
 using System.DirectoryServices.Protocols;
 using System.Net;
 using System.Text;
@@ -6,51 +5,19 @@ using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.X509;
 
 namespace SPSS.Infrastructure.Services;
-public sealed class LDAPCertificateFetcher : IDisposable, ICertificateRetriever
+public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger<LDAPCertificateFetcher> logger) : ICertificateRetriever
 {
-    private readonly string _baseDn;
-    private readonly LdapConnection _ldapConnection;
-    private readonly ILogger<LDAPCertificateFetcher> _logger;
-    private readonly string _ldapServer;
-    private readonly string _ldapUser;
-    private readonly string _ldapPassword;
-    public LDAPCertificateFetcher(IConfiguration configuration, ILogger<LDAPCertificateFetcher> logger)
-    {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-        _ldapServer = configuration["LDAP:Server"] ?? throw new ArgumentNullException("LDAP:Server");
-        _ldapUser = configuration["LDAP:Username"] ?? throw new ArgumentNullException("LDAP:Username");
-        _ldapPassword = configuration["LDAP:Password"] ?? throw new ArgumentNullException("LDAP:Password");
-        _baseDn = configuration["LDAP:BaseDN"] ?? throw new ArgumentNullException("LDAP:BaseDN");
-        _ldapConnection = new LdapConnection(_ldapServer)
-        {
-            Credential = new NetworkCredential(_ldapUser, _ldapPassword)
-        };
-        _ldapConnection.Bind();
-    }
-
-
-    public X509Certificate? GetCertificateBySerialNumber(string serialNumber)
-    {
-        var searchFilter = $"(serialNumber={serialNumber})";
-        var searchRequest = new SearchRequest(_baseDn, searchFilter, System.DirectoryServices.Protocols.SearchScope.Subtree, "userCertificate");
-
-        var searchResponse = (SearchResponse)_ldapConnection.SendRequest(searchRequest);
-
-        foreach (SearchResultEntry entry in searchResponse.Entries)
-        {
-            if (entry.Attributes["userCertificate"]?[0] is byte[] certData)
-            {
-                return ParseCertificate(certData);
-            }
-        }
-        return null;
-    }
+    private readonly string _baseDn = configuration["LDAP:BaseDN"] ?? throw new ArgumentNullException("LDAP:BaseDN");
+    private readonly ILogger<LDAPCertificateFetcher> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly string _ldapServer = configuration["LDAP:Server"] ?? throw new ArgumentNullException("LDAP:Server");
+    private readonly string _ldapUser = configuration["LDAP:Username"] ?? throw new ArgumentNullException("LDAP:Username");
+    private readonly string _ldapPassword = configuration["LDAP:Password"] ?? throw new ArgumentNullException("LDAP:Password");
 
     public void GetAllCertificates()
     {
         try
         {
+            _logger.LogInformation("Getting Certificate");
             // Establish LDAP connection
             LdapDirectoryIdentifier identifier = new(_ldapServer, 389, false, false);  // For plain LDAP
 
@@ -108,10 +75,5 @@ public sealed class LDAPCertificateFetcher : IDisposable, ICertificateRetriever
         }
 
         return pemStringBuilder.ToString();
-    }
-
-    public void Dispose()
-    {
-        _ldapConnection?.Dispose();
     }
 }
