@@ -12,16 +12,19 @@ public sealed class LDAPCertificateFetcher : IDisposable, ICertificateRetriever
     private readonly LdapConnection _ldapConnection;
     private readonly ILogger<LDAPCertificateFetcher> _logger;
     private readonly string _ldapServer;
+    private readonly string _ldapUser;
+    private readonly string _ldapPassword;
     public LDAPCertificateFetcher(IConfiguration configuration, ILogger<LDAPCertificateFetcher> logger)
     {
-        _ldapServer = configuration["LDAP:Server"] ?? throw new ArgumentNullException("LDAP:Server");
-        var ldapUser = configuration["LDAP:Username"] ?? throw new ArgumentNullException("LDAP:Username");
-        var ldapPassword = configuration["LDAP:Password"] ?? throw new ArgumentNullException("LDAP:Password");
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+        _ldapServer = configuration["LDAP:Server"] ?? throw new ArgumentNullException("LDAP:Server");
+        _ldapUser = configuration["LDAP:Username"] ?? throw new ArgumentNullException("LDAP:Username");
+        _ldapPassword = configuration["LDAP:Password"] ?? throw new ArgumentNullException("LDAP:Password");
         _baseDn = configuration["LDAP:BaseDN"] ?? throw new ArgumentNullException("LDAP:BaseDN");
         _ldapConnection = new LdapConnection(_ldapServer)
         {
-            Credential = new NetworkCredential(ldapUser, ldapPassword)
+            Credential = new NetworkCredential(_ldapUser, _ldapPassword)
         };
         _ldapConnection.Bind();
     }
@@ -48,15 +51,23 @@ public sealed class LDAPCertificateFetcher : IDisposable, ICertificateRetriever
     {
         try
         {
-            LdapDirectoryIdentifier identifier = new(_ldapServer, true, false);
+            // Establish LDAP connection
+            LdapDirectoryIdentifier identifier = new(_ldapServer, 389, false, false);  // For plain LDAP
+
+            NetworkCredential credential = new(_ldapUser, _ldapPassword);
+            LdapConnection connection = new(identifier, credential, AuthType.Basic);
+
             // Specify that we only need to retrieve the 'userCertificate' attribute
             var searchFilter = "(userCertificate=*)";
+
+            // Set LDAP Protocol Version
+            connection.SessionOptions.ProtocolVersion = 3;
+
             // Define the search request
             SearchRequest searchRequest = new(_baseDn, searchFilter, SearchScope.Subtree, "userCertificate");
 
             // Send the search request and get the response
-            SearchResponse searchResponse = (SearchResponse)_ldapConnection.SendRequest(searchRequest);
-
+            SearchResponse searchResponse = (SearchResponse)connection.SendRequest(searchRequest);
             // Iterate over search results
             foreach (SearchResultEntry entry in searchResponse.Entries)
             {
