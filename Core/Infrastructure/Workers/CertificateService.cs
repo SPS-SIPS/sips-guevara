@@ -20,7 +20,7 @@ public class CertificateService(ILogger<CertificateService> logger, IServiceScop
                 var certificateRetriever = scope.ServiceProvider.GetRequiredService<ICertificateRetriever>();
                 var certificateValidator = scope.ServiceProvider.GetRequiredService<CertificateValidator>();
 
-                certificateRetriever.GetAllCertificates();
+                await certificateRetriever.GetAllCertificates();
                 await certificateValidator.ValidateCertificates(stoppingToken);
 
                 await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
