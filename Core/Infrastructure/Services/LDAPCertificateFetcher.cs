@@ -69,31 +69,31 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
             return;
         }
 
-        var participant = await _storage.Participants.FirstOrDefaultAsync(p => p.Id == certificate.SubjectDN.ToString(), cancellationToken: ct) ?? new Domain.Models.BL.Participant
+        var participant = await _storage.Participants.FirstOrDefaultAsync(p => p.Id == GetCommonName(certificate.SubjectDN.ToString()), cancellationToken: ct) ?? new Domain.Models.BL.Participant
         {
-            Id = certificate.SubjectDN.ToString(),
-            Name = certificate.SubjectDN.ToString(),
-            BicNo = certificate.SubjectDN.ToString(),
+            Id = GetCommonName(certificate.SubjectDN.ToString()),
+            Name = GetCommonName(certificate.SubjectDN.ToString()),
+            BicNo = GetCommonName(certificate.SubjectDN.ToString()),
             User = new User
             {
-                Username = certificate.SubjectDN.ToString(),
-                Phone = certificate.SubjectDN.ToString(),
+                Username = GetCommonName(certificate.SubjectDN.ToString()),
+                Phone = GetCommonName(certificate.SubjectDN.ToString()),
             }
         };
         var cert = new Domain.Models.BL.Certificate
         {
             Id = serialNumber.ToString(),
-            Name = certificate.SubjectDN.ToString(),
-            Subject = certificate.SubjectDN.ToString(),
+            Name = ConvertCertificateToPem(certificate),
+            Subject = GetCommonName(certificate.SubjectDN.ToString()),
             ExpireDate = certificate.NotAfter,
             IssuedAt = certificate.NotBefore,
             CachedOn = DateTimeOffset.Now,
             // check if certificate is not expired
-            Active = certificate.NotAfter > DateTimeOffset.Now
+            Active = certificate.NotAfter > DateTimeOffset.Now,
+            Participant = participant
         };
 
-        participant.Certificates.Add(cert);
-        await _storage.Participants.AddAsync(participant, ct);
+        await _storage.Certificates.AddAsync(cert, ct);
         await _storage.SaveChangesAsync(ct);
     }
     private static X509Certificate ParseCertificate(byte[] certData)
@@ -102,6 +102,12 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
         return parser.ReadCertificate(certData);
     }
 
+    // remove all the text before the equal from name eg: CN=DBSID take only DBSID
+    private static string GetCommonName(string name)
+    {
+        var cn = name.Split(',').FirstOrDefault(n => n.Contains("CN="));
+        return cn?.Split('=')[1] ?? name;
+    }
     public string ConvertCertificateToPem(X509Certificate certificate)
     {
         StringBuilder pemStringBuilder = new();
