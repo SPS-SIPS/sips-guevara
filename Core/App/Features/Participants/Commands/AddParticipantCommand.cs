@@ -1,6 +1,6 @@
 namespace SPSS.App.Features.Participants.Commands;
 [Authorize(Roles = CreateParticipant)]
-public sealed record AddParticipantCommand(string Id, string Name, int UserId) : IRequest<Response<string>>;
+public sealed record AddParticipantCommand(string Id, string Name, string BicNo, int UserId) : IRequest<Response<string>>;
 
 public sealed class AddParticipantCommandValidator : AbstractValidator<AddParticipantCommand>
 {
@@ -9,6 +9,7 @@ public sealed class AddParticipantCommandValidator : AbstractValidator<AddPartic
         RuleFor(x => x.Id).NotEmpty().MaximumLength(50);
         RuleFor(x => x.Name).NotEmpty().MaximumLength(50);
         RuleFor(x => x.UserId).NotEmpty();
+        RuleFor(x => x.BicNo).NotEmpty();
     }
 }
 
@@ -34,6 +35,7 @@ public sealed class AddParticipantCommandHandler(IStorageBroker storage) : IRequ
             Id = request.Id,
             Name = request.Name,
             UserId = request.UserId,
+            BicNo = request.BicNo,
             Active = true,
         };
 

@@ -40,6 +40,10 @@ namespace SPSS.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expiredate");
 
+                    b.Property<DateTimeOffset>("IssuedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("issuedat");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text")
@@ -49,6 +53,11 @@ namespace SPSS.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("participantid");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("subject");
 
                     b.HasKey("Id")
                         .HasName("pk_certificates");
@@ -119,6 +128,11 @@ namespace SPSS.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("active");
 
+                    b.Property<string>("BicNo")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("bicno");
+
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasColumnType("text")
@@ -156,6 +170,10 @@ namespace SPSS.Infrastructure.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_participants");
+
+                    b.HasIndex("BicNo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_participants_bicno");
 
                     b.HasIndex("UserId")
                         .IsUnique()

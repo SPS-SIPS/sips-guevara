@@ -6,6 +6,7 @@ public sealed class ParticipantDto : IMap<Participant>
 {
     public string Id { get; set; } = null!;
     public string Name { get; set; } = default!;
+    public string BicNo { get; set; } = default!;
     public Lookup<int> User { get; set; } = null!;
     public void Mapping(Profile profile)
     {

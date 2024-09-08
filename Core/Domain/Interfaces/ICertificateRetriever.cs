@@ -4,5 +4,5 @@ namespace SPSS.Domain.Interfaces;
 public interface ICertificateRetriever
 {
     string ConvertCertificateToPem(X509Certificate certificate);
-    void GetAllCertificates();
+    Task GetAllCertificates();
 }

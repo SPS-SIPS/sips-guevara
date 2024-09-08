@@ -1,6 +1,6 @@
 namespace SPSS.App.Features.Participants.Commands;
 [Authorize(Roles = CreateParticipant)]
-public sealed record EditParticipantCommand(string Id, string Name, int UserId, bool? Active) : IRequest<Response<string>>;
+public sealed record EditParticipantCommand(string Id, string Name, int UserId, string BicNo, bool? Active) : IRequest<Response<string>>;
 
 public sealed class EditParticipantCommandValidator : AbstractValidator<EditParticipantCommand>
 {
@@ -9,6 +9,7 @@ public sealed class EditParticipantCommandValidator : AbstractValidator<EditPart
         RuleFor(x => x.Name).NotEmpty().MaximumLength(50);
         RuleFor(x => x.UserId).NotEmpty();
         RuleFor(x => x.Id).NotEmpty();
+        RuleFor(x => x.BicNo).NotEmpty();
     }
 }
 
@@ -34,6 +35,7 @@ public sealed class EditParticipantCommandHandler(IStorageBroker storage) : IReq
         entity.Name = request.Name;
         entity.UserId = request.UserId;
         entity.Active = request.Active ?? entity.Active;
+        entity.BicNo = request.BicNo;
 
         await _storage.SaveChangesAsync(cancellationToken);
         return new Response<string>(entity.Id!);

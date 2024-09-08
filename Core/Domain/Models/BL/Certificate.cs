@@ -3,11 +3,13 @@ namespace SPSS.Domain.Models.BL;
 public sealed class Certificate : BaseEntity<string>
 {
     public string Name { get; set; } = default!;
+    public string Subject { get; set; } = default!;
 
     public Participant Participant { get; set; } = default!;
     public string ParticipantId { get; set; } = default!;
 
     public DateTimeOffset ExpireDate { get; set; }
+    public DateTimeOffset IssuedAt { get; set; }
     public DateTimeOffset CachedOn { get; set; }
     public ICollection<Download> Downloads { get; set; } = [];
 }
