@@ -111,8 +111,8 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
         return pemStringBuilder.ToString();
     }
 
-    private static long ConvertHexToDecimal(BigInteger serialNumber)
+    private static string ConvertHexToDecimal(BigInteger serialNumber)
     {
-        return long.Parse(serialNumber.ToString(), NumberStyles.HexNumber);
+        return serialNumber.ToString();
     }
 }
