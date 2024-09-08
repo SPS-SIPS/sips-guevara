@@ -38,6 +38,7 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
             // Iterate over search results
             foreach (SearchResultEntry entry in searchResponse.Entries)
             {
+                _logger.LogInformation("DN: {DistinguishedName}", entry.DistinguishedName);
                 foreach (var attr in entry.Attributes["userCertificate"])
                 {
                     byte[] certificateBytes = (byte[])attr;
