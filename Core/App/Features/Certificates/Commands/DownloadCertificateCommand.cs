@@ -6,7 +6,8 @@ public sealed class DownloadCertificateCommandValidator : AbstractValidator<Down
     public DownloadCertificateCommandValidator()
     {
         RuleFor(x => x.SerialNumber).NotNull().NotEqual(default(string));
-        RuleFor(x => x.IssuerDN).NotNull().NotEqual(default(string));
+        // IssuerDN must be equal to CN=sps issuing CA, DC=sps, DC=local always, but not case sensitive can be sps issuing ca or sps issuing CA
+        RuleFor(x => x.IssuerDN).NotNull().NotEqual(default(string)).Equal("CN=sps issuing CA, DC=sps, DC=local", StringComparer.OrdinalIgnoreCase);
     }
 }
 
@@ -19,12 +20,11 @@ public sealed class DownloadCertificateCommandHandler(IStorageBroker storage, II
 
     public async ValueTask<Response<CertificateDownloadDto>> Handle(DownloadCertificateCommand request, CancellationToken cancellationToken)
     {
-        var formateIssuer = request.IssuerDN.ToLower();
         var cacheInMins = _settings.CacheInMins ?? 20;
         var certResponse = new CertificateDownloadDto { Content = string.Empty };
 
         var certificate = await _storage.Certificates
-        .Where(x => x.Id!.Equals(request.SerialNumber) && x.Issuer.ToLower().Contains(formateIssuer))
+        .Where(x => x.Id!.Equals(request.SerialNumber))
         .SingleOrDefaultAsync(cancellationToken);
 
         if (certificate is null)
