@@ -40,8 +40,13 @@ public sealed class CertificateValidator(IConfiguration configuration, ILogger<C
             }
 
             // Check if the certificate is revoked
-            item.IsRevoked = IsCertificateRevoked(crl, cert);
-            item.Active = !item.IsRevoked;
+            if (IsCertificateRevoked(crl, cert))
+            {
+                _logger.LogInformation("Certificate with SL: {Serial No.#} is revoked.", item.Id);
+                item.IsRevoked = true;
+                item.Active = false;
+            }
+
 
         }
         await _storage.SaveChangesAsync(ct);
