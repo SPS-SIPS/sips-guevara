@@ -7,7 +7,11 @@ public sealed class DownloadCertificateCommandValidator : AbstractValidator<Down
     {
         RuleFor(x => x.SerialNumber).NotNull().NotEqual(default(string));
         // IssuerDN must be equal to CN=sps issuing CA, DC=sps, DC=local always, but not case sensitive can be sps issuing ca or sps issuing CA
-        RuleFor(x => x.IssuerDN).NotNull().NotEqual(default(string)).Equal("CN=sps issuing CA, DC=sps, DC=local", StringComparer.OrdinalIgnoreCase);
+        RuleFor(x => x.IssuerDN).NotNull().NotEqual(default(string)).Must(BeValidIssuerDN).WithMessage("IssuerDN must be equal to CN=sps issuing CA, DC=sps, DC=local (case insensitive)");
+    }
+    private bool BeValidIssuerDN(string issuerDN)
+    {
+        return string.Equals(issuerDN, "CN=sps issuing CA, DC=sps, DC=local", StringComparison.OrdinalIgnoreCase);
     }
 }
 
