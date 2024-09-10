@@ -11,7 +11,13 @@ public sealed class DownloadCertificateCommandValidator : AbstractValidator<Down
     }
     private bool BeValidIssuerDN(string issuerDN)
     {
-        return string.Equals(issuerDN, "CN=sps issuing CA, DC=sps, DC=local", StringComparison.OrdinalIgnoreCase);
+        var validIssuerDNs = new List<string>
+        {
+            "CN=sps issuing CA, DC=sps, DC=local",
+            "cn=sps issuing CA,dc=sps,dc=local"
+        };
+
+        return validIssuerDNs.Any(validIssuerDN => string.Equals(issuerDN.Trim(), validIssuerDN.Trim(), StringComparison.OrdinalIgnoreCase));
     }
 }
 
