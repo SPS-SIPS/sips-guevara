@@ -7,7 +7,7 @@ public sealed class EditCertificateCommandValidator : AbstractValidator<EditCert
     public EditCertificateCommandValidator()
     {
         RuleFor(x => x.Id).NotEmpty();
-        RuleFor(x => x.Active).NotEmpty();
+        RuleFor(x => x.Active).NotNull();
     }
 }
 
