@@ -70,9 +70,11 @@ public sealed class TokenService(JwtSettings settings, TokenValidationParameters
         await storage.Tokens.AddAsync(refreshToken, cancellationToken);
         refreshTokenId = refreshToken.Id;
 
+        int totalSecondsBeforeRefreshTokenExpires = (int)refreshTokenExpiresIn.Subtract(DateTime.UtcNow).TotalSeconds;
+
         await storage.SaveChangesAsync(cancellationToken);
 
-        return new LoginDto(tokenHandler.WriteToken(token), refreshTokenId, ExpiresIn: tokenExpiresIn.Ticks, RefreshExpiresIn: refreshTokenExpiresIn.Ticks);
+        return new LoginDto(tokenHandler.WriteToken(token), refreshTokenId, ExpiresIn: tokenExpiresIn.Seconds, RefreshExpiresIn: totalSecondsBeforeRefreshTokenExpires);
     }
     private (string ip, string device, string browser, string os) GetClientInfo()
     {
