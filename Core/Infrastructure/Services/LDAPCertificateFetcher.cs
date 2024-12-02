@@ -32,6 +32,8 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
 
         // Set LDAP Protocol Version
         connection.SessionOptions.ProtocolVersion = 3;
+        // Disable referral chasing
+        connection.SessionOptions.ReferralChasing = ReferralChasingOptions.None;
 
         // Enable paging by setting up PageResultRequestControl
         const int pageSize = 1000;  // Set page size (adjust based on your server's limits)
@@ -48,11 +50,14 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
             {
                 // Send the search request
                 searchResponse = (SearchResponse)connection.SendRequest(searchRequest);
-                _logger.LogInformation("Found {Count} certificates", searchResponse.Entries.Count);
+                _logger.LogWarning("DN: {DN}", searchRequest.DistinguishedName);
+                _logger.LogWarning("Filter: {Filter}", searchRequest.Filter);
+                _logger.LogWarning("Result Code: {Code}", searchResponse.ResultCode);
+                _logger.LogWarning("Error Message: {MSG}", searchResponse.ErrorMessage);
+                _logger.LogWarning("Found {Count} certificates", searchResponse.Entries.Count);
                 // Iterate over search results
                 foreach (SearchResultEntry entry in searchResponse.Entries)
                 {
-                    _logger.LogInformation("DN: {DistinguishedName}", entry.DistinguishedName);
                     if (entry.Attributes.Contains("userCertificate"))
                     {
                         foreach (var attr in entry.Attributes["userCertificate"])

@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using SPSS.Domain.Extensions;
 using SPSS.Infrastructure.Identity.Services;
 using SPSS.Infrastructure.Persistence;
 using SPSS.Infrastructure.Persistence.Interceptors;
@@ -73,8 +74,8 @@ public static class DI
             ClockSkew = TimeSpan.FromSeconds(5)
         };
 
-        // services.AddCronJob<BackupJob>(new JobConfiguration { Expression = backupConfiguration.Expression, TimeZoneInfo = backupConfiguration.TimeZoneInfo });
-        // services.AddHostedService<CertificateFetchingService>();
+        services.AddCronJob<BackupJob>(new JobConfiguration { Expression = backupConfiguration.Expression, TimeZoneInfo = backupConfiguration.TimeZoneInfo });
+        services.AddHostedService<CertificateFetchingService>();
         services.AddHostedService<CertificateValidationService>();
         services.AddSingleton(TokenValidationParameters);
         return services;
