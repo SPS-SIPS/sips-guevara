@@ -24,6 +24,7 @@ public sealed class DownloadCertificateCommandHandler(IStorageBroker storage, II
 
         var certificate = await _storage.Certificates
         .Where(x => x.Id!.Equals(request.SerialNumber))
+        .Include(x => x.Participant)
         .SingleOrDefaultAsync(cancellationToken);
 
         var result = $"User {_identity.Username} requested certificate with serial number {request.SerialNumber} and issuer {request.IssuerDN}";
@@ -52,7 +53,7 @@ public sealed class DownloadCertificateCommandHandler(IStorageBroker storage, II
             return Response<CertificateDownloadDto>.NotFound($"Not Found: {result}", null);
         }
         certResponse.Content = certificate.Name;
-        certResponse.Owner = certificate.ParticipantId;
+        certResponse.Owner = certificate.Participant.BicNo;
 
         if (_identity.Username != "admin")
         {
