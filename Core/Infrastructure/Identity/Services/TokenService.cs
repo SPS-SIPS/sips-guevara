@@ -74,7 +74,7 @@ public sealed class TokenService(JwtSettings settings, TokenValidationParameters
 
         await storage.SaveChangesAsync(cancellationToken);
 
-        return new LoginDto(tokenHandler.WriteToken(token), refreshTokenId, ExpiresIn: tokenExpiresIn.Seconds, RefreshExpiresIn: totalSecondsBeforeRefreshTokenExpires);
+        return new LoginDto(tokenHandler.WriteToken(token), refreshTokenId, ExpiresIn: (long)tokenExpiresIn.TotalSeconds, RefreshExpiresIn: totalSecondsBeforeRefreshTokenExpires);
     }
     private (string ip, string device, string browser, string os) GetClientInfo()
     {
