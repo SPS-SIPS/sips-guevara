@@ -52,6 +52,7 @@ public sealed class DownloadCertificateCommandHandler(IStorageBroker storage, II
             return Response<CertificateDownloadDto>.NotFound($"Not Found: {result}", null);
         }
         certResponse.Content = certificate.Name;
+        certResponse.Owner = certificate.ParticipantId;
 
         if (_identity.Username != "admin")
         {
