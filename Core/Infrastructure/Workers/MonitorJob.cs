@@ -26,7 +26,8 @@ public class MonitorJob(IScheduleConfig<MonitorJob> config, ILogger<MonitorJob> 
             var participants = await _storageBroker.Participants.Where(x => x.Active)
             .Include(x => x.Endpoints)
             .Include(x => x.VPNs)
-             .ThenInclude(x => x.Tunnels)
+            .ThenInclude(x => x.Tunnels)
+            .AsSplitQuery()
             .ToListAsync(cancellationToken);
 
             _httpClient.Timeout = TimeSpan.FromSeconds(8);
