@@ -9,7 +9,7 @@ public sealed class EditEndpointCommandValidator : AbstractValidator<EditEndpoin
         RuleFor(x => x.Id).NotEmpty();
         RuleFor(x => x.ParticipantId).NotEmpty().MaximumLength(50);
         RuleFor(x => x.Name).NotEmpty().MaximumLength(50);
-        RuleFor(x => x.Address).NotEmpty().MaximumLength(50);
+        RuleFor(x => x.Address).NotEmpty().MaximumLength(100);
     }
 }
 
