@@ -2,7 +2,7 @@ using SPSS.App.Common;
 
 namespace SPSS.App.Features.History.Queries;
 [Authorize]
-public sealed record GetHistoryQuery(string? ParticipantId, int Type, int Status, DateTime? FromDate, DateTime? ToDate, bool? Sent) : PaginationFilter, IRequest<PagedResponse<HistoryDto>>;
+public sealed record GetHistoryQuery(string? ParticipantId, int? Type, int? Status, DateTime? FromDate, DateTime? ToDate, bool? Sent) : PaginationFilter, IRequest<PagedResponse<HistoryDto>>;
 
 public sealed class GetHistoryQueryHandler(IStorageBroker storage, IMapper mapper) : IRequestHandler<GetHistoryQuery, PagedResponse<HistoryDto>>
 {
@@ -18,15 +18,15 @@ public sealed class GetHistoryQueryHandler(IStorageBroker storage, IMapper mappe
             query = query.Where(x => x.ParticipantId == request.ParticipantId);
         }
 
-        if (request.Type != 0)
+        if (request.Type.HasValue)
         {
-            var type = Enumeration<int>.FromId<ServiceType>(request.Type);
+            var type = Enumeration<int>.FromId<ServiceType>(request.Type.Value);
             query = query.Where(x => x.Type == type);
         }
 
-        if (request.Status != 0)
+        if (request.Status.HasValue)
         {
-            var status = Enumeration<int>.FromId<ServiceStatus>(request.Status);
+            var status = Enumeration<int>.FromId<ServiceStatus>(request.Status.Value);
             query = query.Where(x => x.Status == status);
         }
 
