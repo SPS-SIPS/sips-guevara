@@ -16,6 +16,10 @@ public sealed class Participant : BaseEntity<string>, IAuditableEntity, ISoftDel
     public DateTimeOffset? LastModifiedOn { get; set; }
     public DateTimeOffset? DeletedOn { get; set; }
     public string? DeletedBy { get; set; }
+
+    public ICollection<VPN> VPNs { get; set; } = [];
+    public ICollection<Endpoint> Endpoints { get; set; } = [];
+    public ICollection<MonitHistory> MonitHistories { get; set; } = [];
 }
 
 public sealed class ParticipantConfiguration : IEntityTypeConfiguration<Participant>

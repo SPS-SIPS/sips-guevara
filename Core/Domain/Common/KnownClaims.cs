@@ -31,4 +31,23 @@ public static class KnownClaims
     // Downloads
     public const string QueryDownloads = "QD";
 
+    // VPNs
+    public const string CreateVPN = "CVPN";
+    public const string QueryVPNs = "QVPN";
+    public const string RemoveVPN = "RVPN";
+    public const string UpdateVPN = "UVPN";
+
+    // Tunnels
+    public const string CreateTunnel = "CTs";
+    public const string QueryTunnels = "QTs";
+    public const string RemoveTunnel = "RTs";
+    public const string UpdateTunnel = "UTs";
+
+    // Endpoints
+    public const string CreateEndpoint = "CEP";
+    public const string QueryEndpoints = "QEP";
+    public const string RemoveEndpoint = "REP";
+    public const string UpdateEndpoint = "UEP";
+
+
 }

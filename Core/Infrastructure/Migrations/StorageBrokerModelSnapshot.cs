@@ -127,6 +127,124 @@ namespace SPSS.Infrastructure.Migrations
                     b.ToTable("downloads", (string)null);
                 });
 
+            modelBuilder.Entity("SPSS.Domain.Models.BL.Endpoint", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("address");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("createdby");
+
+                    b.Property<DateTimeOffset>("CreatedOn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("createdon");
+
+                    b.Property<DateTimeOffset>("Date")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("date");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("lastmodifiedby");
+
+                    b.Property<DateTimeOffset?>("LastModifiedOn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lastmodifiedon");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("ParticipantId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("participantid");
+
+                    b.HasKey("Id")
+                        .HasName("pk_endpoints");
+
+                    b.HasIndex("ParticipantId")
+                        .HasDatabaseName("ix_endpoints_participantid");
+
+                    b.ToTable("endpoints", (string)null);
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.MonitHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("AdditionalInfo")
+                        .HasColumnType("text")
+                        .HasColumnName("additionalinfo");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("address");
+
+                    b.Property<DateTimeOffset>("Date")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("date");
+
+                    b.Property<int>("PacketLoss")
+                        .HasColumnType("integer")
+                        .HasColumnName("packetloss");
+
+                    b.Property<string>("ParticipantId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("participantid");
+
+                    b.Property<long>("RoundtripTime")
+                        .HasColumnType("bigint")
+                        .HasColumnName("roundtriptime");
+
+                    b.Property<bool>("Sent")
+                        .HasColumnType("boolean")
+                        .HasColumnName("sent");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_monithistories");
+
+                    b.HasIndex("ParticipantId")
+                        .HasDatabaseName("ix_monithistories_participantid");
+
+                    b.ToTable("monithistories", (string)null);
+                });
+
             modelBuilder.Entity("SPSS.Domain.Models.BL.Participant", b =>
                 {
                     b.Property<string>("Id")
@@ -189,6 +307,116 @@ namespace SPSS.Infrastructure.Migrations
                         .HasDatabaseName("ix_participants_userid");
 
                     b.ToTable("participants", (string)null);
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.Tunnel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("createdby");
+
+                    b.Property<DateTimeOffset>("CreatedOn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("createdon");
+
+                    b.Property<DateTimeOffset>("Date")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("date");
+
+                    b.Property<string>("Endpoint")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("endpoint");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("lastmodifiedby");
+
+                    b.Property<DateTimeOffset?>("LastModifiedOn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lastmodifiedon");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<int>("VPNId")
+                        .HasColumnType("integer")
+                        .HasColumnName("vpnid");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tunnels");
+
+                    b.HasIndex("VPNId")
+                        .HasDatabaseName("ix_tunnels_vpnid");
+
+                    b.ToTable("tunnels", (string)null);
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.VPN", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("createdby");
+
+                    b.Property<DateTimeOffset>("CreatedOn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("createdon");
+
+                    b.Property<DateTimeOffset>("Date")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("date");
+
+                    b.Property<string>("Gateway")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("gateway");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("lastmodifiedby");
+
+                    b.Property<DateTimeOffset?>("LastModifiedOn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lastmodifiedon");
+
+                    b.Property<string>("ParticipantId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("participantid");
+
+                    b.HasKey("Id")
+                        .HasName("pk_vpns");
+
+                    b.HasIndex("ParticipantId")
+                        .HasDatabaseName("ix_vpns_participantid");
+
+                    b.ToTable("vpns", (string)null);
                 });
 
             modelBuilder.Entity("SPSS.Domain.Models.Identity.Claim", b =>
@@ -478,6 +706,30 @@ namespace SPSS.Infrastructure.Migrations
                     b.Navigation("Participant");
                 });
 
+            modelBuilder.Entity("SPSS.Domain.Models.BL.Endpoint", b =>
+                {
+                    b.HasOne("SPSS.Domain.Models.BL.Participant", "Participant")
+                        .WithMany("Endpoints")
+                        .HasForeignKey("ParticipantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_endpoints_participants_participantid");
+
+                    b.Navigation("Participant");
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.MonitHistory", b =>
+                {
+                    b.HasOne("SPSS.Domain.Models.BL.Participant", "Participant")
+                        .WithMany("MonitHistories")
+                        .HasForeignKey("ParticipantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_monithistories_participants_participantid");
+
+                    b.Navigation("Participant");
+                });
+
             modelBuilder.Entity("SPSS.Domain.Models.BL.Participant", b =>
                 {
                     b.HasOne("SPSS.Domain.Models.Identity.User", "User")
@@ -488,6 +740,30 @@ namespace SPSS.Infrastructure.Migrations
                         .HasConstraintName("fk_participants_users_userid");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.Tunnel", b =>
+                {
+                    b.HasOne("SPSS.Domain.Models.BL.VPN", "VPN")
+                        .WithMany("Tunnels")
+                        .HasForeignKey("VPNId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tunnels_vpns_vpnid");
+
+                    b.Navigation("VPN");
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.VPN", b =>
+                {
+                    b.HasOne("SPSS.Domain.Models.BL.Participant", "Participant")
+                        .WithMany("VPNs")
+                        .HasForeignKey("ParticipantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_vpns_participants_participantid");
+
+                    b.Navigation("Participant");
                 });
 
             modelBuilder.Entity("SPSS.Domain.Models.Identity.RoleClaim", b =>
@@ -554,6 +830,17 @@ namespace SPSS.Infrastructure.Migrations
                     b.Navigation("Certificates");
 
                     b.Navigation("Downloads");
+
+                    b.Navigation("Endpoints");
+
+                    b.Navigation("MonitHistories");
+
+                    b.Navigation("VPNs");
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.VPN", b =>
+                {
+                    b.Navigation("Tunnels");
                 });
 
             modelBuilder.Entity("SPSS.Domain.Models.Identity.Claim", b =>

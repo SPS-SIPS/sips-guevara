@@ -12,9 +12,13 @@ public sealed class StorageBroker(DbContextOptions<StorageBroker> options) : DbC
     public DbSet<Domain.Models.Identity.Claim> Claims { get; set; } = null!;
     public DbSet<RoleClaim> RoleClaims { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
-    public DbSet<Participant> Participants { get; set; }
-    public DbSet<Certificate> Certificates { get; set; }
-    public DbSet<Download> Downloads { get; set; }
+    public DbSet<Participant> Participants { get; set; } = null!;
+    public DbSet<Certificate> Certificates { get; set; } = null!;
+    public DbSet<Download> Downloads { get; set; } = null!;
+    public DbSet<VPN> VPNs { get; set; } = null!;
+    public DbSet<Tunnel> Tunnels { get; set; } = null!;
+    public DbSet<Domain.Models.BL.Endpoint> Endpoints { get; set; } = null!;
+    public DbSet<MonitHistory> MonitHistories { get; set; } = null!;
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
     {

@@ -16,6 +16,10 @@ public interface IStorageBroker
     DbSet<Participant> Participants { get; set; }
     DbSet<Certificate> Certificates { get; set; }
     DbSet<Download> Downloads { get; set; }
+    DbSet<VPN> VPNs { get; set; }
+    DbSet<Tunnel> Tunnels { get; set; }
+    DbSet<Endpoint> Endpoints { get; set; }
+    DbSet<MonitHistory> MonitHistories { get; set; }
 
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
