@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using SPSS.Domain.Extensions;
+using SPSS.Infrastructure;
 using SPSS.Infrastructure.Identity.Services;
 using SPSS.Infrastructure.Persistence;
 using SPSS.Infrastructure.Persistence.Interceptors;
@@ -77,9 +78,10 @@ public static class DI
         // services.AddCronJob<BackupJob>(new JobConfiguration { Expression = backupConfiguration.Expression, TimeZoneInfo = backupConfiguration.TimeZoneInfo });
         var monitorConfiguration = new JobConfiguration();
         configuration.Bind("Jobs:Monitor", monitorConfiguration);
-        services.AddCronJob<MonitorJob>(monitorConfiguration);
-        // services.AddHostedService<CertificateFetchingService>();
-        // services.AddHostedService<CertificateValidationService>();
+        // services.AddCronJob<MonitorJob>(monitorConfiguration);
+        // services.AddCronJob<VpnMonitoring>(monitorConfiguration);
+        services.AddHostedService<CertificateFetchingService>();
+        services.AddHostedService<CertificateValidationService>();
         services.AddSingleton(TokenValidationParameters);
         return services;
     }

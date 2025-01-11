@@ -1,6 +1,6 @@
 using Org.BouncyCastle.X509;
 
-namespace SPSS.Domain.Interfaces;
+namespace SPSS.Infrastructure;
 public interface ICertificateRetriever
 {
     string ConvertCertificateToPem(X509Certificate certificate);
