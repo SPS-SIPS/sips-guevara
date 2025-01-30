@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net.NetworkInformation;
 using SPSS.Domain.Enums;
 using SPSS.Domain.Models.BL;
@@ -37,6 +38,8 @@ public class MonitorJob(IScheduleConfig<MonitorJob> config, ILogger<MonitorJob> 
             {
                 foreach (var endpoint in participant.Endpoints)
                 {
+                    // Start the stopwatch to measure round-trip time
+                    var stopwatch = Stopwatch.StartNew();
                     var endpointMH = new MonitHistory
                     {
                         ParticipantId = participant.Id!,
@@ -48,16 +51,29 @@ public class MonitorJob(IScheduleConfig<MonitorJob> config, ILogger<MonitorJob> 
                     {
                         var response = await _httpClient.PostAsync(endpoint.Address, null, cancellationToken);
 
-                        endpointMH.RoundtripTime = (int)(response.Headers.Date?.Subtract(DateTimeOffset.Now).TotalSeconds ?? 0);
+                        // Stop the stopwatch
+                        stopwatch.Stop();
+
+                        // Calculate round-trip time in milliseconds
+                        endpointMH.RoundtripTime = (int)stopwatch.Elapsed.TotalSeconds;
                         endpointMH.Status = response != null ? ServiceStatus.Up : ServiceStatus.Down;
                         endpointMH.PacketLoss = response != null ? 0 : 100;
                         endpointMH.AdditionalInfo = response?.Content != null ? await response.Content.ReadAsStringAsync(cancellationToken) : "No content";
+                    }
+                    catch (HttpRequestException httpEx)
+                    {
+                        _logger.LogError(httpEx, "{Participant}: HTTP request timed out for {Address}", participant.Name, endpoint.Address);
+                        // Record the timeout without setting status to Down
+                        endpointMH.PacketLoss = 100;
+                        endpointMH.Status = ServiceStatus.Down;
+                        endpointMH.AdditionalInfo = "Request timed out";
                     }
                     catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
                     {
                         _logger.LogError(ex, "{Participant}: HTTP request timed out for {Address}", participant.Name, endpoint.Address);
                         // Record the timeout without setting status to Down
                         endpointMH.PacketLoss = 100;
+                        endpointMH.Status = ServiceStatus.Down;
                         endpointMH.AdditionalInfo = "Request timed out";
                     }
                     catch (Exception ex)

@@ -41,7 +41,8 @@ public sealed class GetHistoryQueryHandler(IStorageBroker storage, IMapper mappe
         }
 
         // order by
-        query = query.OrderByDescending(x => x.Date);
+        query = query.OrderByDescending(x => x.Date)
+            .ThenByDescending(x => x.PacketLoss);
 
         return await PaginationHelper<HistoryDto>.CreateAsync(query.ProjectTo<HistoryDto>(_mapper.ConfigurationProvider), request, cancellationToken);
     }
