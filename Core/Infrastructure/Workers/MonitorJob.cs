@@ -35,37 +35,37 @@ public class MonitorJob(IScheduleConfig<MonitorJob> config, ILogger<MonitorJob> 
 
             foreach (var participant in participants)
             {
-                foreach (var vpn in participant.VPNs)
-                {
-                    foreach (var tunnel in vpn.Tunnels)
-                    {
-                        var vpnMH = new MonitHistory
-                        {
-                            ParticipantId = participant.Id!,
-                            Address = tunnel.Endpoint,
-                            Date = DateTimeOffset.UtcNow.ToUniversalTime(),
-                            Type = ServiceType.VPN,
-                        };
-                        try
-                        {
-                            var reply = await ping.SendPingAsync(tunnel.Endpoint, 1000);
-                            vpnMH.Status = reply.Status == IPStatus.Success ? ServiceStatus.Up : ServiceStatus.Down;
-                            vpnMH.RoundtripTime = (int)reply.RoundtripTime;
-                            vpnMH.PacketLoss = reply.Status == IPStatus.Success ? 0 : 100;
-                            vpnMH.AdditionalInfo = reply.Status.ToString();
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "{Participant}: Ping failed for tunnel {Endpoint}", participant.Name, tunnel.Endpoint);
-                            // Add a down status
-                            vpnMH.Status = ServiceStatus.Down;
-                            vpnMH.PacketLoss = 100;
-                            vpnMH.AdditionalInfo = ex.Message;
-                        }
-                        await _storageBroker.MonitHistories.AddAsync(vpnMH, cancellationToken);
-                        await _storageBroker.SaveChangesAsync(cancellationToken);
-                    }
-                }
+                // foreach (var vpn in participant.VPNs)
+                // {
+                //     foreach (var tunnel in vpn.Tunnels)
+                //     {
+                //         var vpnMH = new MonitHistory
+                //         {
+                //             ParticipantId = participant.Id!,
+                //             Address = tunnel.Endpoint,
+                //             Date = DateTimeOffset.UtcNow.ToUniversalTime(),
+                //             Type = ServiceType.VPN,
+                //         };
+                //         try
+                //         {
+                //             var reply = await ping.SendPingAsync(tunnel.Endpoint, 1000);
+                //             vpnMH.Status = reply.Status == IPStatus.Success ? ServiceStatus.Up : ServiceStatus.Down;
+                //             vpnMH.RoundtripTime = (int)reply.RoundtripTime;
+                //             vpnMH.PacketLoss = reply.Status == IPStatus.Success ? 0 : 100;
+                //             vpnMH.AdditionalInfo = reply.Status.ToString();
+                //         }
+                //         catch (Exception ex)
+                //         {
+                //             _logger.LogError(ex, "{Participant}: Ping failed for tunnel {Endpoint}", participant.Name, tunnel.Endpoint);
+                //             // Add a down status
+                //             vpnMH.Status = ServiceStatus.Down;
+                //             vpnMH.PacketLoss = 100;
+                //             vpnMH.AdditionalInfo = ex.Message;
+                //         }
+                //         await _storageBroker.MonitHistories.AddAsync(vpnMH, cancellationToken);
+                //         await _storageBroker.SaveChangesAsync(cancellationToken);
+                //     }
+                // }
 
                 // Endpoints
                 foreach (var endpoint in participant.Endpoints)

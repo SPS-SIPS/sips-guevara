@@ -1,6 +1,4 @@
 using System.Diagnostics;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Npgsql;
 
 namespace SPSS.Infrastructure.Workers;

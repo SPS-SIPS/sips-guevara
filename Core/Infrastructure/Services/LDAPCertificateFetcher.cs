@@ -43,7 +43,7 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
         SearchRequest searchRequest = new(dn, "(userCertificate=*)", SearchScope.Subtree, "userCertificate");
         searchRequest.Controls.Add(pageRequestControl);
 
-        SearchResponse? searchResponse = null;
+        SearchResponse? searchResponse;
         do
         {
             try
@@ -109,7 +109,9 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
             return;
         }
 
-        var participant = await _storage.Participants.FirstOrDefaultAsync(p => p.Id == GetCommonName(certificate.SubjectDN.ToString()), cancellationToken: ct) ?? new Domain.Models.BL.Participant
+        var participant = await _storage.Participants.FirstOrDefaultAsync(p => p.Id == GetCommonName(certificate.SubjectDN.ToString()), cancellationToken: ct);
+
+        participant ??= new Domain.Models.BL.Participant
         {
             Id = GetCommonName(certificate.SubjectDN.ToString()),
             Name = GetCommonName(certificate.SubjectDN.ToString()),
@@ -129,7 +131,6 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
             ExpireDate = certificate.NotAfter.ToUniversalTime(),
             IssuedAt = certificate.NotBefore.ToUniversalTime(),
             CachedOn = DateTimeOffset.Now.ToUniversalTime(),
-            // check if certificate is not expired
             Active = certificate.NotAfter.ToUniversalTime() > DateTimeOffset.Now.ToUniversalTime(),
             Participant = participant,
             IsRevoked = false,
