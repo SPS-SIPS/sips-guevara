@@ -78,7 +78,7 @@ public static class DI
         // services.AddCronJob<BackupJob>(new JobConfiguration { Expression = backupConfiguration.Expression, TimeZoneInfo = backupConfiguration.TimeZoneInfo });
         var monitorConfiguration = new JobConfiguration();
         configuration.Bind("Jobs:Monitor", monitorConfiguration);
-        // services.AddCronJob<MonitorJob>(monitorConfiguration);
+        services.AddCronJob<MonitorJob>(monitorConfiguration);
         // services.AddCronJob<VpnMonitoring>(monitorConfiguration);
         services.AddHostedService<CertificateFetchingService>();
         services.AddHostedService<CertificateValidationService>();
