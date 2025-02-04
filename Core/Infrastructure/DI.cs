@@ -62,6 +62,10 @@ public static class DI
         configuration.Bind("Jobs:Backup", backupConfiguration);
         services.AddSingleton(backupConfiguration);
 
+        var nsiConfig = new NSI();
+        configuration.Bind(nameof(NSI), nsiConfig);
+        services.AddSingleton(nsiConfig);
+
         var TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
@@ -78,10 +82,10 @@ public static class DI
         // services.AddCronJob<BackupJob>(new JobConfiguration { Expression = backupConfiguration.Expression, TimeZoneInfo = backupConfiguration.TimeZoneInfo });
         var monitorConfiguration = new JobConfiguration();
         configuration.Bind("Jobs:Monitor", monitorConfiguration);
-        services.AddCronJob<MonitorJob>(monitorConfiguration);
-        // services.AddCronJob<VpnMonitoring>(monitorConfiguration);
-        services.AddHostedService<CertificateFetchingService>();
-        services.AddHostedService<CertificateValidationService>();
+        // services.AddCronJob<MonitorJob>(monitorConfiguration);
+        services.AddCronJob<NSIMonitoring>(monitorConfiguration);
+        // services.AddHostedService<CertificateFetchingService>();
+        // services.AddHostedService<CertificateValidationService>();
         services.AddSingleton(TokenValidationParameters);
         return services;
     }
