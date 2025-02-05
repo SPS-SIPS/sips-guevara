@@ -22,7 +22,7 @@ public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMon
         var backup = Path.Combine(nsi.Directory, "backup");
         try
         {
-            _logger.LogDebug("NSI Monitoring Job current directory: {directory}...", nsi.Directory);
+            _logger.LogDebug("NSI Monitoring Job current directory: {directory}...", input);
 
             // check if the input directory exists or not
             if (!Directory.Exists(input))
