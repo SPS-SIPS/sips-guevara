@@ -8,12 +8,14 @@ public sealed class GetNSIFileQueryHandler(NSI nsiConfig) : IRequestHandler<GetN
     private readonly NSI _nsiConfig = nsiConfig;
     public async ValueTask<MemoryStream?> Handle(GetNSIFileQuery request, CancellationToken cancellationToken)
     {
-        if (!Directory.Exists(_nsiConfig.ODirectory))
+        var output = Path.Combine(_nsiConfig.Directory, "output");
+
+        if (!Directory.Exists(output))
         {
             return null;
         }
 
-        var filePath = Path.Combine(_nsiConfig.ODirectory, request.FileName);
+        var filePath = Path.Combine(output, request.FileName);
 
         if (!File.Exists(filePath))
         {

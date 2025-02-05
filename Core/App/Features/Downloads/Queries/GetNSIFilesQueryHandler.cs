@@ -8,13 +8,15 @@ public sealed class GetNSIFilesQueryHandler(NSI nsiConfig) : IRequestHandler<Get
     private readonly NSI _nsiConfig = nsiConfig;
     public async ValueTask<Response<List<NSISheets>>> Handle(GetNSIFilesQuery request, CancellationToken cancellationToken)
     {
-        if (!Directory.Exists(_nsiConfig.ODirectory))
+        var output = Path.Combine(_nsiConfig.Directory, "output");
+
+        if (!Directory.Exists(output))
         {
             return Response<List<NSISheets>>.Success([], 0);
         }
 
 
-        var files = Directory.GetFiles(_nsiConfig.ODirectory, "*.csv")
+        var files = Directory.GetFiles(output, "*.csv")
                      .OrderBy(File.GetCreationTime)
                      .Take(30)
                      .ToArray();

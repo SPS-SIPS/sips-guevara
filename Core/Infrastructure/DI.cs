@@ -65,6 +65,7 @@ public static class DI
         var nsiConfig = new NSI();
         configuration.Bind(nameof(NSI), nsiConfig);
         services.AddSingleton(nsiConfig);
+        CreateHome(nsiConfig);
 
         var TokenValidationParameters = new TokenValidationParameters
         {
@@ -87,10 +88,23 @@ public static class DI
         var nsi = new JobConfiguration();
         configuration.Bind("Jobs:NSI", nsi);
         services.AddCronJob<NSIMonitoring>(nsi);
-
         services.AddHostedService<CertificateFetchingService>();
         services.AddHostedService<CertificateValidationService>();
         services.AddSingleton(TokenValidationParameters);
         return services;
+    }
+
+    private static void CreateHome(NSI file)
+    {
+        // Create directory if not exists
+        if (!Directory.Exists(file.Directory))
+        {
+            Directory.CreateDirectory(file.Directory);
+
+            // Create subdirectories: input, output, backup
+            Directory.CreateDirectory(Path.Combine(file.Directory, "input"));
+            Directory.CreateDirectory(Path.Combine(file.Directory, "output"));
+            Directory.CreateDirectory(Path.Combine(file.Directory, "backup"));
+        }
     }
 }

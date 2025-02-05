@@ -14,27 +14,32 @@ public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMon
     {
         await Task.Delay(2, cancellationToken);
 
-        _logger.LogInformation($"NSI Monitoring Job is working...");
+        _logger.LogInformation("NSI Monitoring Job is working...");
         using var scope = _services.CreateScope();
         var nsi = scope.ServiceProvider.GetRequiredService<NSI>();
+        var input = Path.Combine(nsi.Directory, "input");
+        var output = Path.Combine(nsi.Directory, "output");
+        var backup = Path.Combine(nsi.Directory, "backup");
         try
         {
+            _logger.LogDebug("NSI Monitoring Job current directory: {directory}...", nsi.Directory);
+
             // check if the input directory exists or not
-            if (!Directory.Exists(nsi.IDirectory))
+            if (!Directory.Exists(input))
             {
-                Directory.CreateDirectory(nsi.IDirectory);
+                Directory.CreateDirectory(input);
                 _logger.LogError("Input Directory does not exist");
                 return;
             }
 
             // check if the output directory exists or not
-            if (!Directory.Exists(nsi.ODirectory))
+            if (!Directory.Exists(output))
             {
                 // create the output directory
-                Directory.CreateDirectory(nsi.ODirectory);
+                Directory.CreateDirectory(output);
             }
 
-            var files = Directory.GetFiles(nsi.IDirectory, "*.rtgs.xml");
+            var files = Directory.GetFiles(input, "*.rtgs.xml");
 
             // Check if there are any files in the input directory
             if (files.Length == 0)
@@ -49,12 +54,12 @@ public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMon
                 // (string fees, string txn) = NSIHelpers.Generate(
                 //     inputFile: fileName,
                 //     outputDir: outputDirectory);
-                ConvertNSIToCSV.Detail(inputFile: file, sheetDir: nsi.ODirectory);
-                ConvertNSIToCSV.Summary(inputFile: file, sheetDir: nsi.ODirectory);
+                ConvertNSIToCSV.Detail(inputFile: file, sheetDir: output);
+                ConvertNSIToCSV.Summary(inputFile: file, sheetDir: output);
 
                 // Move the file to the backup directory
                 var fileName = Path.GetFileName(file);
-                var destination = Path.Combine(nsi.BDirectory, fileName);
+                var destination = Path.Combine(backup, fileName);
                 File.Move(file, destination);
             }
         }
