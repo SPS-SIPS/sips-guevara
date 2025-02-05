@@ -12,8 +12,9 @@ public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMon
 
     public override async Task DoWork(CancellationToken cancellationToken)
     {
-        _logger.LogInformation($"NSI Monitoring Job is working...");
+        await Task.Delay(2, cancellationToken);
 
+        _logger.LogInformation($"NSI Monitoring Job is working...");
         using var scope = _services.CreateScope();
         var nsi = scope.ServiceProvider.GetRequiredService<NSI>();
         try

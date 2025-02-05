@@ -83,7 +83,11 @@ public static class DI
         var monitorConfiguration = new JobConfiguration();
         configuration.Bind("Jobs:Monitor", monitorConfiguration);
         services.AddCronJob<MonitorJob>(monitorConfiguration);
-        services.AddCronJob<NSIMonitoring>(monitorConfiguration);
+
+        var nsi = new JobConfiguration();
+        configuration.Bind("Jobs:NSI", nsi);
+        services.AddCronJob<NSIMonitoring>(nsi);
+
         services.AddHostedService<CertificateFetchingService>();
         services.AddHostedService<CertificateValidationService>();
         services.AddSingleton(TokenValidationParameters);
