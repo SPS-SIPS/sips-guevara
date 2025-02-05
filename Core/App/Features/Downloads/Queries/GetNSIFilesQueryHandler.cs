@@ -17,7 +17,7 @@ public sealed class GetNSIFilesQueryHandler(NSI nsiConfig) : IRequestHandler<Get
 
 
         var files = Directory.GetFiles(output, "*.csv")
-                     .OrderBy(File.GetCreationTime)
+                     .OrderByDescending(File.GetCreationTime)
                      .Take(30)
                      .ToArray();
 
