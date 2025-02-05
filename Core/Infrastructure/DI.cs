@@ -79,7 +79,7 @@ public static class DI
             ClockSkew = TimeSpan.FromSeconds(5)
         };
 
-        services.AddCronJob<BackupJob>(new JobConfiguration { Expression = backupConfiguration.Expression, TimeZoneInfo = backupConfiguration.TimeZoneInfo });
+        // services.AddCronJob<BackupJob>(new JobConfiguration { Expression = backupConfiguration.Expression, TimeZoneInfo = backupConfiguration.TimeZoneInfo });
         var monitorConfiguration = new JobConfiguration();
         configuration.Bind("Jobs:Monitor", monitorConfiguration);
         services.AddCronJob<MonitorJob>(monitorConfiguration);
