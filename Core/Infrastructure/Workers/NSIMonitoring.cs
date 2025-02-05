@@ -14,7 +14,7 @@ public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMon
     {
         await Task.Delay(2, cancellationToken);
 
-        _logger.LogInformation("NSI Monitoring Job is working...");
+        _logger.LogInformation("NSI Monitoring Job: is working...");
         using var scope = _services.CreateScope();
         var nsi = scope.ServiceProvider.GetRequiredService<NSI>();
         var input = Path.Combine(nsi.Directory, "input");
@@ -22,13 +22,13 @@ public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMon
         var backup = Path.Combine(nsi.Directory, "backup");
         try
         {
-            _logger.LogDebug("NSI Monitoring Job current directory: {directory}...", input);
+            _logger.LogInformation("NSI Monitoring Job: current input: {input}...", input);
 
             // check if the input directory exists or not
             if (!Directory.Exists(input))
             {
                 Directory.CreateDirectory(input);
-                _logger.LogError("Input Directory does not exist");
+                _logger.LogError("NSI Monitoring Job: Input Directory does not exist");
                 return;
             }
 
@@ -44,7 +44,7 @@ public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMon
             // Check if there are any files in the input directory
             if (files.Length == 0)
             {
-                _logger.LogInformation("No files found in the input directory");
+                _logger.LogInformation("NSI Monitoring Job: No files found in the input directory");
                 return;
             }
 
@@ -65,7 +65,7 @@ public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMon
         }
         catch (Exception ex)
         {
-            _logger.LogError("Error while fetching NSI File status {Exception}", ex);
+            _logger.LogError("NSI Monitoring Job: Error while fetching NSI File status {Exception}", ex);
         }
     }
 
