@@ -6,7 +6,7 @@ public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMon
 
     public override Task StartAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("VPN Monitoring Job Started, next occurrence will be at: {timeStamp} Utc", GetSchedule);
+        _logger.LogInformation("NSI Monitoring Job Started, next occurrence will be at: {timeStamp} Utc", GetSchedule);
         return base.StartAsync(cancellationToken);
     }
 
