@@ -10,8 +10,8 @@ public class DownloadsController : BaseController
     => await Mediator.Send(query, ct);
 
     [HttpGet("getNSIFiles")]
-    public async Task<Response<List<NSISheets>>> GetNSIFiles(CancellationToken ct)
-    => await Mediator.Send(new GetNSIFilesQuery(), ct);
+    public async Task<Response<List<NSISheets>>> GetNSIFiles([FromQuery] GetNSIFilesQuery query, CancellationToken ct)
+    => await Mediator.Send(query, ct);
 
     [HttpGet("getNSIFile")]
     public async Task<IActionResult> GetNSIFile([FromQuery] GetNSIFileQuery query, CancellationToken ct)
