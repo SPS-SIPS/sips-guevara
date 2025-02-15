@@ -25,4 +25,13 @@ public class EnumerationsController : BaseController
         .ToList();
         return new Response<List<Lookup<int>>>(data);
     }
+
+    [HttpGet("fileTypes")]
+    public Response<List<Lookup<string>>> FileTypes()
+    {
+        return new Response<List<Lookup<string>>>([
+            new Lookup<string>("csv", "Tabular", ""),
+            new Lookup<string>("xml", "XML", ""),
+        ]);
+    }
 }

@@ -1,14 +1,17 @@
 namespace SPSS.App.Features.Downloads.Queries;
 
 using static SPSS.Domain.Common.KnownClaims;
-// [Authorize(Roles = QueryDownloads)]
+[Authorize(Roles = QueryDownloads)]
 public sealed record GetNSIFileQuery(string FileName) : IRequest<MemoryStream?>;
 public sealed class GetNSIFileQueryHandler(NSI nsiConfig) : IRequestHandler<GetNSIFileQuery, MemoryStream?>
 {
     private readonly NSI _nsiConfig = nsiConfig;
     public async ValueTask<MemoryStream?> Handle(GetNSIFileQuery request, CancellationToken cancellationToken)
     {
-        var output = Path.Combine(_nsiConfig.Directory, "output");
+        // get file extension from the file name
+        var extension = Path.GetExtension(request.FileName);
+        var locationToSearch = extension == ".csv" ? "output" : "backup";
+        var output = Path.Combine(_nsiConfig.Directory, locationToSearch);
 
         if (!Directory.Exists(output))
         {

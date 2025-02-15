@@ -1,18 +1,19 @@
 namespace SPSS.App.Features.Downloads.Queries;
 
 using static SPSS.Domain.Common.KnownClaims;
-// [Authorize(Roles = QueryDownloads)]
-public sealed record GetNSIFilesQuery() : IRequest<Response<List<NSISheets>>>;
+[Authorize(Roles = QueryDownloads)]
+public sealed record GetNSIFilesQuery(string Type = "csv") : IRequest<Response<List<NSISheets>>>;
 public sealed class GetNSIFilesQueryHandler(NSI nsiConfig) : IRequestHandler<GetNSIFilesQuery, Response<List<NSISheets>>>
 {
     private readonly NSI _nsiConfig = nsiConfig;
-    public async ValueTask<Response<List<NSISheets>>> Handle(GetNSIFilesQuery request, CancellationToken cancellationToken)
+    public ValueTask<Response<List<NSISheets>>> Handle(GetNSIFilesQuery request, CancellationToken cancellationToken)
     {
-        var output = Path.Combine(_nsiConfig.Directory, "output");
+        var locationToSearch = request.Type == "csv" ? "output" : "backup";
+        var output = Path.Combine(_nsiConfig.Directory, locationToSearch);
 
         if (!Directory.Exists(output))
         {
-            return Response<List<NSISheets>>.Success([], 0);
+            return ValueTask.FromResult(Response<List<NSISheets>>.Success([], 0));
         }
 
 
@@ -23,7 +24,7 @@ public sealed class GetNSIFilesQueryHandler(NSI nsiConfig) : IRequestHandler<Get
 
         if (files.Length == 0)
         {
-            return Response<List<NSISheets>>.Success([], 0);
+            return ValueTask.FromResult(Response<List<NSISheets>>.Success([], 0));
         }
 
         var sheets = new List<NSISheets>();
@@ -42,6 +43,6 @@ public sealed class GetNSIFilesQueryHandler(NSI nsiConfig) : IRequestHandler<Get
             sheets.Add(sheet);
         }
 
-        return Response<List<NSISheets>>.Success(sheets, 0);
+        return ValueTask.FromResult(Response<List<NSISheets>>.Success(sheets, 0));
     }
 }
