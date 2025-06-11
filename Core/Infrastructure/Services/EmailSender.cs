@@ -7,7 +7,7 @@ public class EmailSender(EmailConfig config, ILogger<EmailSender> logger) : IEma
     private readonly EmailConfig _config = config;
     private readonly ILogger<EmailSender> _logger = logger;
 
-    public async Task SendEmailAsync(string toEmail, string subject, string body, bool isHTML = false)
+    public async Task SendEmailAsync(string toEmail, string subject, string body, string? attachmentPath = null, bool isHTML = false)
     {
         var smtpClient = new SmtpClient(_config.Server)
         {
@@ -25,6 +25,11 @@ public class EmailSender(EmailConfig config, ILogger<EmailSender> logger) : IEma
         };
 
         mailMessage.To.Add(toEmail);
+
+        if (!string.IsNullOrEmpty(attachmentPath) && File.Exists(attachmentPath))
+        {
+            mailMessage.Attachments.Add(new Attachment(attachmentPath));
+        }
 
         await smtpClient.SendMailAsync(mailMessage);
 
