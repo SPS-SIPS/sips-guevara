@@ -245,6 +245,206 @@ namespace SPSS.Infrastructure.Migrations
                     b.ToTable("monithistories", (string)null);
                 });
 
+            modelBuilder.Entity("SPSS.Domain.Models.BL.NetSettlementDetail", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("amount");
+
+                    b.Property<string>("CategoryPurpose")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("categorypurpose");
+
+                    b.Property<string>("CreditorBic")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("creditorbic");
+
+                    b.Property<DateTimeOffset>("Date")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("date");
+
+                    b.Property<string>("DebtorBic")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("debtorbic");
+
+                    b.Property<string>("EndToEndId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("endtoendid");
+
+                    b.Property<string>("InstructionPriority")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("instructionpriority");
+
+                    b.Property<bool>("IsFee")
+                        .HasColumnType("boolean")
+                        .HasColumnName("isfee");
+
+                    b.Property<string>("LocalInstrument")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("localinstrument");
+
+                    b.Property<long>("NetSettlementHeaderId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("netsettlementheaderid");
+
+                    b.Property<string>("SvcLvl")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("svclvl");
+
+                    b.Property<string>("TxId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("txid");
+
+                    b.Property<string>("UETR")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("uetr");
+
+                    b.HasKey("Id")
+                        .HasName("pk_netsettlementdetails");
+
+                    b.HasIndex("CreditorBic")
+                        .HasDatabaseName("ix_netsettlementdetails_creditorbic");
+
+                    b.HasIndex("Date")
+                        .HasDatabaseName("ix_netsettlementdetails_date");
+
+                    b.HasIndex("DebtorBic")
+                        .HasDatabaseName("ix_netsettlementdetails_debtorbic");
+
+                    b.HasIndex("IsFee")
+                        .HasDatabaseName("ix_netsettlementdetails_isfee");
+
+                    b.HasIndex("NetSettlementHeaderId")
+                        .HasDatabaseName("ix_netsettlementdetails_netsettlementheaderid");
+
+                    b.ToTable("netsettlementdetails", (string)null);
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.NetSettlementHeader", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("BizMsgId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("bizmsgid");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("integer")
+                        .HasColumnName("count");
+
+                    b.Property<DateTimeOffset>("CredDtTm")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creddttm");
+
+                    b.Property<string>("Error")
+                        .HasColumnType("text")
+                        .HasColumnName("error");
+
+                    b.Property<string>("FilePath")
+                        .HasColumnType("text")
+                        .HasColumnName("filepath");
+
+                    b.Property<string>("From")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("from");
+
+                    b.Property<DateTimeOffset>("InterBankSettlementDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("interbanksettlementdate");
+
+                    b.Property<string>("MsgId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("msgid");
+
+                    b.Property<int>("NumberOfTrans")
+                        .HasColumnType("integer")
+                        .HasColumnName("numberoftrans");
+
+                    b.Property<string>("OriginalFile")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("originalfile");
+
+                    b.Property<string>("OriginalName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("originalname");
+
+                    b.Property<string>("OriginalUserReference")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("originaluserreference");
+
+                    b.Property<bool>("Processed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("processed");
+
+                    b.Property<DateTimeOffset?>("ProcessedOn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processedon");
+
+                    b.Property<string>("To")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("to");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("totalamount");
+
+                    b.Property<decimal>("TotalFees")
+                        .HasColumnType("numeric")
+                        .HasColumnName("totalfees");
+
+                    b.Property<decimal>("TotalTransactions")
+                        .HasColumnType("numeric")
+                        .HasColumnName("totaltransactions");
+
+                    b.HasKey("Id")
+                        .HasName("pk_netsettlementheaders");
+
+                    b.HasIndex("CredDtTm")
+                        .HasDatabaseName("ix_netsettlementheaders_creddttm");
+
+                    b.HasIndex("MsgId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_netsettlementheaders_msgid");
+
+                    b.ToTable("netsettlementheaders", (string)null);
+                });
+
             modelBuilder.Entity("SPSS.Domain.Models.BL.Participant", b =>
                 {
                     b.Property<string>("Id")
@@ -730,6 +930,18 @@ namespace SPSS.Infrastructure.Migrations
                     b.Navigation("Participant");
                 });
 
+            modelBuilder.Entity("SPSS.Domain.Models.BL.NetSettlementDetail", b =>
+                {
+                    b.HasOne("SPSS.Domain.Models.BL.NetSettlementHeader", "NetSettlementHeader")
+                        .WithMany("NetSettlementDetails")
+                        .HasForeignKey("NetSettlementHeaderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_netsettlementdetails_netsettlementheaders_netsettlementhead~");
+
+                    b.Navigation("NetSettlementHeader");
+                });
+
             modelBuilder.Entity("SPSS.Domain.Models.BL.Participant", b =>
                 {
                     b.HasOne("SPSS.Domain.Models.Identity.User", "User")
@@ -823,6 +1035,11 @@ namespace SPSS.Infrastructure.Migrations
             modelBuilder.Entity("SPSS.Domain.Models.BL.Certificate", b =>
                 {
                     b.Navigation("Downloads");
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.NetSettlementHeader", b =>
+                {
+                    b.Navigation("NetSettlementDetails");
                 });
 
             modelBuilder.Entity("SPSS.Domain.Models.BL.Participant", b =>

@@ -20,6 +20,8 @@ public interface IStorageBroker
     DbSet<Tunnel> Tunnels { get; set; }
     DbSet<Endpoint> Endpoints { get; set; }
     DbSet<MonitHistory> MonitHistories { get; set; }
+    DbSet<NetSettlementHeader> NetSettlementHeaders { get; set; }
+    DbSet<NetSettlementDetail> NetSettlementDetails { get; set; }
 
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);

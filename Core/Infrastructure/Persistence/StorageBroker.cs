@@ -19,6 +19,8 @@ public sealed class StorageBroker(DbContextOptions<StorageBroker> options) : DbC
     public DbSet<Tunnel> Tunnels { get; set; } = null!;
     public DbSet<Domain.Models.BL.Endpoint> Endpoints { get; set; } = null!;
     public DbSet<MonitHistory> MonitHistories { get; set; } = null!;
+    public DbSet<NetSettlementHeader> NetSettlementHeaders { get; set; } = null!;
+    public DbSet<NetSettlementDetail> NetSettlementDetails { get; set; } = null!;
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
     {

@@ -17,6 +17,7 @@ public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMon
         _logger.LogInformation("NSI Monitoring Job: is working...");
         using var scope = _services.CreateScope();
         var nsi = scope.ServiceProvider.GetRequiredService<NSI>();
+        var storage = scope.ServiceProvider.GetRequiredService<IStorageBroker>();
         var input = Path.Combine(nsi.Directory, "input");
         var output = Path.Combine(nsi.Directory, "output");
         var backup = Path.Combine(nsi.Directory, "backup");
@@ -50,14 +51,19 @@ public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMon
 
             foreach (var file in files)
             {
-                // check if generateFeesFile is true and seperate both files.
-                // (string fees, string txn) = NSIHelpers.Generate(
-                //     inputFile: fileName,
-                //     outputDir: outputDirectory);
-                ConvertNSIToCSV.Detail(inputFile: file, sheetDir: output);
-                ConvertNSIToCSV.Summary(inputFile: file, sheetDir: output);
+                var msgId = await NSIService.ImportXmlToDbAsync(file, storage, cancellationToken);
 
-                // Move the file to the backup directory
+                if (msgId == null)
+                {
+                    _logger.LogError("NSI Monitoring Job: Failed to import file {file}", file);
+                    continue;
+                }
+
+                // sleep for 2 seconds to avoid overloading the database
+                await Task.Delay(2000, cancellationToken);
+
+                await NSIService.GenerateRTGSFiles(storage, msgId.Value, output, nsi.FeeTTC!, nsi.TxnTTC!, _logger, cancellationToken);
+
                 var fileName = Path.GetFileName(file);
                 var destination = Path.Combine(backup, fileName);
                 File.Move(file, destination);
