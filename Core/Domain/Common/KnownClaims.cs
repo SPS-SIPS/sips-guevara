@@ -49,5 +49,7 @@ public static class KnownClaims
     public const string RemoveEndpoint = "REP";
     public const string UpdateEndpoint = "UEP";
 
-
+    // NSI
+    public const string QueryNSI = "QNSI";
+    public const string DownloadNSI = "DNSI";
 }

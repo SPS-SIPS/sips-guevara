@@ -1,4 +1,5 @@
 using SPSS.App.Features.Downloads.Queries;
+using SPSS.App.Features.NSI.Queries;
 namespace SPSS.API.Controllers;
 [ApiController]
 [Produces("application/json")]
@@ -10,19 +11,14 @@ public class DownloadsController : BaseController
     => await Mediator.Send(query, ct);
 
     [HttpGet("getNSIFiles")]
-    public async Task<Response<List<NSISheets>>> GetNSIFiles([FromQuery] GetNSIFilesQuery query, CancellationToken ct)
+    public async Task<PagedResponse<NetSettlementHeaderDto>> GetNSIFiles([FromQuery] GetSettlementFileQuery query, CancellationToken ct)
     => await Mediator.Send(query, ct);
 
     [HttpGet("getNSIFile")]
-    public async Task<IActionResult> GetNSIFile([FromQuery] GetNSIFileQuery query, CancellationToken ct)
+    public async Task<IActionResult> GetNSIFile([FromQuery] DownloadSettlementFileQuery query, CancellationToken ct)
     {
         var response = await Mediator.Send(query, ct);
-
-        if (response is null)
-        {
-            return NotFound("File not found");
-        }
-
-        return File(response, "application/octet-stream", query.FileName);
+        var fileName = query.Id + ".zip" ?? "settlement_file.zip";
+        return File(response.Data, "application/octet-stream", fileName);
     }
 }
