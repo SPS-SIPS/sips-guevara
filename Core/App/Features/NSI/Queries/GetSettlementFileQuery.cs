@@ -3,7 +3,7 @@ namespace SPSS.App.Features.NSI.Queries;
 using SPSS.App.Common;
 using static SPSS.Domain.Common.KnownClaims;
 [Authorize(Roles = QueryNSI)]
-public sealed record GetSettlementFileQuery(bool? Processed, DateTimeOffset CredDtTm, bool? Error = false) : PaginationFilter, IRequest<PagedResponse<NetSettlementHeaderDto>>;
+public sealed record GetSettlementFileQuery(bool? Processed, DateTimeOffset? CredDtTm) : PaginationFilter, IRequest<PagedResponse<NetSettlementHeaderDto>>;
 public sealed class GetSettlementFileQueryHandler(IStorageBroker storage, IMapper mapper) : IRequestHandler<GetSettlementFileQuery, PagedResponse<NetSettlementHeaderDto>>
 {
     private readonly IStorageBroker _storage = storage;
@@ -11,21 +11,16 @@ public sealed class GetSettlementFileQueryHandler(IStorageBroker storage, IMappe
 
     public async ValueTask<PagedResponse<NetSettlementHeaderDto>> Handle(GetSettlementFileQuery request, CancellationToken cancellationToken)
     {
-        var query = _storage.NetSettlementHeaders.AsNoTracking().ProjectTo<NetSettlementHeaderDto>(_mapper.ConfigurationProvider);
+        var query = _storage.NetSettlementHeaders.AsNoTracking().AsQueryable();
 
         if (request.Processed.HasValue)
         {
             query = query.Where(x => x.Processed == request.Processed.Value);
         }
 
-        if (request.CredDtTm != default)
+        if (request.CredDtTm.HasValue)
         {
             query = query.Where(x => x.CredDtTm == request.CredDtTm);
-        }
-
-        if (request.Error.HasValue)
-        {
-            query = query.Where(x => x.Error != null && x.Error != string.Empty);
         }
 
         query = request.Sort switch

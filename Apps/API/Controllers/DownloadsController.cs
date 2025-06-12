@@ -1,6 +1,7 @@
 using SPSS.App.Features.Downloads.Queries;
 using SPSS.App.Features.NSI.Queries;
 namespace SPSS.API.Controllers;
+
 [ApiController]
 [Produces("application/json")]
 [Route("api/v1/[controller]")]
@@ -18,7 +19,10 @@ public class DownloadsController : BaseController
     public async Task<IActionResult> GetNSIFile([FromQuery] DownloadSettlementFileQuery query, CancellationToken ct)
     {
         var response = await Mediator.Send(query, ct);
-        var fileName = query.Id + ".zip" ?? "settlement_file.zip";
-        return File(response.Data, "application/octet-stream", fileName);
+        Response.Headers.Append("Content-Disposition", $"attachment; filename=\"{response.Data.Item2.Replace(".xml", ".zip")}\"");
+        Response.Headers.Append("Content-Type", "application/octet-stream");
+        Response.Headers.Append("Content-Length", response.Data.Item1.Length.ToString());
+        Response.Headers.Append("Cache-Control", "public, max-age=3600");
+        return File(response.Data.Item1, "application/octet-stream", response.Data.Item2.Replace(".xml", ".zip"));
     }
 }
