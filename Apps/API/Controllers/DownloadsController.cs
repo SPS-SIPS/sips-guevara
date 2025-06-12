@@ -19,10 +19,59 @@ public class DownloadsController : BaseController
     public async Task<IActionResult> GetNSIFile([FromQuery] DownloadSettlementFileQuery query, CancellationToken ct)
     {
         var response = await Mediator.Send(query, ct);
-        Response.Headers.Append("Content-Disposition", $"attachment; filename=\"{response.Data.Item2.Replace(".xml", ".zip")}\"");
-        Response.Headers.Append("Content-Type", "application/octet-stream");
-        Response.Headers.Append("Content-Length", response.Data.Item1.Length.ToString());
+        var fileName = response.Data.Item2;
+        var fileBytes = response.Data.Item1;
+        string contentType;
+        if (fileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+        {
+            contentType = "text/csv";
+        }
+        else if (fileName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+        {
+            contentType = "application/xml";
+        }
+        else if (fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+        {
+            contentType = "application/zip";
+        }
+        else
+        {
+            contentType = "application/octet-stream";
+        }
+        Response.Headers.Append("Content-Disposition", $"attachment; filename=\"{fileName}\"");
+        Response.Headers.Append("Content-Type", contentType);
+        Response.Headers.Append("Content-Length", fileBytes.Length.ToString());
         Response.Headers.Append("Cache-Control", "public, max-age=3600");
-        return File(response.Data.Item1, "application/octet-stream", response.Data.Item2.Replace(".xml", ".zip"));
+        return File(fileBytes, contentType, fileName);
+    }
+
+    [HttpGet("getNSIFile4party")]
+    public async Task<IActionResult> GetNSIFile4Party([FromQuery] GetSettlementDetailsFileQuery query, CancellationToken ct)
+    {
+        var response = await Mediator.Send(query, ct);
+        var fileName = response.Data.Item2;
+        var fileBytes = response.Data.Item1;
+        string contentType;
+        if (fileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+        {
+            contentType = "text/csv";
+        }
+        else if (fileName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+        {
+            contentType = "application/xml";
+        }
+        else if (fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+        {
+            contentType = "application/zip";
+        }
+        else
+        {
+            contentType = "application/octet-stream";
+        }
+        Response.Headers.Append("Content-Disposition", $"attachment; filename=\"{fileName}\"");
+        Response.Headers.Append("Content-Type", contentType);
+        Response.Headers.Append("Content-Length", fileBytes.Length.ToString());
+        Response.Headers.Append("Cache-Control", "public, max-age=3600");
+        return File(fileBytes, contentType, fileName);
     }
 }
