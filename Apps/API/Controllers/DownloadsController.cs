@@ -45,6 +45,10 @@ public class DownloadsController : BaseController
         return File(fileBytes, contentType, fileName);
     }
 
+    [HttpGet("GetDaySettlementInfo")]
+    public async Task<Response<List<NetSettlementHeaderSimpleDto>>> GetSettlementInfo([FromQuery] GetSettlementInfoQuery query, CancellationToken ct)
+    => await Mediator.Send(query, ct);
+
     [HttpGet("getNSIFile4party")]
     public async Task<IActionResult> GetNSIFile4Party([FromQuery] GetSettlementDetailsFileQuery query, CancellationToken ct)
     {

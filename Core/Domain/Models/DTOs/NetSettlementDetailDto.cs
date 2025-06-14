@@ -4,7 +4,6 @@ namespace SPSS.Domain.Models.DTOs;
 
 public sealed class NetSettlementDetailDto : IMap<NetSettlementDetail>
 {
-    public long Id { get; set; }
     public string EndToEndId { get; set; } = string.Empty;
     public string TxId { get; set; } = string.Empty;
     public DateTimeOffset Date { get; set; }

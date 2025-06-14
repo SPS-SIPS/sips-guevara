@@ -52,4 +52,5 @@ public static class KnownClaims
     // NSI
     public const string QueryNSI = "QNSI";
     public const string DownloadNSI = "DNSI";
+    public const string QueryParticipantNSI = "QPNSI";
 }
