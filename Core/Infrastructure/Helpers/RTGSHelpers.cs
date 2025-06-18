@@ -66,27 +66,57 @@ public static class RTGSHelpers
         }
 
         var nettedTxs = new List<NetSettlementDetail>();
+        // Values assumed from typical usage or example XML structure for this context
+        string localInstrument = "RTGSNetSettlement";
+        string instructionPriority = "HIGH";
 
-        foreach (var kvp in netPositions.Where(kvp => kvp.Value != 0).OrderBy(kvp => kvp.Value))
+        // Process BICs based on their net position.
+        // OrderBy(kvp => kvp.Value) processes net debtors first, then net creditors.
+        foreach (var kvp in netPositions.Where(kvp => kvp.Value != 0M).OrderBy(kvp => kvp.Value))
         {
             var bic = kvp.Key;
-            var net = kvp.Value;
+            var netAmount = kvp.Value; // If Value < 0, bic is a net debtor. If Value > 0, bic is a net creditor.
 
-            var detail = new NetSettlementDetail
+            // If the current BIC is the central party (identified by 'To'),
+            // do not generate a transaction for its own net position.
+            // The central party acts as the counterparty for all other BICs.
+            if (string.Equals(bic, To, StringComparison.OrdinalIgnoreCase))
             {
-                EndToEndId = Guid.NewGuid().ToString("N"),
-                TxId = Guid.NewGuid().ToString("N"),
-                InstructionPriority = "HIGH",
-                SvcLvl = svcLvlValue,
-                LocalInstrument = "RTGSNetSettlement",
-                Amount = Math.Abs(net),
-                DebtorBic = net > 0 ? To : bic,
-                CreditorBic = net > 0 ? bic : To,
-                Date = DateTimeOffset.UtcNow,
-            };
-            nettedTxs.Add(detail);
-        }
+                continue;
+            }
 
+            NetSettlementDetail nettedTx;
+            if (netAmount > 0) // bic is a net creditor. The central party 'To' pays 'bic'.
+            {
+                nettedTx = new NetSettlementDetail
+                {
+                    DebtorBic = To, // Central party is Debtor
+                    CreditorBic = bic,
+                    Amount = netAmount, // Amount is positive
+                    EndToEndId = Guid.NewGuid().ToString("N"), // Generate unique ID
+                    TxId = Guid.NewGuid().ToString("N"),       // Generate unique ID
+                    SvcLvl = svcLvlValue, // Use provided service level value
+                    LocalInstrument = localInstrument,
+                    InstructionPriority = instructionPriority
+                };
+            }
+            else // netAmount < 0. bic is a net debtor. 'bic' pays the central party 'To'.
+            {
+                // netAmount is negative, so -netAmount makes the transaction amount positive.
+                nettedTx = new NetSettlementDetail
+                {
+                    DebtorBic = bic,
+                    CreditorBic = To, // Central party is Creditor
+                    Amount = -netAmount, // Amount must be positive
+                    EndToEndId = Guid.NewGuid().ToString("N"), // Generate unique ID
+                    TxId = Guid.NewGuid().ToString("N"),       // Generate unique ID
+                    SvcLvl = svcLvlValue, // Use provided service level value
+                    LocalInstrument = localInstrument,
+                    InstructionPriority = instructionPriority
+                };
+            }
+            nettedTxs.Add(nettedTx);
+        }
         return nettedTxs;
     }
     public static XDocument BuildRTGSXML(NetSettlementHeader header, IEnumerable<NetSettlementDetail> details, bool isFee)
@@ -103,10 +133,10 @@ public static class RTGSHelpers
                         new XElement(XName.Get("TtlIntrBkSttlmAmt", nsPacs009), new XAttribute("Ccy", "USD"), details.Sum(d => d.Amount).ToString("F2")),
                         new XElement(XName.Get("IntrBkSttlmDt", nsPacs009), header.InterBankSettlementDate.ToString("yyyy-MM-dd")),
                         new XElement(XName.Get("SttlmInf", nsPacs009),
+                            new XElement(XName.Get("SttlmMtd", nsPacs009), "CLRG"),
                             new XElement(XName.Get("ClrSys", nsPacs009),
                                 new XElement(XName.Get("Cd", nsPacs009), "RTG")
-                            ),
-                            new XElement(XName.Get("SttlmMtd", nsPacs009), "CLRG")
+                            )
                         ),
                         new XElement(XName.Get("InstgAgt", nsPacs009),
                             new XElement(XName.Get("FinInstnId", nsPacs009),
