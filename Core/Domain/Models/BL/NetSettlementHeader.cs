@@ -16,6 +16,7 @@ public sealed class NetSettlementHeader : BaseEntity<long>
     public DateTimeOffset InterBankSettlementDate { get; set; }
     public string OriginalFile { get; set; } = string.Empty;
     public ICollection<NetSettlementDetail> NetSettlementDetails { get; set; } = [];
+    public ICollection<BicStatistic> BicStatistics { get; set; } = [];
 
     public bool Processed { get; set; } = false;
     public DateTimeOffset? ProcessedOn { get; set; }

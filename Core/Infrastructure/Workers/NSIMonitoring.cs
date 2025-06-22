@@ -1,3 +1,5 @@
+using AutoMapper;
+
 namespace SPSS.Infrastructure.Workers;
 public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMonitoring> logger, IServiceProvider services) : CronJobService(config.CronExpression!, config.TimeZoneInfo!)
 {
@@ -18,6 +20,9 @@ public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMon
         using var scope = _services.CreateScope();
         var nsi = scope.ServiceProvider.GetRequiredService<NSI>();
         var storage = scope.ServiceProvider.GetRequiredService<IStorageBroker>();
+        var statistics = scope.ServiceProvider.GetRequiredService<IBicStatisticsService>();
+        var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
+
         var input = Path.Combine(nsi.Directory, "input");
         var output = Path.Combine(nsi.Directory, "output");
         var backup = Path.Combine(nsi.Directory, "backup");
@@ -63,6 +68,11 @@ public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMon
                 await Task.Delay(2000, cancellationToken);
 
                 await NSIService.GenerateRTGSFiles(storage, msgId.Value, output, nsi.FeeTTC!, nsi.TxnTTC!, _logger, cancellationToken);
+
+                // sleep for 2 seconds to avoid overloading the database
+                await Task.Delay(2000, cancellationToken);
+
+                await NSIService.GenerateStatisticsAsync(storage, msgId.Value, statistics, mapper, cancellationToken);
 
                 var fileName = Path.GetFileName(file);
                 var destination = Path.Combine(backup, fileName);

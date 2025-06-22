@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using SPSS.App.Common;
-
 namespace SPSS.App;
 
 public static class DI

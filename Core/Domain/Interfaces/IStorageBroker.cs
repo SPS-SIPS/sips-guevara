@@ -22,7 +22,7 @@ public interface IStorageBroker
     DbSet<MonitHistory> MonitHistories { get; set; }
     DbSet<NetSettlementHeader> NetSettlementHeaders { get; set; }
     DbSet<NetSettlementDetail> NetSettlementDetails { get; set; }
-
+    DbSet<BicStatistic> BicStatistics { get; set; }
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     int SaveChanges();

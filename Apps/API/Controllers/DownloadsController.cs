@@ -78,4 +78,34 @@ public class DownloadsController : BaseController
         Response.Headers.Append("Cache-Control", "public, max-age=3600");
         return File(fileBytes, contentType, fileName);
     }
+
+    [HttpGet("SettlementSummaryFile")]
+    public async Task<IActionResult> GetSettlementSummaryFile([FromQuery] GetSettlementSummaryFileQuery query, CancellationToken ct)
+    {
+        var response = await Mediator.Send(query, ct);
+        var fileName = response.Data.Item2;
+        var fileBytes = response.Data.Item1;
+        string contentType;
+        if (fileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+        {
+            contentType = "text/csv";
+        }
+        else if (fileName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+        {
+            contentType = "application/xml";
+        }
+        else if (fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+        {
+            contentType = "application/zip";
+        }
+        else
+        {
+            contentType = "application/octet-stream";
+        }
+        Response.Headers.Append("Content-Disposition", $"attachment; filename=\"{fileName}\"");
+        Response.Headers.Append("Content-Type", contentType);
+        Response.Headers.Append("Content-Length", fileBytes.Length.ToString());
+        Response.Headers.Append("Cache-Control", "public, max-age=3600");
+        return File(fileBytes, contentType, fileName);
+    }
 }

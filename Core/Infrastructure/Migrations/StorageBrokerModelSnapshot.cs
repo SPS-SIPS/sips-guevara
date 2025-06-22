@@ -22,6 +22,64 @@ namespace SPSS.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("SPSS.Domain.Models.BL.BicStatistic", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("Bic")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("bic");
+
+                    b.Property<DateTimeOffset>("Date")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("date");
+
+                    b.Property<long>("NetSettlementHeaderId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("netsettlementheaderid");
+
+                    b.Property<long>("ReceivedCount")
+                        .HasColumnType("bigint")
+                        .HasColumnName("receivedcount");
+
+                    b.Property<long>("SentCount")
+                        .HasColumnType("bigint")
+                        .HasColumnName("sentcount");
+
+                    b.Property<decimal>("TotalAmountReceived")
+                        .HasColumnType("numeric")
+                        .HasColumnName("totalamountreceived");
+
+                    b.Property<decimal>("TotalAmountSent")
+                        .HasColumnType("numeric")
+                        .HasColumnName("totalamountsent");
+
+                    b.Property<decimal>("TotalFeesReceived")
+                        .HasColumnType("numeric")
+                        .HasColumnName("totalfeesreceived");
+
+                    b.HasKey("Id")
+                        .HasName("pk_bicstatistics");
+
+                    b.HasIndex("Bic")
+                        .HasDatabaseName("ix_bicstatistics_bic");
+
+                    b.HasIndex("NetSettlementHeaderId")
+                        .HasDatabaseName("ix_bicstatistics_netsettlementheaderid");
+
+                    b.ToTable("bicstatistics", (string)null);
+                });
+
             modelBuilder.Entity("SPSS.Domain.Models.BL.Certificate", b =>
                 {
                     b.Property<string>("Id")
@@ -873,6 +931,100 @@ namespace SPSS.Infrastructure.Migrations
                     b.ToTable("userroles", (string)null);
                 });
 
+            modelBuilder.Entity("SPSS.Domain.Models.BL.BicStatistic", b =>
+                {
+                    b.HasOne("SPSS.Domain.Models.BL.NetSettlementHeader", "NetSettlementHeader")
+                        .WithMany("BicStatistics")
+                        .HasForeignKey("NetSettlementHeaderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_bicstatistics_netsettlementheaders_netsettlementheaderid");
+
+                    b.OwnsMany("SPSS.Domain.Models.BL.BicInteraction", "TopReceivers", b1 =>
+                        {
+                            b1.Property<long>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("bigint")
+                                .HasColumnName("id");
+
+                            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<long>("Id"));
+
+                            b1.Property<string>("Bic")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("bic");
+
+                            b1.Property<long>("BicStatisticId")
+                                .HasColumnType("bigint")
+                                .HasColumnName("bicstatisticid");
+
+                            b1.Property<decimal>("TotalAmount")
+                                .HasColumnType("numeric")
+                                .HasColumnName("totalamount");
+
+                            b1.Property<long>("TransactionCount")
+                                .HasColumnType("bigint")
+                                .HasColumnName("transactioncount");
+
+                            b1.HasKey("Id")
+                                .HasName("pk_bicstatistics_topreceivers");
+
+                            b1.HasIndex("BicStatisticId")
+                                .HasDatabaseName("ix_bicstatistics_topreceivers_bicstatisticid");
+
+                            b1.ToTable("bicstatistics_topreceivers", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("BicStatisticId")
+                                .HasConstraintName("fk_bicstatistics_topreceivers_bicstatistics_bicstatisticid");
+                        });
+
+                    b.OwnsMany("SPSS.Domain.Models.BL.BicInteraction", "TopSenders", b1 =>
+                        {
+                            b1.Property<long>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("bigint")
+                                .HasColumnName("id");
+
+                            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<long>("Id"));
+
+                            b1.Property<string>("Bic")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("bic");
+
+                            b1.Property<long>("BicStatisticId")
+                                .HasColumnType("bigint")
+                                .HasColumnName("bicstatisticid");
+
+                            b1.Property<decimal>("TotalAmount")
+                                .HasColumnType("numeric")
+                                .HasColumnName("totalamount");
+
+                            b1.Property<long>("TransactionCount")
+                                .HasColumnType("bigint")
+                                .HasColumnName("transactioncount");
+
+                            b1.HasKey("Id")
+                                .HasName("pk_bicstatistics_topsenders");
+
+                            b1.HasIndex("BicStatisticId")
+                                .HasDatabaseName("ix_bicstatistics_topsenders_bicstatisticid");
+
+                            b1.ToTable("bicstatistics_topsenders", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("BicStatisticId")
+                                .HasConstraintName("fk_bicstatistics_topsenders_bicstatistics_bicstatisticid");
+                        });
+
+                    b.Navigation("NetSettlementHeader");
+
+                    b.Navigation("TopReceivers");
+
+                    b.Navigation("TopSenders");
+                });
+
             modelBuilder.Entity("SPSS.Domain.Models.BL.Certificate", b =>
                 {
                     b.HasOne("SPSS.Domain.Models.BL.Participant", "Participant")
@@ -1039,6 +1191,8 @@ namespace SPSS.Infrastructure.Migrations
 
             modelBuilder.Entity("SPSS.Domain.Models.BL.NetSettlementHeader", b =>
                 {
+                    b.Navigation("BicStatistics");
+
                     b.Navigation("NetSettlementDetails");
                 });
 

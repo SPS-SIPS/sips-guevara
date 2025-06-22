@@ -45,6 +45,8 @@ public static class DI
         services.AddScoped<ICertificateRetriever, LDAPCertificateFetcher>();
         services.AddScoped<CertificateValidator>();
         services.AddScoped<IFileStorage, FileService>();
+        services.AddScoped<IBicStatisticsService, BicStatisticsService>();
+        services.AddSingleton<IStatisticsReportService, StatisticsReportService>();
 
         var jwtSettings = new JwtSettings();
         configuration.Bind(nameof(JwtSettings), jwtSettings);
@@ -88,8 +90,8 @@ public static class DI
         var nsi = new JobConfiguration();
         configuration.Bind("Jobs:NSI", nsi);
         services.AddCronJob<NSIMonitoring>(nsi);
-        services.AddHostedService<CertificateFetchingService>();
-        services.AddHostedService<CertificateValidationService>();
+        // services.AddHostedService<CertificateFetchingService>();
+        // services.AddHostedService<CertificateValidationService>();
         services.AddSingleton(TokenValidationParameters);
         return services;
     }
