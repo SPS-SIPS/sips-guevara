@@ -1,7 +1,7 @@
 using System.Xml.Linq;
 using SPSS.Domain.Models.BL;
 
-namespace SPSS.Infrastructure.Helpers;
+namespace SPSS.Domain.Common;
 
 public static class RTGSHelpers
 {

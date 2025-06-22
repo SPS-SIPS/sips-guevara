@@ -1,5 +1,5 @@
 using CsvHelper;
-namespace SPSS.App.Common;
+namespace SPSS.Domain.Common;
 
 public static class CSVHelper
 {
