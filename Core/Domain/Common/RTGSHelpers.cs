@@ -140,12 +140,12 @@ public static class RTGSHelpers
                         ),
                         new XElement(XName.Get("InstgAgt", nsPacs009),
                             new XElement(XName.Get("FinInstnId", nsPacs009),
-                                new XElement(XName.Get("BICFI", nsPacs009), "SPSOSOS0")
+                                new XElement(XName.Get("BICFI", nsPacs009), header.From)
                             )
                         ),
                         new XElement(XName.Get("InstdAgt", nsPacs009),
                             new XElement(XName.Get("FinInstnId", nsPacs009),
-                                new XElement(XName.Get("BICFI", nsPacs009), "CBSOSOS0")
+                                new XElement(XName.Get("BICFI", nsPacs009), header.CentralBankBiC)
                             )
                         )
                     ),

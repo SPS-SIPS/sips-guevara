@@ -416,6 +416,11 @@ namespace SPSS.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("bizmsgid");
 
+                    b.Property<string>("CentralBankBiC")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("centralbankbic");
+
                     b.Property<int>("Count")
                         .HasColumnType("integer")
                         .HasColumnName("count");

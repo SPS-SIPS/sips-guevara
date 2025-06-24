@@ -11,6 +11,7 @@ public sealed class NetSettlementHeader : BaseEntity<long>
     public decimal TotalTransactions { get; set; }
     public string From { get; set; } = string.Empty;
     public string To { get; set; } = string.Empty;
+    public string CentralBankBiC { get; set; } = string.Empty;
     public string OriginalUserReference { get; set; } = string.Empty;
     public string BizMsgId { get; set; } = string.Empty;
     public DateTimeOffset InterBankSettlementDate { get; set; }

@@ -45,6 +45,14 @@ public static class NSIService
             .Descendants(nsDataPdu + "SenderReference")
             .FirstOrDefault()?.Value ?? string.Empty;
 
+        // Document > FICdtTrf > GrpHdr > InstdAgt.FinInstnId.BICFI
+        string centralBankBic = fiCdtTrf
+            .Descendants(nsPacs009 + "GrpHdr")
+            .Descendants(nsPacs009 + "InstdAgt")
+            .Descendants(nsPacs009 + "FinInstnId")
+            .Descendants(nsPacs009 + "BICFI")
+            .FirstOrDefault()?.Value ?? string.Empty;
+
 
         // Create the NetSettlementHeader
         var netSettlementHeader = new NetSettlementHeader
@@ -58,6 +66,7 @@ public static class NSIService
             OriginalFile = doc.ToString(),
             From = from,
             To = to,
+            CentralBankBiC = centralBankBic,
             BizMsgId = bizMsgId,
             OriginalUserReference = originalUserReference,
         };
