@@ -90,8 +90,8 @@ public static class DI
         var nsi = new JobConfiguration();
         configuration.Bind("Jobs:NSI", nsi);
         services.AddCronJob<NSIMonitoring>(nsi);
-        // services.AddHostedService<CertificateFetchingService>();
-        // services.AddHostedService<CertificateValidationService>();
+        services.AddHostedService<CertificateFetchingService>();
+        services.AddHostedService<CertificateValidationService>();
         services.AddSingleton(TokenValidationParameters);
         return services;
     }
