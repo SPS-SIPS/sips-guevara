@@ -82,10 +82,7 @@ public static class DI
             ClockSkew = TimeSpan.FromSeconds(5)
         };
 
-        // services.AddCronJob<BackupJob>(new JobConfiguration { Expression = backupConfiguration.Expression, TimeZoneInfo = backupConfiguration.TimeZoneInfo });
-        var monitorConfiguration = new JobConfiguration();
-        configuration.Bind("Jobs:Monitor", monitorConfiguration);
-        services.AddCronJob<MonitorJob>(monitorConfiguration);
+        services.AddCronJob<BackupJob>(new JobConfiguration { Expression = backupConfiguration.Expression, TimeZoneInfo = backupConfiguration.TimeZoneInfo });
 
         var nsi = new JobConfiguration();
         configuration.Bind("Jobs:NSI", nsi);
@@ -93,6 +90,13 @@ public static class DI
         services.AddHostedService<CertificateFetchingService>();
         services.AddHostedService<CertificateValidationService>();
         services.AddSingleton(TokenValidationParameters);
+
+        var apiAuthConfig = configuration.GetSection("ApiAuth").Get<List<ApiClient>>();
+        if (apiAuthConfig != null && apiAuthConfig.Count != 0)
+        {
+            services.AddSingleton(apiAuthConfig);
+        }
+
         return services;
     }
 

@@ -2,17 +2,14 @@ namespace SPSS.Domain.Models.BL;
 
 public sealed class MonitHistory : BaseEntity<int>
 {
-    public Participant Participant { get; set; } = default!;
-    public string ParticipantId { get; set; } = default!;
-    public DateTimeOffset Date { get; set; }
-    public ServiceType Type { get; set; } = ServiceType.VPN;
-    public ServiceStatus Status { get; set; } = ServiceStatus.Up;
-    public string Address { get; set; } = default!;
-    public long RoundtripTime { get; set; }
-    public int PacketLoss { get; set; }
-    public string? AdditionalInfo { get; set; }
-
-    public bool Sent { get; set; } = false;
+    public string InstitutionName { get; set; } = default!;
+    public string InstitutionBic { get; set; } = default!;
+    public bool Success { get; set; }
+    public int HttpStatus { get; set; }
+    public string? Response { get; set; }
+    public string? Error { get; set; }
+    public string? ErrorType { get; set; }
+    public DateTimeOffset CheckedAt { get; set; }
 }
 
 public sealed class MonitHistoryConfiguration : IEntityTypeConfiguration<MonitHistory>
@@ -24,12 +21,9 @@ public sealed class MonitHistoryConfiguration : IEntityTypeConfiguration<MonitHi
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id).ValueGeneratedOnAdd();
 
-        builder.Property(e => e.Type).HasConversion(x => x.Id, x => Enumeration<int>.FromId<ServiceType>(x));
-        builder.Property(e => e.Status).HasConversion(x => x.Id, x => Enumeration<int>.FromId<ServiceStatus>(x));
-
-        builder.HasOne(e => e.Participant)
-            .WithMany(e => e.MonitHistories)
-            .HasForeignKey(e => e.ParticipantId)
-            .OnDelete(DeleteBehavior.NoAction);
+        builder.HasIndex(x => x.InstitutionBic);
+        builder.HasIndex(x => x.InstitutionName);
+        builder.HasIndex(x => x.CheckedAt);
+        builder.HasIndex(x => x.Success);
     }
 }

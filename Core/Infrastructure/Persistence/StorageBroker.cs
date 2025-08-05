@@ -15,9 +15,6 @@ public sealed class StorageBroker(DbContextOptions<StorageBroker> options) : DbC
     public DbSet<Participant> Participants { get; set; } = null!;
     public DbSet<Certificate> Certificates { get; set; } = null!;
     public DbSet<Download> Downloads { get; set; } = null!;
-    public DbSet<VPN> VPNs { get; set; } = null!;
-    public DbSet<Tunnel> Tunnels { get; set; } = null!;
-    public DbSet<Domain.Models.BL.Endpoint> Endpoints { get; set; } = null!;
     public DbSet<MonitHistory> MonitHistories { get; set; } = null!;
     public DbSet<NetSettlementHeader> NetSettlementHeaders { get; set; } = null!;
     public DbSet<NetSettlementDetail> NetSettlementDetails { get; set; } = null!;

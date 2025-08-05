@@ -4,11 +4,13 @@ public sealed class IdentityService : IIdentityService
 {
     private readonly HttpContext _context;
     private readonly ITokenService _tokenService;
+    private readonly List<ApiClient> _apiClients = [];
     private readonly static string policyName = "galawo_auth";
-    public IdentityService(IHttpContextAccessor httpContextAccessor, ITokenService tokenService)
+    public IdentityService(IHttpContextAccessor httpContextAccessor, ITokenService tokenService, List<ApiClient> apiClients)
     {
         _context = httpContextAccessor.HttpContext!;
         _tokenService = tokenService;
+        _apiClients = apiClients;
         IsAuthenticated = Authorize();
         if (IsAuthenticated)
         {
@@ -33,12 +35,12 @@ public sealed class IdentityService : IIdentityService
         {
             return false;
         }
+
+        // JWT Bearer authentication
         if (_context.Request.Headers.TryGetValue("Authorization", out var authHeader))
         {
             var accessToken = authHeader.ToString().Split(' ').Last();
-
             var principal = _tokenService.ValidateJwt(accessToken);
-
             if (principal != null)
             {
                 var ticket = new AuthenticationTicket(principal, policyName);
@@ -50,6 +52,41 @@ public sealed class IdentityService : IIdentityService
                 return result.Succeeded;
             }
         }
+
+        // API Key & Secret authentication
+        if (_context.Request.Headers.TryGetValue("X-API-Key", out var apiKeyHeader) &&
+            _context.Request.Headers.TryGetValue("X-API-Secret", out var apiSecretHeader))
+        {
+            var apiKey = apiKeyHeader.ToString();
+            var apiSecret = apiSecretHeader.ToString();
+            var client = _apiClients.FirstOrDefault(x => x.ClientId == apiKey && x.ClientSecret == apiSecret);
+            if (client != null)
+            {
+                var claims = new[]
+                {
+                    new System.Security.Claims.Claim("api_client_id", client.ClientId.ToString()),
+                    new System.Security.Claims.Claim("api_client_name", client.ClientName ?? "")
+                };
+                var identity = new ClaimsIdentity(claims, "ApiKey");
+                var principal = new ClaimsPrincipal(identity);
+                foreach (var item in client.Scopes)
+                {
+                    claims =
+                    [
+                        new System.Security.Claims.Claim("role", item)
+                    ];
+                    identity.AddClaims(claims);
+                }
+                var ticket = new AuthenticationTicket(principal, policyName);
+                var result = AuthenticateResult.Success(ticket);
+                if (result.Succeeded)
+                {
+                    _context.User = result.Principal;
+                }
+                return result.Succeeded;
+            }
+        }
+
         return false;
     }
 

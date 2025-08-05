@@ -9,7 +9,9 @@ public sealed class GetSettlementDetailsFileQueryValidator : AbstractValidator<G
     public GetSettlementDetailsFileQueryValidator(IIdentityService identityService)
     {
         RuleFor(e => e.Id).NotNull();
-        RuleFor(e => e.Party).NotEmpty().When(e => !identityService.IsInRole(QueryParticipantNSI))
+        RuleFor(e => e.Party)
+            .Must(p => !string.IsNullOrWhiteSpace(p))
+            .When(e => !identityService.IsInRole(QueryParticipantNSI))
             .WithMessage("Party is required when querying settlement details file");
     }
 }

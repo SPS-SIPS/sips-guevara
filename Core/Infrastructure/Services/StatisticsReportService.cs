@@ -1,3 +1,4 @@
+using SPSS.Domain.Models.BL;
 using SPSS.Domain.Models.DTOs.Reports;
 
 namespace SPSS.Infrastructure.Services;
@@ -202,5 +203,27 @@ public class StatisticsReportService : IStatisticsReportService
             }
         }
         return Task.FromResult(new MatrixReportDto { Rows = matrix.Values.ToList() });
+    }
+
+    public Task<List<InstitutionUptimeDto>> GetInstitutionUptimeReportAsync(IEnumerable<MonitHistory> histories, DateTime? from = null, DateTime? to = null)
+    {
+        var filtered = histories;
+        if (from.HasValue && to.HasValue)
+        {
+            filtered = filtered.Where(x => x.CheckedAt >= from.Value && x.CheckedAt <= to.Value);
+        }
+
+        var result = filtered
+            .GroupBy(x => x.InstitutionBic)
+            .Select(g => new InstitutionUptimeDto
+            {
+                InstitutionBic = g.Key,
+                TotalChecks = g.Count(),
+                SuccessChecks = g.Count(x => x.Success),
+                Uptime = !g.Any() ? 0 : g.Count(x => x.Success) * 100.0 / g.Count()
+            })
+            .ToList();
+
+        return Task.FromResult(result);
     }
 }

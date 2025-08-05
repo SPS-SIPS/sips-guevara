@@ -27,11 +27,13 @@ public sealed class FinancialReportsQueryValidator : AbstractValidator<Financial
     private bool BeAValidDate(string dateString)
     {
         if (string.IsNullOrEmpty(dateString)) return false;
-
-        if (DateTimeOffset.TryParse(dateString, out _)) return true;
-
-        string[] formats = ["MM-dd-yyyy", "dd-MM-yyyy", "yyyy-MM-dd", "MM/dd/yyyy", "dd/MM/yyyy", "yyyy/MM/dd"];
-        return DateTimeOffset.TryParseExact(dateString, formats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out _);
+        // Accept only ISO 8601 format
+        return DateTimeOffset.TryParseExact(
+            dateString,
+            "yyyy-MM-ddTHH:mm:ss.FFFFFFFK",
+            System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.None,
+            out _);
     }
 }
 public sealed class FinancialReportsQueryHandler(IStorageBroker storage, IMapper mapper, IStatisticsReportService reportService) : IRequestHandler<FinancialReportsQuery, Response<CombinedReportDto>>
@@ -41,9 +43,9 @@ public sealed class FinancialReportsQueryHandler(IStorageBroker storage, IMapper
     private readonly IStatisticsReportService _reportService = reportService;
     public async ValueTask<Response<CombinedReportDto>> Handle(FinancialReportsQuery request, CancellationToken cancellationToken)
     {
-        string[] formats = ["MM-dd-yyyy", "dd-MM-yyyy", "yyyy-MM-dd", "MM/dd/yyyy", "dd/MM/yyyy", "yyyy/MM/dd"];
-        var fromDate = DateTimeOffset.ParseExact(request.FromDate, formats, System.Globalization.CultureInfo.InvariantCulture).ToUniversalTime();
-        var toDate = DateTimeOffset.ParseExact(request.ToDate, formats, System.Globalization.CultureInfo.InvariantCulture).ToUniversalTime();
+        // Accept only ISO 8601 format
+        var fromDate = DateTimeOffset.ParseExact(request.FromDate, "yyyy-MM-ddTHH:mm:ss.FFFFFFFK", System.Globalization.CultureInfo.InvariantCulture).ToUniversalTime();
+        var toDate = DateTimeOffset.ParseExact(request.ToDate, "yyyy-MM-ddTHH:mm:ss.FFFFFFFK", System.Globalization.CultureInfo.InvariantCulture).ToUniversalTime();
 
         var settlementDetails = await _storage.BicStatistics
         .Where(x => x.Bic != "ZYABSOSM" && x.Date >= fromDate && x.Date <= toDate)
@@ -66,6 +68,10 @@ public sealed class FinancialReportsQueryHandler(IStorageBroker storage, IMapper
         var concentrationAnalysis = await _reportService.GetConcentrationAnalysisAsync(settlementDetails);
         var leagueTable = await _reportService.GetLeagueTableAsync(settlementDetails);
         var matrix = await _reportService.GetMatrixAsync(settlementDetails);
+        var uptimeDtos = await _reportService.GetInstitutionUptimeReportAsync(
+            await _storage.MonitHistories
+                .Where(x => x.CheckedAt >= fromDate && x.CheckedAt <= toDate)
+                .ToListAsync(cancellationToken), fromDate.Date, toDate.Date);
         var topSenders = counterpartyLists.TopSenders;
         var topReceivers = counterpartyLists.TopReceivers;
         var feeDistributionItems = feeDistribution.Items;
@@ -90,6 +96,7 @@ public sealed class FinancialReportsQueryHandler(IStorageBroker storage, IMapper
             TopReceivers = topReceivers,
             FeeDistributionItems = feeDistributionItems,
             LeagueTableItems = leagueTableItems,
+            InstitutionUptime = uptimeDtos,
         };
 
         return new Response<CombinedReportDto>(combinedResponse);

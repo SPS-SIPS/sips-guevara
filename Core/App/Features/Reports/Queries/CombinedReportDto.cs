@@ -19,4 +19,5 @@ public sealed class CombinedReportDto
     public List<FeeDistributionItemDto>? FeeDistributionItems { get; set; }
     public List<LeagueTableItemDto>? LeagueTableItems { get; set; }
     public List<DirectionalFlowItemDto>? DirectionalFlowItems { get; set; }
+    public List<InstitutionUptimeDto>? InstitutionUptime { get; set; }
 }

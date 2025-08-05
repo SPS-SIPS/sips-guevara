@@ -1,3 +1,4 @@
+using SPSS.Domain.Models.BL;
 using SPSS.Domain.Models.DTOs.Reports;
 
 namespace SPSS.Domain.Interfaces;
@@ -14,5 +15,5 @@ public interface IStatisticsReportService
     Task<ConcentrationAnalysisReportDto> GetConcentrationAnalysisAsync(IEnumerable<BicStatisticsDto> stats);
     Task<LeagueTableReportDto> GetLeagueTableAsync(IEnumerable<BicStatisticsDto> stats);
     Task<MatrixReportDto> GetMatrixAsync(IEnumerable<BicStatisticsDto> stats);
-    // Add more report methods as needed
+    Task<List<InstitutionUptimeDto>> GetInstitutionUptimeReportAsync(IEnumerable<MonitHistory> histories, DateTime? from = null, DateTime? to = null);
 }

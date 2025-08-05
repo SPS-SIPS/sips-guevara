@@ -2,7 +2,7 @@ using SPSS.App.Common;
 
 namespace SPSS.App.Features.History.Queries;
 [Authorize]
-public sealed record GetHistoryQuery(string? ParticipantId, int? Type, int? Status, DateTime? FromDate, DateTime? ToDate, bool? Sent) : PaginationFilter, IRequest<PagedResponse<HistoryDto>>;
+public sealed record GetHistoryQuery(string? Institution, int? Type, int? Status, DateTime? FromDate, DateTime? ToDate, bool? Sent) : PaginationFilter, IRequest<PagedResponse<HistoryDto>>;
 
 public sealed class GetHistoryQueryHandler(IStorageBroker storage, IMapper mapper) : IRequestHandler<GetHistoryQuery, PagedResponse<HistoryDto>>
 {
@@ -13,36 +13,15 @@ public sealed class GetHistoryQueryHandler(IStorageBroker storage, IMapper mappe
     {
         var query = _storage.MonitHistories.AsNoTracking();
 
-        if (request.ParticipantId is not null)
+        if (request.Institution is not null)
         {
-            query = query.Where(x => x.ParticipantId == request.ParticipantId);
-        }
-
-        if (request.Type.HasValue)
-        {
-            var type = Enumeration<int>.FromId<ServiceType>(request.Type.Value);
-            query = query.Where(x => x.Type == type);
-        }
-
-        if (request.Status.HasValue)
-        {
-            var status = Enumeration<int>.FromId<ServiceStatus>(request.Status.Value);
-            query = query.Where(x => x.Status == status);
+            query = query.Where(x => x.InstitutionBic == request.Institution);
         }
 
         if (request.FromDate is not null && request.ToDate is not null)
         {
-            query = query.Where(x => x.Date >= request.FromDate && x.Date <= request.ToDate);
+            query = query.Where(x => x.CheckedAt >= request.FromDate && x.CheckedAt <= request.ToDate);
         }
-
-        if (request.Sent is not null)
-        {
-            query = query.Where(x => x.Sent == request.Sent);
-        }
-
-        // order by
-        query = query.OrderByDescending(x => x.Date)
-            .ThenByDescending(x => x.PacketLoss);
 
         return await PaginationHelper<HistoryDto>.CreateAsync(query.ProjectTo<HistoryDto>(_mapper.ConfigurationProvider), request, cancellationToken);
     }
