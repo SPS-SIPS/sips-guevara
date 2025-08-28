@@ -109,19 +109,40 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
             return;
         }
 
-        var participant = await _storage.Participants.FirstOrDefaultAsync(p => p.Id == GetCommonName(certificate.SubjectDN.ToString()), cancellationToken: ct);
+        var commonName = GetCommonName(certificate.SubjectDN.ToString());
+        var participant = await _storage.Participants.FirstOrDefaultAsync(p => p.Id == commonName, cancellationToken: ct);
 
-        participant ??= new Domain.Models.BL.Participant
+        // Try to find existing user by username
+        var user = await _storage.Users.FirstOrDefaultAsync(u => u.Username == commonName, cancellationToken: ct);
+
+        if (participant == null)
         {
-            Id = GetCommonName(certificate.SubjectDN.ToString()),
-            Name = GetCommonName(certificate.SubjectDN.ToString()),
-            BicNo = GetCommonName(certificate.SubjectDN.ToString()),
-            User = new User
+            participant = new Domain.Models.BL.Participant
             {
-                Username = GetCommonName(certificate.SubjectDN.ToString()),
-                Phone = GetCommonName(certificate.SubjectDN.ToString()),
-            }
-        };
+                Id = commonName,
+                Name = commonName,
+                BicNo = commonName,
+                User = user ?? new User
+                {
+                    Username = commonName,
+                    Phone = commonName,
+                }
+            };
+        }
+        else if (participant.User == null && user != null)
+        {
+            // If participant exists but has no user, assign the found user
+            participant.User = user;
+        }
+        else if (participant.User == null)
+        {
+            // If participant exists but no user found, create new user
+            participant.User = new User
+            {
+                Username = commonName,
+                Phone = commonName,
+            };
+        }
         var cert = new Domain.Models.BL.Certificate
         {
             Id = serialNumber.ToString(),
