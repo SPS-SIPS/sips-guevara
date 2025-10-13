@@ -1,4 +1,3 @@
-using SPSS.App.Common;
 namespace SPSS.App.Features.NSI.Queries;
 
 [Authorize(Roles = QueryNSI)]
@@ -15,11 +14,12 @@ public sealed class GetSettlementDetailsFileQueryValidator : AbstractValidator<G
             .WithMessage("Party is required when querying settlement details file");
     }
 }
-public sealed class GetSettlementDetailsFileQueryHandler(IStorageBroker storage, IMapper mapper, IIdentityService identity) : IRequestHandler<GetSettlementDetailsFileQuery, Response<(MemoryStream, string)>>
+public sealed class GetSettlementDetailsFileQueryHandler(IStorageBroker storage, IMapper mapper, IIdentityService identity, Domain.Models.DTOs.NSI nsiConfig) : IRequestHandler<GetSettlementDetailsFileQuery, Response<(MemoryStream, string)>>
 {
     private readonly IStorageBroker _storage = storage;
     private readonly IMapper _mapper = mapper;
     private readonly IIdentityService _identity = identity;
+    private readonly Domain.Models.DTOs.NSI _nsiConfig = nsiConfig;
 
     public async ValueTask<Response<(MemoryStream, string)>> Handle(GetSettlementDetailsFileQuery request, CancellationToken cancellationToken)
     {
@@ -29,30 +29,77 @@ public sealed class GetSettlementDetailsFileQueryHandler(IStorageBroker storage,
 
         if (string.IsNullOrWhiteSpace(party))
         {
-            throw new BadRequestException("Party is required for this query, Contact SPS Team for assistance.");
+            throw new BadRequestException("Party is required for this query. Contact SPS Team for assistance.");
         }
 
+        // Step 1: Collect TxIds related to the party
         var txIds = await _storage.NetSettlementDetails
-            .Where(s => s.NetSettlementHeaderId == request.Id && (s.DebtorBic == party || s.CreditorBic == party))
-            .Select(s => s.TxId)
-            .Distinct().AsNoTracking()
-            .ToListAsync(cancellationToken);
+            .Where(s => s.NetSettlementHeaderId == request.Id &&
+                   (s.DebtorBic == party || s.CreditorBic == party))
+        .Select(s => s.TxId)
+        .Distinct()
+        .AsNoTracking()
+        .ToListAsync(cancellationToken);
 
-        var query = _storage.NetSettlementDetails
+        // Step 2: Retrieve all records for those TxIds
+        var details = await _storage.NetSettlementDetails
             .Where(s => s.NetSettlementHeaderId == request.Id && txIds.Contains(s.TxId))
             .OrderByDescending(s => s.Date)
             .ThenBy(s => s.TxId)
-            .AsNoTracking();
+            .AsNoTracking()
+        .ProjectTo<NetSettlementDetailDto>(_mapper.ConfigurationProvider)
+        .ToListAsync(cancellationToken);
 
-        var result = await query.ProjectTo<NetSettlementDetailDto>(_mapper.ConfigurationProvider)
-            .ToListAsync(cancellationToken);
-
-        if (result is null || result.Count == 0)
+        if (details is null || details.Count == 0)
         {
             throw new NotFoundException($"No settlement details found for Id: {request.Id} and Party: {request.Party}");
         }
 
-        var memoryStream = await CSVHelper.WriteRecordsToCsv(result);
-        return Response<(MemoryStream, string)>.Success((memoryStream, $"Settled_Transactions_{request.Id}_{request.Party}.csv"), 0);
+        // Step 3: Reconciliation logic
+        var switchBic = _nsiConfig.SwitchBIC ?? "";
+
+        var reconciliation = details
+            .GroupBy(tx => tx.TxId)
+            .Select(group =>
+            {
+                var hops = group.ToList();
+
+                // Identify real sender (first non-switch debtor)
+                var first = hops.FirstOrDefault(h => h.DebtorBic != switchBic);
+                var last = hops.LastOrDefault(h => h.CreditorBic != switchBic);
+
+                // Calculate transaction amount (non-fee)
+                var totalAmount = hops
+                    .Where(h => !h.IsFee)
+                    .Sum(h => h.Amount);
+
+                // Calculate total fees: only those sent from the real debtor to the switch
+                var totalFees = hops
+                    .Where(h => h.IsFee &&
+                                first != null &&
+                                h.DebtorBic == first.DebtorBic &&
+                                h.CreditorBic == switchBic)
+                    .Sum(h => h.Amount);
+
+                return new ReconciliationRow
+                {
+                    TxId = group.Key.ToString(),
+                    EndToEndId = first?.EndToEndId ?? string.Empty,
+                    Date = hops.Max(h => h.Date),
+                    Amount = totalAmount,
+                    SenderBic = first?.DebtorBic ?? "UNKNOWN",
+                    ReceiverBic = last?.CreditorBic ?? "UNKNOWN",
+                    TotalFees = totalFees
+                };
+            })
+            .ToList();
+
+        // Step 4: Write reconciliation output
+        var memoryStream = await CSVHelper.WriteRecordsToCsv(reconciliation);
+
+        // Step 5: Return the reconciliation CSV
+        var filename = $"Reconciliation_{request.Id}_{party}.csv";
+        return Response<(MemoryStream, string)>.Success((memoryStream, filename), 0);
     }
 }
+file sealed class ReconciliationRow { public string EndToEndId { get; set; } = string.Empty; public string TxId { get; set; } = string.Empty; public DateTimeOffset Date { get; set; } public decimal Amount { get; set; } public string SenderBic { get; set; } = string.Empty; public string ReceiverBic { get; set; } = string.Empty; public decimal TotalFees { get; set; } }

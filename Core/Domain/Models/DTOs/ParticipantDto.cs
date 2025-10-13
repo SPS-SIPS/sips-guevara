@@ -14,8 +14,8 @@ public sealed class ParticipantDto : IMap<Participant>
             .ForMember(d => d.User, o => o.MapFrom(s => s.User));
 
         profile.CreateMap<Participant, Lookup<string>>()
-            .ForMember(d => d.Value, o => o.MapFrom(s => s.BicNo))
+            .ForMember(d => d.Value, o => o.MapFrom(s => s.Id))
             .ForMember(d => d.Label, o => o.MapFrom(s => s.Name))
-            .ForMember(d => d.GroupId, o => o.MapFrom(s => s.UserId));
+            .ForMember(d => d.GroupId, o => o.MapFrom(s => s.BicNo));
     }
 }

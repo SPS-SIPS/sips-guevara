@@ -134,15 +134,12 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
             // If participant exists but has no user, assign the found user
             participant.User = user;
         }
-        else if (participant.User == null)
-        {
-            // If participant exists but no user found, create new user
-            participant.User = new User
+        else             // If participant exists but no user found, create new user
+            participant.User ??= new User
             {
                 Username = commonName,
                 Phone = commonName,
             };
-        }
         var cert = new Domain.Models.BL.Certificate
         {
             Id = serialNumber.ToString(),

@@ -73,9 +73,9 @@ public class DownloadsController : BaseController
             contentType = "application/octet-stream";
         }
         Response.Headers.Append("Content-Disposition", $"attachment; filename=\"{fileName}\"");
-        Response.Headers.Append("Content-Type", contentType);
-        Response.Headers.Append("Content-Length", fileBytes.Length.ToString());
-        Response.Headers.Append("Cache-Control", "public, max-age=3600");
+        Response.Headers.Append("Cache-Control", "no-store, no-cache, must-revalidate");
+        Response.Headers.Append("Pragma", "no-cache");
+        Response.Headers.Append("Expires", "0");
         return File(fileBytes, contentType, fileName);
     }
 
