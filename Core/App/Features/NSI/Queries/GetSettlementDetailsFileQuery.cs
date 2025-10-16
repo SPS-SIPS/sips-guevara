@@ -69,9 +69,12 @@ public sealed class GetSettlementDetailsFileQueryHandler(IStorageBroker storage,
                 var last = hops.LastOrDefault(h => h.CreditorBic != switchBic);
 
                 // Calculate transaction amount (non-fee)
-                var totalAmount = hops
-                    .Where(h => !h.IsFee)
-                    .Sum(h => h.Amount);
+                // Use a single representative non-fee hop around the switch to avoid double counting across legs
+                var representativeHop = hops
+                    .Where(h => !h.IsFee && ((h.DebtorBic == switchBic) ^ (h.CreditorBic == switchBic)))
+                    .FirstOrDefault();
+                var totalAmount = representativeHop?.Amount
+                    ?? hops.Where(h => !h.IsFee).Select(h => h.Amount).FirstOrDefault();
 
                 // Calculate total fees: only those sent from the real debtor to the switch
                 var totalFees = hops
