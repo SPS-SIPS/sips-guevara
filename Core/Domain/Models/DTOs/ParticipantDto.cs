@@ -8,6 +8,8 @@ public sealed class ParticipantDto : IMap<Participant>
     public string Name { get; set; } = default!;
     public string BicNo { get; set; } = default!;
     public Lookup<int> User { get; set; } = null!;
+    public string? Email { get; set; }
+    public bool Active { get; set; }
     public void Mapping(Profile profile)
     {
         profile.CreateMap<Participant, ParticipantDto>()

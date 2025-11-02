@@ -1,6 +1,6 @@
 namespace SPSS.App.Features.Participants.Commands;
 [Authorize(Roles = CreateParticipant)]
-public sealed record AddParticipantCommand(string Id, string Name, string BicNo, int UserId) : IRequest<Response<string>>;
+public sealed record AddParticipantCommand(string Id, string Name, string BicNo, int UserId, string? Email) : IRequest<Response<string>>;
 
 public sealed class AddParticipantCommandValidator : AbstractValidator<AddParticipantCommand>
 {
@@ -36,6 +36,7 @@ public sealed class AddParticipantCommandHandler(IStorageBroker storage) : IRequ
             Name = request.Name,
             UserId = request.UserId,
             BicNo = request.BicNo,
+            Email = request.Email ?? string.Empty,
             Active = true,
         };
 

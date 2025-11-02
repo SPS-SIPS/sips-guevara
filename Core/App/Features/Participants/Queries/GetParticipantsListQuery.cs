@@ -3,7 +3,7 @@ namespace SPSS.App.Features.Participants.Queries;
 
 using static SPSS.Domain.Common.KnownClaims;
 [Authorize(Roles = QueryParticipants)]
-public sealed record GetParticipantsListQuery(string? Name, bool? Active, bool? Deleted, int? UserId) : PaginationFilter, IRequest<PagedResponse<ParticipantDto>>;
+public sealed record GetParticipantsListQuery(string? Name, bool? Active, bool? Deleted, int? UserId, string? Email) : PaginationFilter, IRequest<PagedResponse<ParticipantDto>>;
 
 public sealed class GetParticipantsListQueryHandler(IStorageBroker storage, IMapper mapper, IIdentityService identityService) : IRequestHandler<GetParticipantsListQuery, PagedResponse<ParticipantDto>>
 {
@@ -18,6 +18,12 @@ public sealed class GetParticipantsListQueryHandler(IStorageBroker storage, IMap
         if (!string.IsNullOrEmpty(request.Name))
         {
             query = query.Where(x => x.Name.Contains(request.Name));
+        }
+
+
+        if (!string.IsNullOrEmpty(request.Email))
+        {
+            query = query.Where(x => x.Email!.Contains(request.Email));
         }
 
         if (request.Active.HasValue)

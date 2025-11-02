@@ -487,6 +487,11 @@ namespace SPSS.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deletedon");
 
+                    b.Property<string>("Email")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("email");
+
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("text")
                         .HasColumnName("lastmodifiedby");
@@ -511,6 +516,9 @@ namespace SPSS.Infrastructure.Migrations
                     b.HasIndex("BicNo")
                         .IsUnique()
                         .HasDatabaseName("ix_participants_bicno");
+
+                    b.HasIndex("Email")
+                        .HasDatabaseName("ix_participants_email");
 
                     b.HasIndex("UserId")
                         .IsUnique()

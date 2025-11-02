@@ -1,4 +1,7 @@
 
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
 namespace SPSS.Domain.Models.BL;
 
 public sealed class Participant : BaseEntity<string>, IAuditableEntity, ISoftDelete
@@ -16,6 +19,8 @@ public sealed class Participant : BaseEntity<string>, IAuditableEntity, ISoftDel
     public DateTimeOffset? LastModifiedOn { get; set; }
     public DateTimeOffset? DeletedOn { get; set; }
     public string? DeletedBy { get; set; }
+
+    public string? Email { get; set; }
 }
 
 public sealed class ParticipantConfiguration : IEntityTypeConfiguration<Participant>
@@ -30,6 +35,13 @@ public sealed class ParticipantConfiguration : IEntityTypeConfiguration<Particip
         builder.Property(e => e.Name).HasMaxLength(50).IsRequired();
 
         builder.HasIndex(e => e.BicNo).IsUnique();
+        builder.Property(e => e.Email)
+            .HasMaxLength(100)
+            .HasConversion(
+                v => string.IsNullOrWhiteSpace(v) ? null : v,
+                v => v
+            );
+        builder.HasIndex(e => e.Email);
 
         builder.HasOne(e => e.User).WithOne(e => e.Participant).HasForeignKey<Participant>(e => e.UserId).IsRequired();
     }
