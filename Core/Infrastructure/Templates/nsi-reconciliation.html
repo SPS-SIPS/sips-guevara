@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NSI Reconciliation Report</title>
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: #222; }
+      .container { max-width: 640px; margin: 0 auto; padding: 24px; }
+      .muted { color: #666; font-size: 12px; }
+      .btn { display: inline-block; padding: 10px 16px; background: #1677ff; color: #fff !important; text-decoration: none; border-radius: 6px; }
+      .card { border: 1px solid #eee; border-radius: 8px; padding: 16px; margin-top: 12px; }
+      .row { margin: 6px 0; }
+      .label { color: #555; width: 160px; display: inline-block; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>NSI Reconciliation Report</h2>
+      <p>Dear {{ParticipantName}},</p>
+      <p>
+        Please find attached the reconciliation report for your institution ({{BIC}}).
+      </p>
+      <div class="card">
+        <div class="row"><span class="label">Message Id:</span><strong>{{MsgId}}</strong></div>
+        <div class="row"><span class="label">Value Date:</span><strong>{{Date}}</strong></div>
+        <div class="row"><span class="label">Institution (BIC):</span><strong>{{BIC}}</strong></div>
+      </div>
+      <p class="muted">Attachment: {{AttachmentName}}</p>
+      <p>If you have any questions, please reply to this email.</p>
+      <p>Regards,<br/>SPS Team</p>
+    </div>
+  </body>
+</html>

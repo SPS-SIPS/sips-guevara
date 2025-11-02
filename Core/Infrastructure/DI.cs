@@ -1,7 +1,9 @@
-﻿using System.Text;
+using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using SPSS.Domain.Extensions;
 using SPSS.Infrastructure;
+using SPSS.Domain.Interfaces;
+using SPSS.Infrastructure.Services;
 using SPSS.Infrastructure.Identity.Services;
 using SPSS.Infrastructure.Persistence;
 using SPSS.Infrastructure.Persistence.Interceptors;
@@ -41,6 +43,8 @@ public static class DI
         services.AddSingleton<IPasswordHash, PasswordHash>();
         services.AddSingleton<IPasswordManager, PasswordManager>();
         services.AddSingleton<IEmailSender, EmailSender>();
+
+        services.AddScoped<INSIEmailNotificationService, NSIEmailNotificationService>(); // Added registration
 
         services.AddScoped<ICertificateRetriever, LDAPCertificateFetcher>();
         services.AddScoped<CertificateValidator>();

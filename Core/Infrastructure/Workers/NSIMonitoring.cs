@@ -1,4 +1,5 @@
 using AutoMapper;
+using SPSS.Domain.Interfaces;
 
 namespace SPSS.Infrastructure.Workers;
 public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMonitoring> logger, IServiceProvider services) : CronJobService(config.CronExpression!, config.TimeZoneInfo!)
@@ -21,6 +22,7 @@ public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMon
         var nsi = scope.ServiceProvider.GetRequiredService<NSI>();
         var storage = scope.ServiceProvider.GetRequiredService<IStorageBroker>();
         var statistics = scope.ServiceProvider.GetRequiredService<IBicStatisticsService>();
+        var notifier = scope.ServiceProvider.GetRequiredService<INSIEmailNotificationService>();
         var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
 
         var input = Path.Combine(nsi.Directory, "input");
@@ -73,6 +75,9 @@ public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMon
                 await Task.Delay(2000, cancellationToken);
 
                 await NSIService.GenerateStatisticsAsync(storage, msgId.Value, statistics, mapper, cancellationToken);
+
+                // Notify participants via email with reconciliation CSV attachments per institution
+                await notifier.NotifyAsync(msgId.Value, cancellationToken);
 
                 var fileName = Path.GetFileName(file);
                 var destination = Path.Combine(backup, fileName);
