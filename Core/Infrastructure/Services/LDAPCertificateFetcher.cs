@@ -117,15 +117,18 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
         }
 
         var commonName = GetCommonName(certificate.SubjectDN.ToString()).Trim();
-        var normalizedCn = commonName.ToUpperInvariant();
         var participant = await _storage.Participants
-            .FirstOrDefaultAsync(p => p.Id != null && p.Id.ToUpper() == normalizedCn, cancellationToken: ct);
+            .FirstOrDefaultAsync(p => p.Id == commonName, cancellationToken: ct)
+            ?? await _storage.Participants
+                .FirstOrDefaultAsync(p => p.Id != null && EF.Functions.ILike(p.Id, commonName), cancellationToken: ct);
 
         if (participant == null)
         {
             // Ensure a User exists for this CN
             var user = await _storage.Users
-                .FirstOrDefaultAsync(u => u.Username != null && u.Username.ToUpper() == normalizedCn, cancellationToken: ct);
+                .FirstOrDefaultAsync(u => u.Username == commonName, cancellationToken: ct)
+                ?? await _storage.Users
+                    .FirstOrDefaultAsync(u => u.Username != null && EF.Functions.ILike(u.Username, commonName), cancellationToken: ct);
 
             if (user == null)
             {
@@ -157,7 +160,9 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
             {
                 // Another process may have created the user/participant concurrently; fetch the participant now
                 participant = await _storage.Participants
-                    .FirstOrDefaultAsync(p => p.Id != null && p.Id.ToUpper() == normalizedCn, cancellationToken: ct);
+                    .FirstOrDefaultAsync(p => p.Id == commonName, cancellationToken: ct)
+                    ?? await _storage.Participants
+                        .FirstOrDefaultAsync(p => p.Id != null && EF.Functions.ILike(p.Id, commonName), cancellationToken: ct);
                 if (participant == null)
                 {
                     _logger.LogError(ex, "Failed to create participant for CN {CommonName} due to unique constraint, and it could not be re-fetched.", commonName);
