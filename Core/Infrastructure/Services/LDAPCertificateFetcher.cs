@@ -62,13 +62,20 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
                     {
                         foreach (var attr in entry.Attributes["userCertificate"])
                         {
-                            byte[] certificateBytes = (byte[])attr;
-                            X509Certificate certificate = new(certificateBytes);
-                            _logger.LogInformation("Subject: {Subject}, Issuer: {Issuer}, Serial Number: {SerialNumber}",
-                                certificate.SubjectDN, certificate.IssuerDN, certificate.SerialNumber);
-                            await SaveCertificate(certificate);
+                            try
+                            {
+                                byte[] certificateBytes = (byte[])attr;
+                                X509Certificate certificate = new(certificateBytes);
+                                _logger.LogInformation("Subject: {Subject}, Issuer: {Issuer}, Serial Number: {SerialNumber}",
+                                    certificate.SubjectDN, certificate.IssuerDN, certificate.SerialNumber);
+                                await SaveCertificate(certificate);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Failed processing certificate from LDAP entry {DN}", entry.DistinguishedName);
+                                // continue with the next certificate
+                            }
                         }
-
                     }
                     else
                     {
@@ -109,53 +116,80 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
             return;
         }
 
-        var commonName = GetCommonName(certificate.SubjectDN.ToString());
-        var participant = await _storage.Participants.FirstOrDefaultAsync(p => p.Id == commonName, cancellationToken: ct);
-
-        // Try to find existing user by username
-        var user = await _storage.Users.FirstOrDefaultAsync(u => u.Username == commonName, cancellationToken: ct);
+        var commonName = GetCommonName(certificate.SubjectDN.ToString()).Trim();
+        var normalizedCn = commonName.ToUpperInvariant();
+        var participant = await _storage.Participants
+            .FirstOrDefaultAsync(p => p.Id != null && p.Id.ToUpper() == normalizedCn, cancellationToken: ct);
 
         if (participant == null)
         {
-            participant = new Domain.Models.BL.Participant
+            // Ensure a User exists for this CN
+            var user = await _storage.Users
+                .FirstOrDefaultAsync(u => u.Username != null && u.Username.ToUpper() == normalizedCn, cancellationToken: ct);
+
+            if (user == null)
+            {
+                user = new User
+                {
+                    Username = commonName,
+                    Phone = commonName,
+                };
+                await _storage.Users.AddAsync(user, ct);
+            }
+
+            var newParticipant = new Domain.Models.BL.Participant
             {
                 Id = commonName,
                 Name = commonName,
                 BicNo = commonName,
-                User = user ?? new User
-                {
-                    Username = commonName,
-                    Phone = commonName,
-                }
+                User = user,
+                Active = true,
+                Email = string.Empty,
             };
-        }
-        else if (participant.User == null && user != null)
-        {
-            // If participant exists but has no user, assign the found user
-            participant.User = user;
-        }
-        else             // If participant exists but no user found, create new user
-            participant.User ??= new User
+
+            try
             {
-                Username = commonName,
-                Phone = commonName,
-            };
+                await _storage.Participants.AddAsync(newParticipant, ct);
+                await _storage.SaveChangesAsync(ct);
+                participant = newParticipant;
+            }
+            catch (DbUpdateException ex) when ((ex.InnerException?.Message?.Contains("duplicate key") ?? false) || (ex.InnerException?.Message?.Contains("23505") ?? false))
+            {
+                // Another process may have created the user/participant concurrently; fetch the participant now
+                participant = await _storage.Participants
+                    .FirstOrDefaultAsync(p => p.Id != null && p.Id.ToUpper() == normalizedCn, cancellationToken: ct);
+                if (participant == null)
+                {
+                    _logger.LogError(ex, "Failed to create participant for CN {CommonName} due to unique constraint, and it could not be re-fetched.", commonName);
+                    return;
+                }
+            }
+        }
+
         var cert = new Domain.Models.BL.Certificate
         {
             Id = serialNumber.ToString(),
-            Name = ConvertCertificateToPem(certificate),
+            Name = pemCertificate,
             Subject = GetCommonName(certificate.SubjectDN.ToString()),
             Issuer = certificate.IssuerDN.ToString(),
             ExpireDate = certificate.NotAfter.ToUniversalTime(),
             IssuedAt = certificate.NotBefore.ToUniversalTime(),
             CachedOn = DateTimeOffset.Now.ToUniversalTime(),
             Active = certificate.NotAfter.ToUniversalTime() > DateTimeOffset.Now.ToUniversalTime(),
-            Participant = participant,
+            ParticipantId = participant.Id!,
             IsRevoked = false,
         };
 
         await _storage.Certificates.AddAsync(cert, ct);
-        await _storage.SaveChangesAsync(ct);
+        try
+        {
+            await _storage.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when ((ex.InnerException?.Message?.Contains("duplicate key") ?? false) || (ex.InnerException?.Message?.Contains("23505") ?? false))
+        {
+            _logger.LogWarning(ex, "Duplicate certificate insert detected for SerialNumber {SerialNumber}; skipping", serialNumber);
+            return;
+        }
     }
     private static string GetCommonName(string name)
     {
