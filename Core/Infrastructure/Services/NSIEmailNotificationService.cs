@@ -55,8 +55,10 @@ public sealed class NSIEmailNotificationService(IStorageBroker storage,
         {
             try
             {
-                // Find participant email by BIC
+                // Normalize BIC to 8 characters for consistent matching
                 var bic8 = string.IsNullOrWhiteSpace(bic) ? bic : (bic.Length >= 8 ? bic.Substring(0, 8) : bic);
+                
+                // Find participant email by BIC
                 var participant = await _storage.Participants
                     .Where(p => p.Active && p.DeletedOn == null &&
                            (p.BicNo == bic || p.BicNo.StartsWith(bic8)))
@@ -70,9 +72,11 @@ public sealed class NSIEmailNotificationService(IStorageBroker storage,
                     continue;
                 }
 
-                // Step 1: Collect TxIds where this BIC is involved in any hop
+                // Step 1: Collect TxIds where this BIC is involved in any hop (using BIC8 prefix matching)
                 var txIds = allDetails
-                    .Where(s => s.DebtorBic == bic || s.CreditorBic == bic)
+                    .Where(s => 
+                        (s.DebtorBic != null && s.DebtorBic.StartsWith(bic8)) || 
+                        (s.CreditorBic != null && s.CreditorBic.StartsWith(bic8)))
                     .Select(s => s.TxId)
                     .Distinct()
                     .ToList();
@@ -116,8 +120,10 @@ public sealed class NSIEmailNotificationService(IStorageBroker storage,
                             Hops = hops
                         };
                     })
-                    // Filter to only include transactions where BIC is the real sender or receiver
-                    .Where(r => r.SenderBic == bic || r.ReceiverBic == bic)
+                    // Filter to only include transactions where BIC is the real sender or receiver (using BIC8 prefix)
+                    .Where(r => 
+                        (r.SenderBic != null && r.SenderBic.StartsWith(bic8)) || 
+                        (r.ReceiverBic != null && r.ReceiverBic.StartsWith(bic8)))
                     .Select(r => new ReconciliationRow
                     {
                         TxId = r.TxId,
@@ -128,7 +134,8 @@ public sealed class NSIEmailNotificationService(IStorageBroker storage,
                         ReceiverBic = r.ReceiverBic,
                         // Calculate fees received by the BIC from the switch
                         TotalFees = r.Hops
-                            .Where(h => h.IsFee && h.DebtorBic == switchBic && h.CreditorBic == bic)
+                            .Where(h => h.IsFee && h.DebtorBic == switchBic && 
+                                   h.CreditorBic != null && h.CreditorBic.StartsWith(bic8))
                             .Sum(h => h.Amount)
                     })
                     .ToList();
