@@ -32,17 +32,16 @@ public sealed class GetSettlementDetailsFileQueryHandler(IStorageBroker storage,
             throw new BadRequestException("Party is required for this query. Contact SPS Team for assistance.");
         }
 
-        // Step 1: Collect TxIds related to the party
+        // Step 1: Collect TxIds where party is involved in any hop
         var txIds = await _storage.NetSettlementDetails
             .Where(s => s.NetSettlementHeaderId == request.Id &&
-                   !s.IsFee &&
                    (s.DebtorBic == party || s.CreditorBic == party))
         .Select(s => s.TxId)
         .Distinct()
         .AsNoTracking()
         .ToListAsync(cancellationToken);
 
-        // Step 2: Retrieve all records for those TxIds
+        // Step 2: Retrieve all hops for those TxIds to analyze full transaction flow
         var details = await _storage.NetSettlementDetails
             .Where(s => s.NetSettlementHeaderId == request.Id && txIds.Contains(s.TxId))
             .OrderByDescending(s => s.Date)
@@ -57,7 +56,7 @@ public sealed class GetSettlementDetailsFileQueryHandler(IStorageBroker storage,
             throw new NotFoundException($"No settlement details found for Id: {request.Id} and Party: {request.Party}");
         }
 
-        // Step 3: Reconciliation logic
+        // Step 3: Reconciliation logic - identify real sender and receiver
         var switchBic = _nsiConfig.CoreBankBIC ?? "";
 
         var reconciliation = details
@@ -78,15 +77,7 @@ public sealed class GetSettlementDetailsFileQueryHandler(IStorageBroker storage,
                 var totalAmount = representativeHop?.Amount
                     ?? hops.Where(h => !h.IsFee).Select(h => h.Amount).FirstOrDefault();
 
-                // Calculate total fees: only those sent from the real debtor to the switch
-                var totalFees = hops
-                    .Where(h => h.IsFee &&
-                                first != null &&
-                                h.DebtorBic == first.DebtorBic &&
-                                h.CreditorBic == switchBic)
-                    .Sum(h => h.Amount);
-
-                return new ReconciliationRow
+                return new
                 {
                     TxId = group.Key.ToString(),
                     EndToEndId = first?.EndToEndId ?? string.Empty,
@@ -94,8 +85,23 @@ public sealed class GetSettlementDetailsFileQueryHandler(IStorageBroker storage,
                     Amount = totalAmount,
                     SenderBic = first?.DebtorBic ?? "UNKNOWN",
                     ReceiverBic = last?.CreditorBic ?? "UNKNOWN",
-                    TotalFees = totalFees
+                    Hops = hops
                 };
+            })
+            // Filter to only include transactions where Party is the real sender or receiver
+            .Where(r => r.SenderBic == party || r.ReceiverBic == party)
+            .Select(r => new ReconciliationRow
+            {
+                TxId = r.TxId,
+                EndToEndId = r.EndToEndId,
+                Date = r.Date,
+                Amount = r.Amount,
+                SenderBic = r.SenderBic,
+                ReceiverBic = r.ReceiverBic,
+                // Calculate fees received by the Party from the switch
+                TotalFees = r.Hops
+                    .Where(h => h.IsFee && h.DebtorBic == switchBic && h.CreditorBic == party)
+                    .Sum(h => h.Amount)
             })
             .ToList();
 
