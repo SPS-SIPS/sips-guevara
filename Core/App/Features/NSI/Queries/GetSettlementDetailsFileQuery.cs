@@ -35,6 +35,7 @@ public sealed class GetSettlementDetailsFileQueryHandler(IStorageBroker storage,
         // Step 1: Collect TxIds related to the party
         var txIds = await _storage.NetSettlementDetails
             .Where(s => s.NetSettlementHeaderId == request.Id &&
+                   !s.IsFee &&
                    (s.DebtorBic == party || s.CreditorBic == party))
         .Select(s => s.TxId)
         .Distinct()
@@ -46,6 +47,7 @@ public sealed class GetSettlementDetailsFileQueryHandler(IStorageBroker storage,
             .Where(s => s.NetSettlementHeaderId == request.Id && txIds.Contains(s.TxId))
             .OrderByDescending(s => s.Date)
             .ThenBy(s => s.TxId)
+            .ThenBy(s => s.Id)
             .AsNoTracking()
         .ProjectTo<NetSettlementDetailDto>(_mapper.ConfigurationProvider)
         .ToListAsync(cancellationToken);
@@ -65,8 +67,8 @@ public sealed class GetSettlementDetailsFileQueryHandler(IStorageBroker storage,
                 var hops = group.ToList();
 
                 // Identify real sender (first non-switch debtor)
-                var first = hops.FirstOrDefault(h => h.DebtorBic != switchBic);
-                var last = hops.LastOrDefault(h => h.CreditorBic != switchBic);
+                var first = hops.FirstOrDefault(h => !h.IsFee && h.DebtorBic != switchBic);
+                var last = hops.LastOrDefault(h => !h.IsFee && h.CreditorBic != switchBic);
 
                 // Calculate transaction amount (non-fee)
                 // Use a single representative non-fee hop around the switch to avoid double counting across legs
