@@ -39,12 +39,13 @@ public sealed class NSIEmailNotificationService(IStorageBroker storage,
             return;
         }
 
-        var switchBic = _nsiConfig.SwitchBIC;
+        var switchBic = _nsiConfig.CoreBankBIC ?? "";
 
-        // Collect all distinct BICs participating
-        var allBICs = allDetails.Select(t => t.DebtorBic)
-             .Concat(allDetails.Select(t => t.CreditorBic))
-             .Where(b => !string.IsNullOrWhiteSpace(b))
+        // Collect all distinct BICs participating (excluding switch and fees)
+        var allBICs = allDetails
+             .Where(t => !t.IsFee)
+             .SelectMany(t => new[] { t.DebtorBic, t.CreditorBic })
+             .Where(b => !string.IsNullOrWhiteSpace(b) && b != switchBic)
              .Distinct()
              .ToList();
 
@@ -69,29 +70,42 @@ public sealed class NSIEmailNotificationService(IStorageBroker storage,
                     continue;
                 }
 
-                // Build reconciliation for this BIC (similar to GetSettlementDetailsFileQuery)
-                var details = allDetails
+                // Step 1: Collect TxIds where this BIC is involved in any hop
+                var txIds = allDetails
                     .Where(s => s.DebtorBic == bic || s.CreditorBic == bic)
+                    .Select(s => s.TxId)
+                    .Distinct()
+                    .ToList();
+
+                if (txIds.Count == 0)
+                {
+                    _logger.LogInformation("No transactions found for BIC {BIC}", bic);
+                    continue;
+                }
+
+                // Step 2: Retrieve all hops for those TxIds to analyze full transaction flow
+                var details = allDetails
+                    .Where(s => txIds.Contains(s.TxId))
                     .OrderByDescending(s => s.Date)
                     .ThenBy(s => s.TxId)
                     .ToList();
 
+                // Step 3: Build reconciliation - identify real sender and receiver
                 var reconciliation = details
                     .GroupBy(tx => tx.TxId)
                     .Select(group =>
                     {
                         var hops = group.ToList();
-                        var first = hops.FirstOrDefault(h => h.DebtorBic != switchBic);
-                        var last = hops.LastOrDefault(h => h.CreditorBic != switchBic);
+                        // Identify real sender (first non-switch debtor)
+                        var first = hops.FirstOrDefault(h => !h.IsFee && h.DebtorBic != switchBic);
+                        var last = hops.LastOrDefault(h => !h.IsFee && h.CreditorBic != switchBic);
                         var representativeHop = hops
                             .Where(h => !h.IsFee && ((h.DebtorBic == switchBic) ^ (h.CreditorBic == switchBic)))
                             .FirstOrDefault();
                         var totalAmount = representativeHop?.Amount
                             ?? hops.Where(h => !h.IsFee).Select(h => h.Amount).FirstOrDefault();
-                        var totalFees = hops
-                            .Where(h => h.IsFee && first != null && h.DebtorBic == first.DebtorBic && h.CreditorBic == switchBic)
-                            .Sum(h => h.Amount);
-                        return new ReconciliationRow
+                        
+                        return new
                         {
                             TxId = group.Key.ToString(),
                             EndToEndId = first?.EndToEndId ?? string.Empty,
@@ -99,8 +113,23 @@ public sealed class NSIEmailNotificationService(IStorageBroker storage,
                             Amount = totalAmount,
                             SenderBic = first?.DebtorBic ?? "UNKNOWN",
                             ReceiverBic = last?.CreditorBic ?? "UNKNOWN",
-                            TotalFees = totalFees
+                            Hops = hops
                         };
+                    })
+                    // Filter to only include transactions where BIC is the real sender or receiver
+                    .Where(r => r.SenderBic == bic || r.ReceiverBic == bic)
+                    .Select(r => new ReconciliationRow
+                    {
+                        TxId = r.TxId,
+                        EndToEndId = r.EndToEndId,
+                        Date = r.Date,
+                        Amount = r.Amount,
+                        SenderBic = r.SenderBic,
+                        ReceiverBic = r.ReceiverBic,
+                        // Calculate fees received by the BIC from the switch
+                        TotalFees = r.Hops
+                            .Where(h => h.IsFee && h.DebtorBic == switchBic && h.CreditorBic == bic)
+                            .Sum(h => h.Amount)
                     })
                     .ToList();
 
