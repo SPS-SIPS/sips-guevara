@@ -41,6 +41,11 @@ public sealed class GetSettlementDetailsFileQueryHandler(IStorageBroker storage,
         .AsNoTracking()
         .ToListAsync(cancellationToken);
 
+        if (txIds is null || txIds.Count == 0)
+        {
+            throw new NotFoundException($"No transactions found for Settlement Id: {request.Id} where Party '{party}' is involved as sender or receiver");
+        }
+
         // Step 2: Retrieve all hops for those TxIds to analyze full transaction flow
         var details = await _storage.NetSettlementDetails
             .Where(s => s.NetSettlementHeaderId == request.Id && txIds.Contains(s.TxId))
@@ -53,7 +58,7 @@ public sealed class GetSettlementDetailsFileQueryHandler(IStorageBroker storage,
 
         if (details is null || details.Count == 0)
         {
-            throw new NotFoundException($"No settlement details found for Id: {request.Id} and Party: {request.Party}");
+            throw new NotFoundException($"No settlement details found for Id: {request.Id} and Party: {party}");
         }
 
         // Step 3: Reconciliation logic - identify real sender and receiver
