@@ -58,7 +58,7 @@ public sealed class GetSettlementDetailsFileQueryHandler(IStorageBroker storage,
         }
 
         // Step 3: Reconciliation logic
-        var switchBic = _nsiConfig.SwitchBIC ?? "";
+        var switchBic = _nsiConfig.CoreBankBIC ?? "";
 
         var reconciliation = details
             .GroupBy(tx => tx.TxId)

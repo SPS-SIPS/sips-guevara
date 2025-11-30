@@ -7,4 +7,5 @@ public sealed class NSI
     public string? FeeTTC { get; set; } = null;
     public string? TxnTTC { get; set; } = null;
     public string SwitchBIC { get; set; } = "";
+    public string CoreBankBIC { get; set; } = "";
 }
