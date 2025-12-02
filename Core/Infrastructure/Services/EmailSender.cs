@@ -23,6 +23,11 @@ public class EmailSender(EmailConfig config, ILogger<EmailSender> logger) : IEma
             Body = body,
             IsBodyHtml = isHTML,
         };
+        
+        foreach (var cc in _config.CC)
+        {
+            mailMessage.CC.Add(new MailAddress(cc));
+        }
 
         mailMessage.To.Add(toEmail);
 
