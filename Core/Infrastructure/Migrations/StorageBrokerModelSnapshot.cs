@@ -202,6 +202,10 @@ namespace SPSS.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("checkedat");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("createdat");
+
                     b.Property<string>("Error")
                         .HasColumnType("text")
                         .HasColumnName("error");
@@ -237,6 +241,9 @@ namespace SPSS.Infrastructure.Migrations
 
                     b.HasIndex("CheckedAt")
                         .HasDatabaseName("ix_monithistories_checkedat");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_monithistories_createdat");
 
                     b.HasIndex("InstitutionBic")
                         .HasDatabaseName("ix_monithistories_institutionbic");

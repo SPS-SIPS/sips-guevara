@@ -10,6 +10,7 @@ public sealed class MonitHistory : BaseEntity<int>
     public string? Error { get; set; }
     public string? ErrorType { get; set; }
     public DateTimeOffset CheckedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 }
 
 public sealed class MonitHistoryConfiguration : IEntityTypeConfiguration<MonitHistory>
@@ -21,9 +22,12 @@ public sealed class MonitHistoryConfiguration : IEntityTypeConfiguration<MonitHi
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id).ValueGeneratedOnAdd();
 
+        builder.Property(e => e.Response).IsRequired(false);
+        
         builder.HasIndex(x => x.InstitutionBic);
         builder.HasIndex(x => x.InstitutionName);
         builder.HasIndex(x => x.CheckedAt);
+        builder.HasIndex(x => x.CreatedAt);
         builder.HasIndex(x => x.Success);
     }
 }

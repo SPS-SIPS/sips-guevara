@@ -56,6 +56,7 @@ public sealed class AddMonitHistoryCommandHandler(IStorageBroker storage) : IReq
 
     public async ValueTask<Response<int>> Handle(AddMonitHistoryCommand request, CancellationToken cancellationToken)
     {
+        var now = DateTimeOffset.UtcNow;
         var entities = request.Data.Select(dto => new MonitHistory
         {
             InstitutionName = dto.InstitutionName,
@@ -65,7 +66,8 @@ public sealed class AddMonitHistoryCommandHandler(IStorageBroker storage) : IReq
             Response = dto.Response == null ? null : System.Text.Json.JsonSerializer.Serialize(dto.Response),
             Error = dto.Error,
             ErrorType = dto.ErrorType,
-            CheckedAt = dto.CheckedAt.ToUniversalTime()
+            CheckedAt = dto.CheckedAt.ToUniversalTime(),
+            CreatedAt = now
         }).ToList();
 
         await _storage.MonitHistories.AddRangeAsync(entities, cancellationToken);
