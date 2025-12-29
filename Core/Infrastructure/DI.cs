@@ -73,6 +73,8 @@ public static class DI
         services.AddSingleton(nsiConfig);
         CreateHome(nsiConfig);
 
+        services.Configure<MonitHistoryCleanupConfiguration>(configuration.GetSection("MonitHistoryCleanup"));
+
         var TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
@@ -94,6 +96,7 @@ public static class DI
         services.AddHostedService<CertificateFetchingService>();
         services.AddHostedService<CertificateValidationService>();
         services.AddHostedService<ParticipantStatusUpdaterWorker>();
+        services.AddHostedService<MonitHistoryCleanupWorker>();
         services.AddSingleton(TokenValidationParameters);
 
         var apiAuthConfig = configuration.GetSection("ApiAuth").Get<List<ApiClient>>();
