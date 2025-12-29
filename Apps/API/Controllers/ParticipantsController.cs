@@ -15,6 +15,10 @@ public class ParticipantsController : BaseController
     public async Task<Response<List<Lookup<string>>>> Get([FromQuery] GetParticipantsLookupListQuery query, CancellationToken ct)
         => await Mediator.Send(query, ct);
 
+    [HttpGet("live")]
+    public async Task<Response<List<LiveParticipantDto>>> GetLive([FromQuery] GetLiveParticipantsQuery query, CancellationToken ct)
+        => await Mediator.Send(query, ct);
+
     [HttpGet("{Id}")]
     public async Task<Response<ParticipantDto>> Get([FromRoute] GetParticipantQuery query, CancellationToken ct)
     => await Mediator.Send(query, ct);

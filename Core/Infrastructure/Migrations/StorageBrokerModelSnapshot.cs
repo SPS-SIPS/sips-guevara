@@ -257,6 +257,76 @@ namespace SPSS.Infrastructure.Migrations
                     b.ToTable("monithistories", (string)null);
                 });
 
+            modelBuilder.Entity("SPSS.Domain.Models.BL.ParticipantStatus", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<int>("ConsecutiveFailures")
+                        .HasColumnType("integer")
+                        .HasColumnName("consecutivefailures");
+
+                    b.Property<int>("ConsecutiveSuccesses")
+                        .HasColumnType("integer")
+                        .HasColumnName("consecutivesuccesses");
+
+                    b.Property<string>("InstitutionBic")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("institutionbic");
+
+                    b.Property<string>("InstitutionName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("institutionname");
+
+                    b.Property<bool>("IsLive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("islive");
+
+                    b.Property<DateTimeOffset>("LastCheckedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lastcheckedat");
+
+                    b.Property<string>("LastError")
+                        .HasColumnType("text")
+                        .HasColumnName("lasterror");
+
+                    b.Property<DateTimeOffset>("LastStatusChangeAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("laststatuschangeat");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updatedat");
+
+                    b.HasKey("Id")
+                        .HasName("pk_participantstatuses");
+
+                    b.HasIndex("InstitutionBic")
+                        .IsUnique()
+                        .HasDatabaseName("ix_participantstatuses_institutionbic");
+
+                    b.HasIndex("IsLive")
+                        .HasDatabaseName("ix_participantstatuses_islive");
+
+                    b.HasIndex("LastCheckedAt")
+                        .HasDatabaseName("ix_participantstatuses_lastcheckedat");
+
+                    b.HasIndex("UpdatedAt")
+                        .HasDatabaseName("ix_participantstatuses_updatedat");
+
+                    b.ToTable("participantstatuses", (string)null);
+                });
+
             modelBuilder.Entity("SPSS.Domain.Models.BL.NetSettlementDetail", b =>
                 {
                     b.Property<long>("Id")

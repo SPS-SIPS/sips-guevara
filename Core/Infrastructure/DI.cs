@@ -93,6 +93,7 @@ public static class DI
         services.AddCronJob<NSIMonitoring>(nsi);
         services.AddHostedService<CertificateFetchingService>();
         services.AddHostedService<CertificateValidationService>();
+        services.AddHostedService<ParticipantStatusUpdaterWorker>();
         services.AddSingleton(TokenValidationParameters);
 
         var apiAuthConfig = configuration.GetSection("ApiAuth").Get<List<ApiClient>>();

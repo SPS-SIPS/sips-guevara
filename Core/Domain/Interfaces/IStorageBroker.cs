@@ -17,6 +17,7 @@ public interface IStorageBroker
     DbSet<Certificate> Certificates { get; set; }
     DbSet<Download> Downloads { get; set; }
     DbSet<MonitHistory> MonitHistories { get; set; }
+    DbSet<ParticipantStatus> ParticipantStatuses { get; set; }
     DbSet<NetSettlementHeader> NetSettlementHeaders { get; set; }
     DbSet<NetSettlementDetail> NetSettlementDetails { get; set; }
     DbSet<BicStatistic> BicStatistics { get; set; }
