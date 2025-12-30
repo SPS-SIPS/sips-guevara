@@ -39,4 +39,10 @@ public static class KnownClaims
 
     // Reports
     public const string QueryReports = "QRPT";
+
+    // Thresholds
+    public const string CreateParticipantThreshold = "CPT";
+    public const string QueryParticipantThreshold = "QPT";
+    public const string UpdateParticipantThreshold = "UPT";
+    public const string RemoveParticipantThreshold = "RPT";
 }

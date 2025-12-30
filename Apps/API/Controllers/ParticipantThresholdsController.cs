@@ -13,19 +13,19 @@ public class ParticipantThresholdsController : BaseController
     public async Task<Response<List<ParticipantThresholdDto>>> GetList(CancellationToken ct)
         => await Mediator.Send(new GetParticipantThresholdsQuery(), ct);
 
-    [HttpGet("{Id}")]
-    public async Task<Response<ParticipantThresholdDto>> Get([FromRoute] GetParticipantThresholdQuery query, CancellationToken ct)
-        => await Mediator.Send(query, ct);
+    [HttpGet("{id}")]
+    public async Task<Response<ParticipantThresholdDto>> Get([FromRoute] int id, CancellationToken ct)
+        => await Mediator.Send(new GetParticipantThresholdQuery(id), ct);
 
     [HttpPost]
-    public async Task<Response<int>> Post([FromBody] CreateParticipantThresholdDto data, CancellationToken ct)
-        => await Mediator.Send(new AddParticipantThresholdCommand(data), ct);
+    public async Task<Response<int>> Post([FromBody] AddParticipantThresholdCommand command, CancellationToken ct)
+        => await Mediator.Send(command, ct);
 
     [HttpPut]
-    public async Task<Response<int>> Put([FromBody] UpdateParticipantThresholdDto data, CancellationToken ct)
-        => await Mediator.Send(new UpdateParticipantThresholdCommand(data), ct);
-
-    [HttpDelete("{Id}")]
-    public async Task<Response<int>> Delete([FromRoute] DeleteParticipantThresholdCommand command, CancellationToken ct)
+    public async Task<Response<int>> Put([FromBody] UpdateParticipantThresholdCommand command, CancellationToken ct)
         => await Mediator.Send(command, ct);
+
+    [HttpDelete("{id}")]
+    public async Task<Response<int>> Delete([FromRoute] int id, CancellationToken ct)
+        => await Mediator.Send(new DeleteParticipantThresholdCommand(id), ct);
 }

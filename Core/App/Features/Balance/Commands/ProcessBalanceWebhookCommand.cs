@@ -21,29 +21,74 @@ public sealed class ProcessBalanceWebhookCommandHandler(
     {
         var data = request.Data;
 
-        if (string.IsNullOrWhiteSpace(data.Bic))
+        if (data.Participants == null || data.Participants.Count == 0)
         {
-            return new Response<string>("BIC is required");
+            _logger.LogWarning("Webhook received with no participants");
+            return new Response<string>("No participants to process");
         }
 
-        if (data.RemainingNetDebitCap < 0)
+        _logger.LogInformation(
+            "Processing balance webhook with {Count} participants at {Timestamp}",
+            data.TotalCount,
+            data.Timestamp);
+
+        var processedCount = 0;
+        var skippedCount = 0;
+        var errorCount = 0;
+
+        foreach (var participant in data.Participants)
         {
-            return new Response<string>("RemainingNetDebitCap cannot be negative");
+            try
+            {
+                await ProcessParticipantBalanceAsync(participant, cancellationToken);
+                processedCount++;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error processing balance for BIC {Bic}",
+                    participant.Bic);
+                errorCount++;
+            }
+        }
+
+        var summary = $"Processed {processedCount} participants, skipped {skippedCount}, errors {errorCount}";
+        _logger.LogInformation(summary);
+
+        return new Response<string>(summary);
+    }
+
+    private async Task ProcessParticipantBalanceAsync(ParticipantBalanceDto participant, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(participant.Bic))
+        {
+            _logger.LogWarning("Participant with empty BIC skipped");
+            return;
+        }
+
+        if (participant.RemainingNetDebitCap < 0)
+        {
+            _logger.LogWarning(
+                "Participant {Bic} has negative balance {Balance}, skipping",
+                participant.Bic,
+                participant.RemainingNetDebitCap);
+            return;
         }
 
         var threshold = await _storage.ParticipantThresholds
-            .FirstOrDefaultAsync(x => x.Bic == data.Bic, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Bic == participant.Bic, cancellationToken);
 
         if (threshold == null)
         {
-            _logger.LogWarning(
+            _logger.LogDebug(
                 "No threshold configuration found for BIC {Bic}. Skipping balance evaluation.",
-                data.Bic);
-            return new Response<string>("No threshold configuration found for participant");
+                participant.Bic);
+            return;
         }
 
         var previousZone = threshold.LastKnownZone;
-        var currentBalance = data.RemainingNetDebitCap;
+        var currentBalance = participant.RemainingNetDebitCap;
 
         ThresholdZone currentZone;
         try
@@ -52,8 +97,8 @@ public sealed class ProcessBalanceWebhookCommandHandler(
         }
         catch (ArgumentException ex)
         {
-            _logger.LogError(ex, "Invalid threshold configuration for BIC {Bic}", data.Bic);
-            return new Response<string>($"Invalid threshold configuration: {ex.Message}");
+            _logger.LogError(ex, "Invalid threshold configuration for BIC {Bic}", participant.Bic);
+            return;
         }
 
         threshold.LastKnownBalance = currentBalance;
@@ -67,29 +112,23 @@ public sealed class ProcessBalanceWebhookCommandHandler(
 
             _logger.LogInformation(
                 "Zone transition detected for BIC {Bic}: {PreviousZone} → {CurrentZone}. Balance: {Balance:N2} {Currency}",
-                data.Bic,
+                participant.Bic,
                 previousZone,
                 currentZone,
                 currentBalance,
-                data.Currency);
+                participant.Currency);
         }
 
         var shouldSendAlert = _thresholdService.ShouldSendAlert(currentZone, previousZone);
 
         if (shouldSendAlert)
         {
-            await SendAlertEmailAsync(threshold, currentZone, currentBalance, data.Currency, cancellationToken);
+            await SendAlertEmailAsync(threshold, currentZone, currentBalance, participant.Currency, cancellationToken);
             threshold.LastAlertSentAt = DateTimeOffset.UtcNow;
         }
 
         _storage.ParticipantThresholds.Update(threshold);
         await _storage.SaveChangesAsync(cancellationToken);
-
-        var statusMessage = zoneChanged
-            ? $"Zone changed from {previousZone} to {currentZone}. Alert sent: {shouldSendAlert}"
-            : $"Zone unchanged: {currentZone}. No alert sent.";
-
-        return new Response<string>(statusMessage);
     }
 
     private async Task SendAlertEmailAsync(
@@ -133,8 +172,13 @@ public sealed class ProcessBalanceWebhookCommandHandler(
         {
             foreach (var recipient in recipients)
             {
+                var trimmedRecipient = recipient.Trim();
+                if (string.IsNullOrWhiteSpace(trimmedRecipient))
+                {
+                    continue;
+                }
                 await _emailSender.SendEmailAsync(
-                    recipient.Trim(),
+                    trimmedRecipient,
                     subject,
                     body,
                     null,

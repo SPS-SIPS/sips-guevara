@@ -23,6 +23,10 @@ public class ParticipantsController : BaseController
     public async Task<Response<ParticipantDto>> Get([FromRoute] GetParticipantQuery query, CancellationToken ct)
     => await Mediator.Send(query, ct);
 
+    [HttpGet("balance-status")]
+    public async Task<Response<ParticipantBalanceStatusDto>> GetBalanceStatus(CancellationToken ct)
+        => await Mediator.Send(new GetParticipantBalanceStatusQuery(), ct);
+
     [HttpPost]
     public async Task<Response<string>> Post([FromBody] AddParticipantCommand query, CancellationToken ct)
         => await Mediator.Send(query, ct);

@@ -1,45 +1,57 @@
-using SPSS.Domain.Models.DTOs;
-
 namespace SPSS.App.Features.Thresholds.Commands;
+[Authorize(Roles = UpdateParticipantThreshold)]
+public sealed record UpdateParticipantThresholdCommand(
+    int Id,
+    decimal GoldenAmount, 
+    decimal AmberPercentage, 
+    decimal RedPercentage, 
+    string? AlertRecipients) : IRequest<Response<int>>;
 
-public sealed record UpdateParticipantThresholdCommand(UpdateParticipantThresholdDto Data) : IRequest<Response<int>>;
+public sealed class UpdateParticipantThresholdCommandValidator : AbstractValidator<UpdateParticipantThresholdCommand>
+{
+    public UpdateParticipantThresholdCommandValidator()
+    {
+        RuleFor(x => x.Id)
+            .GreaterThan(0);
 
-public sealed class UpdateParticipantThresholdCommandHandler(
-    IStorageBroker storage,
-    ILogger<UpdateParticipantThresholdCommandHandler> logger) 
+        RuleFor(x => x.GoldenAmount)
+            .GreaterThan(0)
+            .WithMessage("GoldenAmount must be greater than zero");
+
+        RuleFor(x => x.AmberPercentage)
+            .InclusiveBetween(0, 100)
+            .WithMessage("AmberPercentage must be between 0 and 100");
+
+        RuleFor(x => x.RedPercentage)
+            .InclusiveBetween(0, 100)
+            .WithMessage("RedPercentage must be between 0 and 100")
+            .LessThan(x => x.AmberPercentage)
+            .WithMessage("RedPercentage must be less than AmberPercentage");
+
+        RuleFor(x => x.AlertRecipients)
+            .MaximumLength(500)
+            .When(x => !string.IsNullOrEmpty(x.AlertRecipients));
+    }
+}
+
+public sealed class UpdateParticipantThresholdCommandHandler(IStorageBroker storage, ILogger<UpdateParticipantThresholdCommandHandler> logger) 
     : IRequestHandler<UpdateParticipantThresholdCommand, Response<int>>
 {
-    private readonly IStorageBroker _storage = storage ?? throw new ArgumentNullException(nameof(storage));
-    private readonly ILogger<UpdateParticipantThresholdCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly IStorageBroker _storage = storage;
+    private readonly ILogger<UpdateParticipantThresholdCommandHandler> _logger = logger;
 
-    public async ValueTask<Response<int>> Handle(
-        UpdateParticipantThresholdCommand request, 
-        CancellationToken cancellationToken)
+    public async ValueTask<Response<int>> Handle(UpdateParticipantThresholdCommand request, CancellationToken cancellationToken)
     {
-        var data = request.Data;
-
-        if (data.GoldenAmount <= 0)
-            throw new ValidationException("GoldenAmount must be greater than zero");
-
-        if (data.AmberPercentage < 0 || data.AmberPercentage > 100)
-            throw new ValidationException("AmberPercentage must be between 0 and 100");
-
-        if (data.RedPercentage < 0 || data.RedPercentage > 100)
-            throw new ValidationException("RedPercentage must be between 0 and 100");
-
-        if (data.RedPercentage >= data.AmberPercentage)
-            throw new ValidationException("RedPercentage must be less than AmberPercentage");
-
         var threshold = await _storage.ParticipantThresholds
-            .FirstOrDefaultAsync(x => x.Id == data.Id && x.Active, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == request.Id && x.Active, cancellationToken);
 
         if (threshold == null)
             throw new NotFoundException("Threshold configuration not found");
 
-        threshold.GoldenAmount = data.GoldenAmount;
-        threshold.AmberPercentage = data.AmberPercentage;
-        threshold.RedPercentage = data.RedPercentage;
-        threshold.AlertRecipients = data.AlertRecipients;
+        threshold.GoldenAmount = request.GoldenAmount;
+        threshold.AmberPercentage = request.AmberPercentage;
+        threshold.RedPercentage = request.RedPercentage;
+        threshold.AlertRecipients = request.AlertRecipients;
 
         _storage.ParticipantThresholds.Update(threshold);
         await _storage.SaveChangesAsync(cancellationToken);

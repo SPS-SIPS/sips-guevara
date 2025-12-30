@@ -2,12 +2,13 @@ using SPSS.Domain.Models.DTOs;
 
 namespace SPSS.App.Features.Thresholds.Queries;
 
+[Authorize(Roles = QueryParticipantThreshold)]
 public sealed record GetParticipantThresholdsQuery : IRequest<Response<List<ParticipantThresholdDto>>>;
 
 public sealed class GetParticipantThresholdsQueryHandler(IStorageBroker storage) 
     : IRequestHandler<GetParticipantThresholdsQuery, Response<List<ParticipantThresholdDto>>>
 {
-    private readonly IStorageBroker _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+    private readonly IStorageBroker _storage = storage;
 
     public async ValueTask<Response<List<ParticipantThresholdDto>>> Handle(
         GetParticipantThresholdsQuery request, 

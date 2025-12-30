@@ -15,21 +15,3 @@ public sealed class ParticipantThresholdDto
     public DateTimeOffset? LastAlertSentAt { get; set; }
     public string? AlertRecipients { get; set; }
 }
-
-public sealed class CreateParticipantThresholdDto
-{
-    public string Bic { get; set; } = default!;
-    public decimal GoldenAmount { get; set; }
-    public decimal AmberPercentage { get; set; }
-    public decimal RedPercentage { get; set; }
-    public string? AlertRecipients { get; set; }
-}
-
-public sealed class UpdateParticipantThresholdDto
-{
-    public int Id { get; set; }
-    public decimal GoldenAmount { get; set; }
-    public decimal AmberPercentage { get; set; }
-    public decimal RedPercentage { get; set; }
-    public string? AlertRecipients { get; set; }
-}
