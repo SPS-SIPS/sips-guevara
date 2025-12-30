@@ -35,7 +35,7 @@ public sealed class GetParticipantBalanceStatusQueryHandler(IStorageBroker stora
             Bic = myBic,
             ParticipantName = participant?.Name ?? "Unknown",
             LastKnownBalance = threshold.LastKnownBalance,
-            CurrentZone = threshold.LastKnownZone,
+            CurrentZone = threshold.LastKnownZone.ToString(),
             LastZoneChangeAt = threshold.LastZoneChangeAt,
             LastAlertSentAt = threshold.LastAlertSentAt,
             LastUpdatedAt = threshold.LastKnownBalance.HasValue ? DateTimeOffset.UtcNow : null,
