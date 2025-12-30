@@ -1,0 +1,14 @@
+using SPSS.App.Features.Balance.Commands;
+using SPSS.Domain.Models.DTOs;
+
+namespace SPSS.API.Controllers;
+
+[ApiController]
+[Produces("application/json")]
+[Route("api/v1/[controller]")]
+public class BalanceController : BaseController
+{
+    [HttpPost("webhook")]
+    public async Task<Response<string>> PostWebhook([FromBody] BalanceWebhookDto data, CancellationToken ct)
+        => await Mediator.Send(new ProcessBalanceWebhookCommand(data), ct);
+}

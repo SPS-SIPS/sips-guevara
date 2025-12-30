@@ -327,6 +327,78 @@ namespace SPSS.Infrastructure.Migrations
                     b.ToTable("participantstatuses", (string)null);
                 });
 
+            modelBuilder.Entity("SPSS.Domain.Models.BL.ParticipantThreshold", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("AlertRecipients")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("alertrecipients");
+
+                    b.Property<decimal>("AmberPercentage")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("amberpercentage");
+
+                    b.Property<string>("Bic")
+                        .IsRequired()
+                        .HasMaxLength(11)
+                        .HasColumnType("character varying(11)")
+                        .HasColumnName("bic");
+
+                    b.Property<decimal>("GoldenAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("goldenamount");
+
+                    b.Property<DateTimeOffset?>("LastAlertSentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lastalertsent");
+
+                    b.Property<decimal?>("LastKnownBalance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("lastknownbalance");
+
+                    b.Property<int>("LastKnownZone")
+                        .HasColumnType("integer")
+                        .HasColumnName("lastknownzone");
+
+                    b.Property<DateTimeOffset?>("LastZoneChangeAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lastzonechangeat");
+
+                    b.Property<decimal>("RedPercentage")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("redpercentage");
+
+                    b.HasKey("Id")
+                        .HasName("pk_participantthresholds");
+
+                    b.HasIndex("Bic")
+                        .IsUnique()
+                        .HasDatabaseName("ix_participantthresholds_bic");
+
+                    b.HasIndex("LastKnownZone")
+                        .HasDatabaseName("ix_participantthresholds_lastknownzone");
+
+                    b.HasIndex("LastZoneChangeAt")
+                        .HasDatabaseName("ix_participantthresholds_lastzonechangeat");
+
+                    b.ToTable("participantthresholds", (string)null);
+                });
+
             modelBuilder.Entity("SPSS.Domain.Models.BL.NetSettlementDetail", b =>
                 {
                     b.Property<long>("Id")

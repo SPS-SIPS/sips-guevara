@@ -17,6 +17,7 @@ public sealed class StorageBroker(DbContextOptions<StorageBroker> options) : DbC
     public DbSet<Download> Downloads { get; set; } = null!;
     public DbSet<MonitHistory> MonitHistories { get; set; } = null!;
     public DbSet<ParticipantStatus> ParticipantStatuses { get; set; } = null!;
+    public DbSet<ParticipantThreshold> ParticipantThresholds { get; set; } = null!;
     public DbSet<NetSettlementHeader> NetSettlementHeaders { get; set; } = null!;
     public DbSet<NetSettlementDetail> NetSettlementDetails { get; set; } = null!;
     public DbSet<BicStatistic> BicStatistics { get; set; } = null!;

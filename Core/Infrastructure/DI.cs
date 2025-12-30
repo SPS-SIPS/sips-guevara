@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using SPSS.Domain.Extensions;
 using SPSS.Infrastructure;
 using SPSS.Domain.Interfaces;
+using SPSS.Domain.Services;
 using SPSS.Infrastructure.Services;
 using SPSS.Infrastructure.Identity.Services;
 using SPSS.Infrastructure.Persistence;
@@ -51,6 +52,7 @@ public static class DI
         services.AddScoped<IFileStorage, FileService>();
         services.AddScoped<IBicStatisticsService, BicStatisticsService>();
         services.AddSingleton<IStatisticsReportService, StatisticsReportService>();
+        services.AddScoped<IBalanceThresholdService, BalanceThresholdService>();
 
         var jwtSettings = new JwtSettings();
         configuration.Bind(nameof(JwtSettings), jwtSettings);
