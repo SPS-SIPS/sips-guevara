@@ -22,7 +22,7 @@ namespace SPSS.Infrastructure.Migrations
                     lastknownzone = table.Column<int>(type: "integer", nullable: false),
                     lastknownbalance = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: true),
                     lastzonechangeat = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    lastalertsent = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    lastalertsentat = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     alertrecipients = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     active = table.Column<bool>(type: "boolean", nullable: false)
                 },

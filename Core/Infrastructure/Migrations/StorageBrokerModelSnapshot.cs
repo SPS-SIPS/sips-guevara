@@ -363,7 +363,7 @@ namespace SPSS.Infrastructure.Migrations
 
                     b.Property<DateTimeOffset?>("LastAlertSentAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("lastalertsent");
+                        .HasColumnName("lastalertsentat");
 
                     b.Property<decimal?>("LastKnownBalance")
                         .HasPrecision(18, 2)
