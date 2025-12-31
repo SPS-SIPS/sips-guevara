@@ -17,14 +17,13 @@ public sealed class GetParticipantBalanceStatusQueryHandler(IStorageBroker stora
     {
         var myBic = _identity.TenantId;
 
+        if (string.IsNullOrWhiteSpace(myBic))
+            throw new ForbiddenAccessException("Authentication required. Please provide a valid JWT token with tenant information.");
+
         var threshold = await _storage.ParticipantThresholds
             .AsNoTracking()
             .Where(x => x.Bic == myBic && x.Active)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (threshold == null)
-            throw new NotFoundException($"No threshold configuration found for BIC {myBic}");
-
+            .FirstOrDefaultAsync(cancellationToken) ?? throw new NotFoundException($"No threshold configuration found for BIC {myBic}");
         var participant = await _storage.Participants
             .AsNoTracking()
             .Where(x => x.BicNo == myBic && x.Active)
