@@ -23,14 +23,27 @@ public sealed class ProcessBalanceWebhookCommandHandler(
 
         if (data.Participants == null || data.Participants.Count == 0)
         {
-            _logger.LogWarning("Webhook received with no participants");
+            _logger.LogWarning("Webhook received with no participants at {Timestamp}", data.Timestamp);
             return new Response<string>("No participants to process");
         }
 
         _logger.LogInformation(
-            "Processing balance webhook with {Count} participants at {Timestamp}",
-            data.TotalCount,
-            data.Timestamp);
+            "Balance webhook received at {Timestamp} with {TotalCount} participants",
+            data.Timestamp,
+            data.TotalCount);
+
+        foreach (var participant in data.Participants)
+        {
+            _logger.LogInformation(
+                "Received balance data: BIC={Bic}, Name={Name}, Balance={Balance:N2} {Currency}, Status={Status}, AccountNumber={AccountNumber}, CheckedAt={CheckedAt}",
+                participant.Bic,
+                participant.ParticipantName,
+                participant.RemainingNetDebitCap,
+                participant.Currency,
+                participant.Status,
+                participant.AccountNumber,
+                participant.CheckedAt);
+        }
 
         var processedCount = 0;
         var skippedCount = 0;
@@ -117,6 +130,16 @@ public sealed class ProcessBalanceWebhookCommandHandler(
                 currentZone,
                 currentBalance,
                 participant.Currency);
+        }
+        else
+        {
+            _logger.LogDebug(
+                "Balance updated for BIC {Bic}: Zone={Zone}, Balance={Balance:N2} {Currency}, GoldenAmount={GoldenAmount:N2}",
+                participant.Bic,
+                currentZone,
+                currentBalance,
+                participant.Currency,
+                threshold.GoldenAmount);
         }
 
         var shouldSendAlert = _thresholdService.ShouldSendAlert(currentZone, previousZone);
