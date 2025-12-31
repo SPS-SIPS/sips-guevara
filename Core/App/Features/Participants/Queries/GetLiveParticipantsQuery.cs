@@ -1,5 +1,8 @@
 namespace SPSS.App.Features.Participants.Queries;
 
+using static SPSS.Domain.Common.KnownClaims;
+
+[Authorize(Roles = QueryParticipants)]
 public sealed record GetLiveParticipantsQuery(bool? IsLive) : IRequest<Response<List<LiveParticipantDto>>>;
 
 public sealed class GetLiveParticipantsQueryHandler(IStorageBroker storage) : IRequestHandler<GetLiveParticipantsQuery, Response<List<LiveParticipantDto>>>
