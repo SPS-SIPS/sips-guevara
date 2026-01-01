@@ -13,6 +13,9 @@ public sealed class ParticipantThreshold : BaseEntity<int>
     public DateTimeOffset? LastZoneChangeAt { get; set; }
     public DateTimeOffset? LastAlertSentAt { get; set; }
     public string? AlertRecipients { get; set; }
+    public bool EnforceSendRestriction { get; set; }
+    public decimal MinimumSendBalance { get; set; }
+    public bool CanSend { get; set; } = true;
 }
 
 public sealed class ParticipantThresholdConfiguration : IEntityTypeConfiguration<ParticipantThreshold>
@@ -53,7 +56,18 @@ public sealed class ParticipantThresholdConfiguration : IEntityTypeConfiguration
         builder.Property(e => e.AlertRecipients)
             .HasMaxLength(500);
 
+        builder.Property(e => e.EnforceSendRestriction)
+            .IsRequired();
+
+        builder.Property(e => e.MinimumSendBalance)
+            .HasPrecision(18, 2)
+            .IsRequired();
+
+        builder.Property(e => e.CanSend)
+            .IsRequired();
+
         builder.HasIndex(e => e.LastKnownZone);
         builder.HasIndex(e => e.LastZoneChangeAt);
+        builder.HasIndex(e => e.CanSend);
     }
 }

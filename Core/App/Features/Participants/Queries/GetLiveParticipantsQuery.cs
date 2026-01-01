@@ -19,17 +19,30 @@ public sealed class GetLiveParticipantsQueryHandler(IStorageBroker storage) : IR
         }
 
         var statuses = await query
-            .OrderBy(x => x.InstitutionName)
+            .GroupJoin(
+                _storage.ParticipantThresholds.AsNoTracking().Where(t => t.Active),
+                status => status.InstitutionBic,
+                threshold => threshold.Bic,
+                (status, thresholds) => new { status, threshold = thresholds.FirstOrDefault() })
+            .OrderBy(x => x.status.InstitutionName)
             .Select(x => new LiveParticipantDto
             {
-                InstitutionBic = x.InstitutionBic,
-                InstitutionName = x.InstitutionName,
-                IsLive = x.IsLive,
-                LastCheckedAt = x.LastCheckedAt,
-                LastStatusChangeAt = x.LastStatusChangeAt,
-                ConsecutiveFailures = x.ConsecutiveFailures,
-                ConsecutiveSuccesses = x.ConsecutiveSuccesses,
-                LastError = x.LastError
+                InstitutionBic = x.status.InstitutionBic,
+                InstitutionName = x.status.InstitutionName,
+                IsLive = x.status.IsLive,
+                LastCheckedAt = x.status.LastCheckedAt,
+                LastStatusChangeAt = x.status.LastStatusChangeAt,
+                ConsecutiveFailures = x.status.ConsecutiveFailures,
+                ConsecutiveSuccesses = x.status.ConsecutiveSuccesses,
+                LastError = x.status.LastError,
+                CurrentBalance = x.threshold != null ? x.threshold.LastKnownBalance : null,
+                AvailableBalance = x.threshold != null && x.threshold.LastKnownBalance.HasValue 
+                    ? x.threshold.LastKnownBalance.Value - x.threshold.MinimumSendBalance 
+                    : null,
+                CanSend = x.threshold != null ? x.threshold.CanSend : true,
+                ThresholdZone = x.threshold != null ? x.threshold.LastKnownZone.ToString() : null,
+                EnforceSendRestriction = x.threshold != null && x.threshold.EnforceSendRestriction,
+                MinimumSendBalance = x.threshold != null ? x.threshold.MinimumSendBalance : null
             })
             .ToListAsync(cancellationToken);
 

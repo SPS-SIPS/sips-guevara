@@ -8,7 +8,9 @@ public sealed record AddParticipantThresholdCommand(
     decimal GoldenAmount, 
     decimal AmberPercentage, 
     decimal RedPercentage, 
-    string? AlertRecipients) : IRequest<Response<int>>;
+    string? AlertRecipients,
+    bool EnforceSendRestriction = false,
+    decimal MinimumSendBalance = 0) : IRequest<Response<int>>;
 
 public sealed class AddParticipantThresholdCommandValidator : AbstractValidator<AddParticipantThresholdCommand>
 {
@@ -30,6 +32,10 @@ public sealed class AddParticipantThresholdCommandValidator : AbstractValidator<
             .WithMessage("RedPercentage must be between 0 and 100")
             .LessThan(x => x.AmberPercentage)
             .WithMessage("RedPercentage must be less than AmberPercentage");
+
+        RuleFor(x => x.MinimumSendBalance)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("MinimumSendBalance must be greater than or equal to zero");
 
         RuleFor(x => x.AlertRecipients)
             .MaximumLength(500)
@@ -58,7 +64,10 @@ public sealed class AddParticipantThresholdCommandHandler(IStorageBroker storage
             AmberPercentage = request.AmberPercentage,
             RedPercentage = request.RedPercentage,
             LastKnownZone = ThresholdZone.Green,
-            AlertRecipients = request.AlertRecipients
+            AlertRecipients = request.AlertRecipients,
+            EnforceSendRestriction = request.EnforceSendRestriction,
+            MinimumSendBalance = request.MinimumSendBalance,
+            CanSend = true
         };
 
         await _storage.ParticipantThresholds.AddAsync(threshold, cancellationToken);

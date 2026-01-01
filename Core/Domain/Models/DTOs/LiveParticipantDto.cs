@@ -10,4 +10,10 @@ public sealed class LiveParticipantDto
     public int ConsecutiveFailures { get; set; }
     public int ConsecutiveSuccesses { get; set; }
     public string? LastError { get; set; }
+    public decimal? CurrentBalance { get; set; }
+    public decimal? AvailableBalance { get; set; }
+    public bool CanSend { get; set; }
+    public string? ThresholdZone { get; set; }
+    public bool EnforceSendRestriction { get; set; }
+    public decimal? MinimumSendBalance { get; set; }
 }

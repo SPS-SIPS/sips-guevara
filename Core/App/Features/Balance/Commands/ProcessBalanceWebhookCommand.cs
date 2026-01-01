@@ -117,7 +117,31 @@ public sealed class ProcessBalanceWebhookCommandHandler(
         threshold.LastKnownBalance = currentBalance;
         threshold.LastKnownZone = currentZone;
 
+        // Evaluate send capability based on configuration
+        var previousCanSend = threshold.CanSend;
+        if (threshold.EnforceSendRestriction)
+        {
+            threshold.CanSend = currentBalance >= threshold.MinimumSendBalance;
+        }
+        else
+        {
+            threshold.CanSend = true;
+        }
+
+        var canSendChanged = threshold.CanSend != previousCanSend;
         var zoneChanged = currentZone != previousZone;
+
+        if (canSendChanged)
+        {
+            _logger.LogWarning(
+                "Send capability changed for BIC {Bic}: {PreviousCanSend} → {CurrentCanSend}. Balance: {Balance:N2}, MinimumSendBalance: {MinimumSendBalance:N2} {Currency}",
+                participant.Bic,
+                previousCanSend ? "ALLOWED" : "BLOCKED",
+                threshold.CanSend ? "ALLOWED" : "BLOCKED",
+                currentBalance,
+                threshold.MinimumSendBalance,
+                participant.Currency);
+        }
 
         if (zoneChanged)
         {
@@ -134,12 +158,13 @@ public sealed class ProcessBalanceWebhookCommandHandler(
         else
         {
             _logger.LogDebug(
-                "Balance updated for BIC {Bic}: Zone={Zone}, Balance={Balance:N2} {Currency}, GoldenAmount={GoldenAmount:N2}",
+                "Balance updated for BIC {Bic}: Zone={Zone}, Balance={Balance:N2} {Currency}, CanSend={CanSend}, AvailableBalance={AvailableBalance:N2}",
                 participant.Bic,
                 currentZone,
                 currentBalance,
                 participant.Currency,
-                threshold.GoldenAmount);
+                threshold.CanSend,
+                currentBalance - threshold.MinimumSendBalance);
         }
 
         var shouldSendAlert = _thresholdService.ShouldSendAlert(currentZone, previousZone);

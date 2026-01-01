@@ -14,4 +14,7 @@ public sealed class ParticipantThresholdDto
     public DateTimeOffset? LastZoneChangeAt { get; set; }
     public DateTimeOffset? LastAlertSentAt { get; set; }
     public string? AlertRecipients { get; set; }
+    public bool EnforceSendRestriction { get; set; }
+    public decimal MinimumSendBalance { get; set; }
+    public bool CanSend { get; set; }
 }
