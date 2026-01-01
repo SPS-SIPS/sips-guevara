@@ -27,8 +27,6 @@ public sealed class ProcessBalanceWebhookCommandHandler(
             return new Response<string>("No participants to process");
         }
 
-        await AutoRegisterMissingParticipantsAsync(data.Participants, cancellationToken);
-
         _logger.LogInformation(
             "Balance webhook received at {Timestamp} with {TotalCount} participants",
             data.Timestamp,
@@ -315,86 +313,5 @@ Payment Switch Operations
 Automated Balance Monitoring System";
 
         return (subject, body);
-    }
-
-    private async Task AutoRegisterMissingParticipantsAsync(List<ParticipantBalanceDto> participants, CancellationToken cancellationToken)
-    {
-        var incomingBics = participants
-            .Where(p => !string.IsNullOrWhiteSpace(p.Bic))
-            .Select(p => p.Bic.ToUpperInvariant())
-            .Distinct()
-            .ToList();
-
-        if (!incomingBics.Any())
-            return;
-
-        var existingBics = await _storage.Participants
-            .Where(p => incomingBics.Contains(p.BicNo))
-            .Select(p => p.BicNo)
-            .ToListAsync(cancellationToken);
-
-        var missingBics = incomingBics.Except(existingBics).ToList();
-
-        if (!missingBics.Any())
-            return;
-
-        var systemUser = await GetOrCreateSystemUserAsync(cancellationToken);
-
-        foreach (var bic in missingBics)
-        {
-            var participantData = participants.First(p => p.Bic.ToUpperInvariant() == bic);
-            var participantId = Guid.NewGuid().ToString();
-
-            var participant = new Domain.Models.BL.Participant
-            {
-                Id = participantId,
-                BicNo = bic,
-                Name = participantData.ParticipantName,
-                UserId = systemUser.Id,
-                CreatedBy = "SYSTEM_AUTO_REGISTER",
-                CreatedOn = DateTimeOffset.UtcNow
-            };
-
-            await _storage.Participants.AddAsync(participant, cancellationToken);
-
-            _logger.LogInformation(
-                "Auto-registered participant from balance webhook: BIC={Bic}, Name={Name}, AccountNumber={AccountNumber}, Id={Id}",
-                bic,
-                participantData.ParticipantName,
-                participantData.AccountNumber,
-                participantId);
-        }
-
-        await _storage.SaveChangesAsync(cancellationToken);
-    }
-
-    private async Task<Domain.Models.Identity.User> GetOrCreateSystemUserAsync(CancellationToken cancellationToken)
-    {
-        const string systemUsername = "system_auto_register";
-
-        var systemUser = await _storage.Users
-            .FirstOrDefaultAsync(u => u.Username == systemUsername, cancellationToken);
-
-        if (systemUser != null)
-            return systemUser;
-
-        systemUser = new Domain.Models.Identity.User
-        {
-            Username = systemUsername,
-            Phone = "000000000",
-            Email = "system@spss.local",
-            Photo = "",
-            PasswordHash = "",
-            SecurityStamp = Guid.NewGuid().ToString(),
-            CreatedBy = "SYSTEM",
-            CreatedOn = DateTimeOffset.UtcNow
-        };
-
-        await _storage.Users.AddAsync(systemUser, cancellationToken);
-        await _storage.SaveChangesAsync(cancellationToken);
-
-        _logger.LogInformation("Created system user for auto-registration: {Username}", systemUsername);
-
-        return systemUser;
     }
 }
