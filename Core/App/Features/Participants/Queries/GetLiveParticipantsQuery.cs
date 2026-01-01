@@ -5,9 +5,10 @@ using static SPSS.Domain.Common.KnownClaims;
 [Authorize(Roles = QueryParticipants)]
 public sealed record GetLiveParticipantsQuery(bool? IsLive) : IRequest<Response<List<LiveParticipantDto>>>;
 
-public sealed class GetLiveParticipantsQueryHandler(IStorageBroker storage) : IRequestHandler<GetLiveParticipantsQuery, Response<List<LiveParticipantDto>>>
+public sealed class GetLiveParticipantsQueryHandler(IStorageBroker storage, IIdentityService identity) : IRequestHandler<GetLiveParticipantsQuery, Response<List<LiveParticipantDto>>>
 {
     private readonly IStorageBroker _storage = storage;
+    private readonly IIdentityService _identity = identity;
 
     public async ValueTask<Response<List<LiveParticipantDto>>> Handle(GetLiveParticipantsQuery request, CancellationToken cancellationToken)
     {
@@ -17,6 +18,8 @@ public sealed class GetLiveParticipantsQueryHandler(IStorageBroker storage) : IR
         {
             query = query.Where(x => x.IsLive == request.IsLive.Value);
         }
+
+        var myBic = _identity.TenantId;
 
         var statuses = await query
             .GroupJoin(
@@ -35,14 +38,9 @@ public sealed class GetLiveParticipantsQueryHandler(IStorageBroker storage) : IR
                 ConsecutiveFailures = x.status.ConsecutiveFailures,
                 ConsecutiveSuccesses = x.status.ConsecutiveSuccesses,
                 LastError = x.status.LastError,
-                CurrentBalance = x.threshold != null ? x.threshold.LastKnownBalance : null,
-                AvailableBalance = x.threshold != null && x.threshold.LastKnownBalance.HasValue 
-                    ? x.threshold.LastKnownBalance.Value - x.threshold.MinimumSendBalance 
-                    : null,
+                CurrentBalance = x.threshold != null && x.status.InstitutionBic == myBic ? x.threshold.LastKnownBalance : null,
                 CanSend = x.threshold != null ? x.threshold.CanSend : true,
-                ThresholdZone = x.threshold != null ? x.threshold.LastKnownZone.ToString() : null,
-                EnforceSendRestriction = x.threshold != null && x.threshold.EnforceSendRestriction,
-                MinimumSendBalance = x.threshold != null ? x.threshold.MinimumSendBalance : null
+                ThresholdZone = x.threshold != null ? x.threshold.LastKnownZone.ToString() : null
             })
             .ToListAsync(cancellationToken);
 

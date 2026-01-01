@@ -29,7 +29,10 @@ public sealed class GetParticipantThresholdsQueryHandler(IStorageBroker storage)
                 LastKnownBalance = x.LastKnownBalance,
                 LastZoneChangeAt = x.LastZoneChangeAt,
                 LastAlertSentAt = x.LastAlertSentAt,
-                AlertRecipients = x.AlertRecipients
+                AlertRecipients = x.AlertRecipients,
+                EnforceSendRestriction = x.EnforceSendRestriction,
+                MinimumSendBalance = x.MinimumSendBalance,
+                CanSend = x.CanSend
             })
             .ToListAsync(cancellationToken);
 

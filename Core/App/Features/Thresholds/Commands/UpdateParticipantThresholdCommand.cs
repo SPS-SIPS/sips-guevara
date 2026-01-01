@@ -49,10 +49,10 @@ public sealed class UpdateParticipantThresholdCommandHandler(IStorageBroker stor
     public async ValueTask<Response<int>> Handle(UpdateParticipantThresholdCommand request, CancellationToken cancellationToken)
     {
         var threshold = await _storage.ParticipantThresholds
-            .FirstOrDefaultAsync(x => x.Id == request.Id && x.Active, cancellationToken);
-
-        if (threshold == null)
-            throw new NotFoundException("Threshold configuration not found");
+            .FirstOrDefaultAsync(x => x.Id == request.Id && x.Active, cancellationToken) ?? throw new NotFoundException("Threshold configuration not found");
+        var previousCanSend = threshold.CanSend;
+        var previousEnforceSendRestriction = threshold.EnforceSendRestriction;
+        var previousMinimumSendBalance = threshold.MinimumSendBalance;
 
         threshold.GoldenAmount = request.GoldenAmount;
         threshold.AmberPercentage = request.AmberPercentage;
@@ -61,15 +61,39 @@ public sealed class UpdateParticipantThresholdCommandHandler(IStorageBroker stor
         threshold.EnforceSendRestriction = request.EnforceSendRestriction;
         threshold.MinimumSendBalance = request.MinimumSendBalance;
 
+        // Re-evaluate CanSend based on new configuration
+        if (threshold.EnforceSendRestriction && threshold.LastKnownBalance.HasValue)
+        {
+            threshold.CanSend = threshold.LastKnownBalance.Value >= threshold.MinimumSendBalance;
+        }
+        else
+        {
+            threshold.CanSend = true;
+        }
+
         _storage.ParticipantThresholds.Update(threshold);
         await _storage.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
-            "Updated threshold configuration for BIC {Bic}. GoldenAmount: {GoldenAmount}, Amber: {AmberPercentage}%, Red: {RedPercentage}%",
+            "Updated threshold configuration for BIC {Bic}. GoldenAmount: {GoldenAmount}, Amber: {AmberPercentage}%, Red: {RedPercentage}%, EnforceSendRestriction: {EnforceSendRestriction}, MinimumSendBalance: {MinimumSendBalance}",
             threshold.Bic,
             threshold.GoldenAmount,
             threshold.AmberPercentage,
-            threshold.RedPercentage);
+            threshold.RedPercentage,
+            threshold.EnforceSendRestriction,
+            threshold.MinimumSendBalance);
+
+        // Log if send capability changed due to configuration update
+        if (threshold.CanSend != previousCanSend)
+        {
+            _logger.LogWarning(
+                "Send capability changed for BIC {Bic} due to configuration update: {PreviousCanSend} → {CurrentCanSend}. Balance: {Balance}, MinimumSendBalance: {MinimumSendBalance}",
+                threshold.Bic,
+                previousCanSend ? "ALLOWED" : "BLOCKED",
+                threshold.CanSend ? "ALLOWED" : "BLOCKED",
+                threshold.LastKnownBalance,
+                threshold.MinimumSendBalance);
+        }
 
         return new Response<int>(threshold.Id);
     }
