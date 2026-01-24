@@ -26,22 +26,16 @@ public sealed class BalanceThresholdService : IBalanceThresholdService
         var amberThreshold = threshold.GoldenAmount * (threshold.AmberPercentage / 100m);
         var redThreshold = threshold.GoldenAmount * (threshold.RedPercentage / 100m);
 
-        if (currentBalance >= threshold.GoldenAmount)
-        {
-            return ThresholdZone.Green;
-        }
-
-        if (currentBalance >= amberThreshold)
-        {
-            return ThresholdZone.Amber;
-        }
+        if (redThreshold > amberThreshold)
+            throw new ArgumentException("RedPercentage must be less than or equal to AmberPercentage", nameof(threshold));
 
         if (currentBalance < redThreshold)
-        {
             return ThresholdZone.Red;
-        }
 
-        return ThresholdZone.Amber;
+        if (currentBalance < amberThreshold)
+            return ThresholdZone.Amber;
+
+        return ThresholdZone.Green;
     }
 
     public bool ShouldSendAlert(ThresholdZone currentZone, ThresholdZone previousZone)
