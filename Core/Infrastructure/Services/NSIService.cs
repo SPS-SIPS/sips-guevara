@@ -74,11 +74,11 @@ public static class NSIService
         var transactions = fiCdtTrf.Elements(nsPacs009 + "CdtTrfTxInf")
             .Select(tx => new NetSettlementDetail
             {
-                EndToEndId = tx.Descendants(nsPacs009 + "EndToEndId").FirstOrDefault()?.Value,
+                EndToEndId = tx.Descendants(nsPacs009 + "EndToEndId").FirstOrDefault()?.Value ?? string.Empty,
                 TxId = tx.Descendants(nsPacs009 + "TxId").FirstOrDefault()?.Value ?? string.Empty,
                 UETR = tx.Descendants(nsPacs009 + "UETR").FirstOrDefault()?.Value ?? string.Empty,
-                DebtorBic = tx.Descendants(nsPacs009 + "Dbtr").Descendants(nsPacs009 + "BICFI").FirstOrDefault()?.Value,
-                CreditorBic = tx.Descendants(nsPacs009 + "Cdtr").Descendants(nsPacs009 + "BICFI").FirstOrDefault()?.Value,
+                DebtorBic = tx.Descendants(nsPacs009 + "Dbtr").Descendants(nsPacs009 + "BICFI").FirstOrDefault()?.Value ?? string.Empty,
+                CreditorBic = tx.Descendants(nsPacs009 + "Cdtr").Descendants(nsPacs009 + "BICFI").FirstOrDefault()?.Value ?? string.Empty,
                 InstructionPriority = tx.Descendants(nsPacs009 + "InstrPrty").FirstOrDefault()?.Value ?? "HIGH",
                 SvcLvl = tx.Descendants(nsPacs009 + "SvcLvl").Descendants(nsPacs009 + "Prtry").FirstOrDefault()?.Value ?? string.Empty,
                 LocalInstrument = tx.Descendants(nsPacs009 + "LclInstrm").Descendants(nsPacs009 + "Prtry").FirstOrDefault()?.Value ?? "RTGSNetSettlement",

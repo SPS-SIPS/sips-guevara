@@ -102,7 +102,7 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
                 _logger.LogError("Error while fetching certificates from LDAP server {Exception}", ex.Message);
                 break;
             }
-        } while (searchResponse.Controls.OfType<PageResultResponseControl>().Any());
+        } while (searchResponse.Controls?.OfType<PageResultResponseControl>().Any() ?? false);
 
     }
     private async Task SaveCertificate(X509Certificate certificate, CancellationToken ct = default)

@@ -38,10 +38,13 @@ public static class RTGSHelpers
 
     public static XElement BuildDocument(XElement fiCdtTrfElement, List<XElement> txList)
     {
+        var grpHdr = fiCdtTrfElement.Element(nsPacs009 + "GrpHdr")
+            ?? throw new ArgumentException("fiCdtTrfElement is missing required GrpHdr element", nameof(fiCdtTrfElement));
+
         return new XElement(nsPacs009 + "Document",
             new XAttribute(XNamespace.Xmlns + "xsi", "http://www.w3.org/2001/XMLSchema-instance"),
             new XElement(nsPacs009 + "FICdtTrf",
-                new XElement(fiCdtTrfElement.Element(nsPacs009 + "GrpHdr")),
+                new XElement(grpHdr),
                 txList
             )
         );
