@@ -257,148 +257,6 @@ namespace SPSS.Infrastructure.Migrations
                     b.ToTable("monithistories", (string)null);
                 });
 
-            modelBuilder.Entity("SPSS.Domain.Models.BL.ParticipantStatus", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Active")
-                        .HasColumnType("boolean")
-                        .HasColumnName("active");
-
-                    b.Property<int>("ConsecutiveFailures")
-                        .HasColumnType("integer")
-                        .HasColumnName("consecutivefailures");
-
-                    b.Property<int>("ConsecutiveSuccesses")
-                        .HasColumnType("integer")
-                        .HasColumnName("consecutivesuccesses");
-
-                    b.Property<string>("InstitutionBic")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("institutionbic");
-
-                    b.Property<string>("InstitutionName")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("institutionname");
-
-                    b.Property<bool>("IsLive")
-                        .HasColumnType("boolean")
-                        .HasColumnName("islive");
-
-                    b.Property<DateTimeOffset>("LastCheckedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("lastcheckedat");
-
-                    b.Property<string>("LastError")
-                        .HasColumnType("text")
-                        .HasColumnName("lasterror");
-
-                    b.Property<DateTimeOffset>("LastStatusChangeAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("laststatuschangeat");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updatedat");
-
-                    b.HasKey("Id")
-                        .HasName("pk_participantstatuses");
-
-                    b.HasIndex("InstitutionBic")
-                        .IsUnique()
-                        .HasDatabaseName("ix_participantstatuses_institutionbic");
-
-                    b.HasIndex("IsLive")
-                        .HasDatabaseName("ix_participantstatuses_islive");
-
-                    b.HasIndex("LastCheckedAt")
-                        .HasDatabaseName("ix_participantstatuses_lastcheckedat");
-
-                    b.HasIndex("UpdatedAt")
-                        .HasDatabaseName("ix_participantstatuses_updatedat");
-
-                    b.ToTable("participantstatuses", (string)null);
-                });
-
-            modelBuilder.Entity("SPSS.Domain.Models.BL.ParticipantThreshold", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Active")
-                        .HasColumnType("boolean")
-                        .HasColumnName("active");
-
-                    b.Property<string>("AlertRecipients")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("alertrecipients");
-
-                    b.Property<decimal>("AmberPercentage")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("numeric(5,2)")
-                        .HasColumnName("amberpercentage");
-
-                    b.Property<string>("Bic")
-                        .IsRequired()
-                        .HasMaxLength(11)
-                        .HasColumnType("character varying(11)")
-                        .HasColumnName("bic");
-
-                    b.Property<decimal>("GoldenAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("goldenamount");
-
-                    b.Property<DateTimeOffset?>("LastAlertSentAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("lastalertsentat");
-
-                    b.Property<decimal?>("LastKnownBalance")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("lastknownbalance");
-
-                    b.Property<int>("LastKnownZone")
-                        .HasColumnType("integer")
-                        .HasColumnName("lastknownzone");
-
-                    b.Property<DateTimeOffset?>("LastZoneChangeAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("lastzonechangeat");
-
-                    b.Property<decimal>("RedPercentage")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("numeric(5,2)")
-                        .HasColumnName("redpercentage");
-
-                    b.HasKey("Id")
-                        .HasName("pk_participantthresholds");
-
-                    b.HasIndex("Bic")
-                        .IsUnique()
-                        .HasDatabaseName("ix_participantthresholds_bic");
-
-                    b.HasIndex("LastKnownZone")
-                        .HasDatabaseName("ix_participantthresholds_lastknownzone");
-
-                    b.HasIndex("LastZoneChangeAt")
-                        .HasDatabaseName("ix_participantthresholds_lastzonechangeat");
-
-                    b.ToTable("participantthresholds", (string)null);
-                });
-
             modelBuilder.Entity("SPSS.Domain.Models.BL.NetSettlementDetail", b =>
                 {
                     b.Property<long>("Id")
@@ -674,6 +532,164 @@ namespace SPSS.Infrastructure.Migrations
                         .HasDatabaseName("ix_participants_userid");
 
                     b.ToTable("participants", (string)null);
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.ParticipantStatus", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<int>("ConsecutiveFailures")
+                        .HasColumnType("integer")
+                        .HasColumnName("consecutivefailures");
+
+                    b.Property<int>("ConsecutiveSuccesses")
+                        .HasColumnType("integer")
+                        .HasColumnName("consecutivesuccesses");
+
+                    b.Property<string>("InstitutionBic")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("institutionbic");
+
+                    b.Property<string>("InstitutionName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("institutionname");
+
+                    b.Property<bool>("IsLive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("islive");
+
+                    b.Property<DateTimeOffset>("LastCheckedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lastcheckedat");
+
+                    b.Property<string>("LastError")
+                        .HasColumnType("text")
+                        .HasColumnName("lasterror");
+
+                    b.Property<DateTimeOffset>("LastStatusChangeAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("laststatuschangeat");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updatedat");
+
+                    b.HasKey("Id")
+                        .HasName("pk_participantstatuses");
+
+                    b.HasIndex("InstitutionBic")
+                        .IsUnique()
+                        .HasDatabaseName("ix_participantstatuses_institutionbic");
+
+                    b.HasIndex("IsLive")
+                        .HasDatabaseName("ix_participantstatuses_islive");
+
+                    b.HasIndex("LastCheckedAt")
+                        .HasDatabaseName("ix_participantstatuses_lastcheckedat");
+
+                    b.HasIndex("UpdatedAt")
+                        .HasDatabaseName("ix_participantstatuses_updatedat");
+
+                    b.ToTable("participantstatuses", (string)null);
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.ParticipantThreshold", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("AlertRecipients")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("alertrecipients");
+
+                    b.Property<decimal>("AmberPercentage")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("amberpercentage");
+
+                    b.Property<string>("Bic")
+                        .IsRequired()
+                        .HasMaxLength(11)
+                        .HasColumnType("character varying(11)")
+                        .HasColumnName("bic");
+
+                    b.Property<bool>("CanSend")
+                        .HasColumnType("boolean")
+                        .HasColumnName("cansend");
+
+                    b.Property<bool>("EnforceSendRestriction")
+                        .HasColumnType("boolean")
+                        .HasColumnName("enforcesendrestriction");
+
+                    b.Property<decimal>("GoldenAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("goldenamount");
+
+                    b.Property<DateTimeOffset?>("LastAlertSentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lastalertsentat");
+
+                    b.Property<decimal?>("LastKnownBalance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("lastknownbalance");
+
+                    b.Property<int>("LastKnownZone")
+                        .HasColumnType("integer")
+                        .HasColumnName("lastknownzone");
+
+                    b.Property<DateTimeOffset?>("LastZoneChangeAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lastzonechangeat");
+
+                    b.Property<decimal>("MinimumSendBalance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("minimumsendbalance");
+
+                    b.Property<decimal>("RedPercentage")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("redpercentage");
+
+                    b.HasKey("Id")
+                        .HasName("pk_participantthresholds");
+
+                    b.HasIndex("Bic")
+                        .IsUnique()
+                        .HasDatabaseName("ix_participantthresholds_bic");
+
+                    b.HasIndex("CanSend")
+                        .HasDatabaseName("ix_participantthresholds_cansend");
+
+                    b.HasIndex("LastKnownZone")
+                        .HasDatabaseName("ix_participantthresholds_lastknownzone");
+
+                    b.HasIndex("LastZoneChangeAt")
+                        .HasDatabaseName("ix_participantthresholds_lastzonechangeat");
+
+                    b.ToTable("participantthresholds", (string)null);
                 });
 
             modelBuilder.Entity("SPSS.Domain.Models.Identity.Claim", b =>
