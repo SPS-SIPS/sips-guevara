@@ -10,11 +10,13 @@ public sealed class ProcessBalanceWebhookCommandHandler(
     IStorageBroker storage,
     IBalanceThresholdService thresholdService,
     IEmailSender emailSender,
+    ITemplateRenderer templateRenderer,
     ILogger<ProcessBalanceWebhookCommandHandler> logger) : IRequestHandler<ProcessBalanceWebhookCommand, Response<string>>
 {
     private readonly IStorageBroker _storage = storage ?? throw new ArgumentNullException(nameof(storage));
     private readonly IBalanceThresholdService _thresholdService = thresholdService ?? throw new ArgumentNullException(nameof(thresholdService));
     private readonly IEmailSender _emailSender = emailSender ?? throw new ArgumentNullException(nameof(emailSender));
+    private readonly ITemplateRenderer _templateRenderer = templateRenderer ?? throw new ArgumentNullException(nameof(templateRenderer));
     private readonly ILogger<ProcessBalanceWebhookCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public async ValueTask<Response<string>> Handle(ProcessBalanceWebhookCommand request, CancellationToken cancellationToken)
@@ -206,8 +208,8 @@ public sealed class ProcessBalanceWebhookCommandHandler(
 
         var (subject, body) = zone switch
         {
-            ThresholdZone.Amber => BuildAmberAlert(threshold, currentBalance, currency),
-            ThresholdZone.Red => BuildRedAlert(threshold, currentBalance, currency),
+            ThresholdZone.Amber => await BuildAmberAlertAsync(threshold, currentBalance, currency, cancellationToken),
+            ThresholdZone.Red => await BuildRedAlertAsync(threshold, currentBalance, currency, cancellationToken),
             _ => (string.Empty, string.Empty)
         };
 
@@ -230,7 +232,7 @@ public sealed class ProcessBalanceWebhookCommandHandler(
                     subject,
                     body,
                     null,
-                    false);
+                    true);
             }
 
             _logger.LogInformation(
@@ -250,68 +252,43 @@ public sealed class ProcessBalanceWebhookCommandHandler(
         }
     }
 
-    private (string Subject, string Body) BuildAmberAlert(
+    private async Task<(string Subject, string Body)> BuildAmberAlertAsync(
         Domain.Models.BL.ParticipantThreshold threshold,
         decimal currentBalance,
-        string currency)
+        string currency,
+        CancellationToken cancellationToken)
     {
-        var amberThreshold = threshold.GoldenAmount * (threshold.AmberPercentage / 100m);
+        var currentPercentage = (currentBalance / threshold.GoldenAmount) * 100m;
+        var subject = $"URGENT: Settlement Account Balance Alert - {threshold.Bic} ({currentPercentage:N2}%)";
 
-        var subject = $"Settlement Account Balance Alert - {threshold.Bic}";
+        var values = new Dictionary<string, string>
+        {
+            { "CurrentBalance", currentBalance.ToString("N2") },
+            { "Currency", currency },
+            { "LimitPercentage", currentPercentage.ToString("N2") }
+        };
 
-        var body = $@"Dear Settlement Operations Team,
-
-This is an advisory notification regarding your settlement account balance.
-
-Participant BIC: {threshold.Bic}
-Current Balance: {currentBalance:N2} {currency}
-Minimum Required Balance: {threshold.GoldenAmount:N2} {currency}
-Alert Threshold: {amberThreshold:N2} {currency}
-
-Your settlement account balance is approaching the minimum operational level. While your account remains functional, we recommend proactive replenishment to maintain optimal service continuity.
-
-Please consider topping up your settlement account at your earliest convenience to avoid potential service impact.
-
-If you have already initiated a recharge, please disregard this notice.
-
-Best regards,
-Payment Switch Operations
-Automated Balance Monitoring System";
-
+        var body = await _templateRenderer.RenderAsync("Templates", "balance-alert-amber.html", values, cancellationToken);
         return (subject, body);
     }
 
-    private (string Subject, string Body) BuildRedAlert(
+    private async Task<(string Subject, string Body)> BuildRedAlertAsync(
         Domain.Models.BL.ParticipantThreshold threshold,
         decimal currentBalance,
-        string currency)
+        string currency,
+        CancellationToken cancellationToken)
     {
-        var redThreshold = threshold.GoldenAmount * (threshold.RedPercentage / 100m);
+        var currentPercentage = (currentBalance / threshold.GoldenAmount) * 100m;
+        var subject = $"CRITICAL: Settlement Account Balance - {threshold.Bic} ({currentPercentage:N2}%)";
 
-        var subject = $"URGENT: Settlement Account Balance Critical - {threshold.Bic}";
+        var values = new Dictionary<string, string>
+        {
+            { "CurrentBalance", currentBalance.ToString("N2") },
+            { "Currency", currency },
+            { "LimitPercentage", currentPercentage.ToString("N2") }
+        };
 
-        var body = $@"Dear Settlement Operations Team,
-
-This is a critical notification regarding your settlement account balance.
-
-Participant BIC: {threshold.Bic}
-Current Balance: {currentBalance:N2} {currency}
-Minimum Required Balance: {threshold.GoldenAmount:N2} {currency}
-Critical Threshold: {redThreshold:N2} {currency}
-
-Your settlement account balance has fallen below the required operational threshold. Immediate action is required.
-
-REQUIRED ACTION:
-Please recharge your settlement account immediately to restore service continuity. Failure to maintain adequate balance may result in transaction processing disruptions.
-
-If you have already initiated a recharge, please confirm receipt and expected settlement time.
-
-For urgent assistance, please contact our operations team immediately.
-
-Best regards,
-Payment Switch Operations
-Automated Balance Monitoring System";
-
+        var body = await _templateRenderer.RenderAsync("Templates", "balance-alert-red.html", values, cancellationToken);
         return (subject, body);
     }
 }

@@ -44,6 +44,7 @@ public static class DI
         services.AddSingleton<IPasswordHash, PasswordHash>();
         services.AddSingleton<IPasswordManager, PasswordManager>();
         services.AddSingleton<IEmailSender, EmailSender>();
+        services.AddSingleton<ITemplateRenderer, TemplateRendererService>();
 
         services.AddScoped<INSIEmailNotificationService, NSIEmailNotificationService>(); // Added registration
 
