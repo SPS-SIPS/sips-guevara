@@ -379,6 +379,15 @@ namespace SPSS.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("count");
 
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("createdby");
+
+                    b.Property<DateTimeOffset>("CreatedOn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("createdon");
+
                     b.Property<DateTimeOffset>("CredDtTm")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("creddttm");
@@ -399,6 +408,14 @@ namespace SPSS.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("InterBankSettlementDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("interbanksettlementdate");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("lastmodifiedby");
+
+                    b.Property<DateTimeOffset?>("LastModifiedOn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lastmodifiedon");
 
                     b.Property<string>("MsgId")
                         .IsRequired()

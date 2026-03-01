@@ -1,4 +1,5 @@
 using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using SPSS.Domain.Extensions;
 using SPSS.Infrastructure;
@@ -47,6 +48,7 @@ public static class DI
         services.AddSingleton<ITemplateRenderer, TemplateRendererService>();
 
         services.AddScoped<INSIEmailNotificationService, NSIEmailNotificationService>(); // Added registration
+        services.AddScoped<INSIGeneratorService, NSIGeneratorService>();
 
         services.AddScoped<ICertificateRetriever, LDAPCertificateFetcher>();
         services.AddScoped<CertificateValidator>();
@@ -100,6 +102,12 @@ public static class DI
         services.AddHostedService<CertificateValidationService>();
         services.AddHostedService<ParticipantStatusUpdaterWorker>();
         services.AddHostedService<MonitHistoryCleanupWorker>();
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = TokenValidationParameters;
+            });
+
         services.AddSingleton(TokenValidationParameters);
 
         var apiAuthConfig = configuration.GetSection("ApiAuth").Get<List<ApiClient>>();

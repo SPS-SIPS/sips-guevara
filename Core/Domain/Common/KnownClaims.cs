@@ -36,6 +36,7 @@ public static class KnownClaims
     public const string QueryNSI = "QNSI";
     public const string DownloadNSI = "DNSI";
     public const string QueryParticipantNSI = "QPNSI";
+    public const string CreateManualNSI = "CMNSI";
 
     // Reports
     public const string QueryReports = "QRPT";

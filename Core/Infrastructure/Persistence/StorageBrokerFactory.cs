@@ -6,13 +6,18 @@ public sealed class StorageBrokerFactory : IDesignTimeDbContextFactory<StorageBr
 {
     public StorageBroker CreateDbContext(string[] args)
     {
-        if (args[0] == null)
+        string connectionString;
+        if (args.Length > 0 && !string.IsNullOrEmpty(args[0]))
         {
-            throw new ArgumentException("You need to add db connection string on the first arg");
+            connectionString = args[0];
+        }
+        else
+        {
+            connectionString = "Server=localhost;Port=5432;Database=spss;User Id=postgres;Password=REDACTED_SECRET;";
         }
 
         var optionsBuilder = new DbContextOptionsBuilder<StorageBroker>();
-        optionsBuilder.UseNpgsql(args[0]).UseLowerCaseNamingConvention();
+        optionsBuilder.UseNpgsql(connectionString).UseLowerCaseNamingConvention();
 
         return new StorageBroker(optionsBuilder.Options);
     }

@@ -1,7 +1,8 @@
 using SPSS.App.Features.Downloads.Queries;
 using SPSS.App.Features.NSI.Queries;
-namespace SPSS.API.Controllers;
+using Microsoft.AspNetCore.Authorization;
 
+namespace SPSS.API.Controllers;
 [ApiController]
 [Produces("application/json")]
 [Route("api/v1/[controller]")]
@@ -10,6 +11,11 @@ public class DownloadsController : BaseController
     [HttpGet]
     public async Task<PagedResponse<DownloadDto>> GetList([FromQuery] GetDownloadsListQuery query, CancellationToken ct)
     => await Mediator.Send(query, ct);
+
+    [Authorize]
+    [HttpPost("manual-nsi")]
+    public async Task<Response<string>> CreateManualNSI([FromBody] App.Features.Downloads.Commands.CreateManualNSICommand command, CancellationToken ct)
+    => await Mediator.Send(command, ct);
 
     [HttpGet("getNSIFiles")]
     public async Task<PagedResponse<NetSettlementHeaderDto>> GetNSIFiles([FromQuery] GetSettlementFileQuery query, CancellationToken ct)

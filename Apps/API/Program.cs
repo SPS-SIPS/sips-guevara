@@ -46,6 +46,9 @@ else
 
 app.UseRouting();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseMiddleware<RequestLoggingMiddleware>();
 
 app.UseCors("default");

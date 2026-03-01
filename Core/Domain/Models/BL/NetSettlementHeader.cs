@@ -1,6 +1,6 @@
 namespace SPSS.Domain.Models.BL;
 
-public sealed class NetSettlementHeader : BaseEntity<long>
+public sealed class NetSettlementHeader : BaseEntity<long>, IAuditableEntity
 {
     public string MsgId { get; set; } = string.Empty;
     public string OriginalName { get; set; } = string.Empty;
@@ -24,6 +24,11 @@ public sealed class NetSettlementHeader : BaseEntity<long>
     public int Count { get; set; } = 0;
     public string? Error { get; set; }
     public string? FilePath { get; set; }
+
+    public string CreatedBy { get; set; } = string.Empty;
+    public DateTimeOffset CreatedOn { get; set; }
+    public string? LastModifiedBy { get; set; }
+    public DateTimeOffset? LastModifiedOn { get; set; }
 }
 
 

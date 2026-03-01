@@ -102,7 +102,7 @@ public static class NSIService
 
         return netSettlementHeader.Id;
     }
-    public static async Task<bool> GenerateRTGSFiles(IStorageBroker db, long Id, string outputDirectory, string feeTTC, string txnTTC, ILogger<NSIMonitoring> logger, CancellationToken ct)
+    public static async Task<bool> GenerateRTGSFiles(IStorageBroker db, long Id, string outputDirectory, string feeTTC, string txnTTC, ILogger logger, CancellationToken ct)
     {
         var header = await db.NetSettlementHeaders.Include(h => h.NetSettlementDetails)
         .Where(h => h.Id == Id && !h.Processed && h.Count < 3)
