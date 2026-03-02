@@ -50,6 +50,9 @@ public class CreateManualNSICommandHandler : IRequestHandler<CreateManualNSIComm
         }
 
         var msgId = $"MNSI_{DateTime.UtcNow:yyyyMMddHHmmssfff}";
+        var settlementDate = request.SettlementDate == default
+            ? DateTimeOffset.UtcNow.ToUniversalTime()
+            : request.SettlementDate.ToUniversalTime();
 
         var header = new NetSettlementHeader
         {
@@ -58,7 +61,7 @@ public class CreateManualNSICommandHandler : IRequestHandler<CreateManualNSIComm
             CredDtTm = DateTimeOffset.UtcNow.ToUniversalTime(),
             NumberOfTrans = request.Transactions.Count,
             TotalAmount = request.Transactions.Sum(t => t.Amount),
-            InterBankSettlementDate = request.SettlementDate.ToUniversalTime(),
+            InterBankSettlementDate = settlementDate,
             OriginalFile = JsonSerializer.Serialize(request.Transactions),
             From = _nsiOptions.ClearingEntityBIC,
             To = _nsiOptions.CoreBankBIC,
@@ -80,7 +83,7 @@ public class CreateManualNSICommandHandler : IRequestHandler<CreateManualNSIComm
             SvcLvl = "",
             LocalInstrument = "RTGSNetSettlement",
             Amount = tx.Amount,
-            Date = request.SettlementDate.ToUniversalTime(),
+            Date = settlementDate,
             CategoryPurpose = tx.IsFee ? "FCOL" : "OTHR",
             IsFee = tx.IsFee
         }).ToList();
