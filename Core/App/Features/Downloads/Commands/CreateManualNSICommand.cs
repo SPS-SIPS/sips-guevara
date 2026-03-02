@@ -50,7 +50,7 @@ public class CreateManualNSICommandHandler : IRequestHandler<CreateManualNSIComm
         }
 
         var msgId = $"MNSI_{DateTime.UtcNow:yyyyMMddHHmmssfff}";
-        var settlementDate = request.SettlementDate == default
+        var settlementDate = request.SettlementDate.Year < 2000
             ? DateTimeOffset.UtcNow.ToUniversalTime()
             : request.SettlementDate.ToUniversalTime();
 
