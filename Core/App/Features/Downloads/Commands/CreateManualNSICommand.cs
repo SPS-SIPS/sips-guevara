@@ -57,7 +57,7 @@ public class CreateManualNSICommandHandler : IRequestHandler<CreateManualNSIComm
         var header = new NetSettlementHeader
         {
             MsgId = msgId,
-            OriginalName = $"{msgId}.manual.rtgs.xml",
+            OriginalName = $"{_nsiOptions.ClearingEntityBIC}_{DateTime.UtcNow:yyyyMMddHHmmss}.rtgs.xml",
             CredDtTm = DateTimeOffset.UtcNow.ToUniversalTime(),
             NumberOfTrans = request.Transactions.Count,
             TotalAmount = request.Transactions.Sum(t => t.Amount),
