@@ -60,7 +60,7 @@ public class CreateManualNSICommandHandler : IRequestHandler<CreateManualNSIComm
             TotalAmount = request.Transactions.Sum(t => t.Amount),
             InterBankSettlementDate = request.SettlementDate.ToUniversalTime(),
             OriginalFile = JsonSerializer.Serialize(request.Transactions),
-            From = _nsiOptions.SwitchBIC,
+            From = _nsiOptions.ClearingEntityBIC,
             To = _nsiOptions.CoreBankBIC,
             CentralBankBiC = _nsiOptions.CoreBankBIC,
             BizMsgId = $"BIZ_{msgId}",

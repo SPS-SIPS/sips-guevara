@@ -8,4 +8,5 @@ public sealed class NSI
     public string? TxnTTC { get; set; } = null;
     public string SwitchBIC { get; set; } = "";
     public string CoreBankBIC { get; set; } = "";
+    public string ClearingEntityBIC { get; set; } = "";
 }
