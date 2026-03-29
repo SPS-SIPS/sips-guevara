@@ -98,6 +98,10 @@ namespace SPSS.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expiredate");
 
+                    b.Property<bool>("IsExpirationWarningSent")
+                        .HasColumnType("boolean")
+                        .HasColumnName("isexpirationwarningsent");
+
                     b.Property<bool>("IsRevoked")
                         .HasColumnType("boolean")
                         .HasColumnName("isrevoked");

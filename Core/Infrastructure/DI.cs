@@ -52,6 +52,7 @@ public static class DI
 
         services.AddScoped<ICertificateRetriever, LDAPCertificateFetcher>();
         services.AddScoped<CertificateValidator>();
+        services.AddScoped<CertificateExpirationNotifier>();
         services.AddScoped<IFileStorage, FileService>();
         services.AddScoped<IBicStatisticsService, BicStatisticsService>();
         services.AddSingleton<IStatisticsReportService, StatisticsReportService>();

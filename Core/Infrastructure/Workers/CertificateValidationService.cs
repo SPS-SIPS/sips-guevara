@@ -17,9 +17,11 @@ public class CertificateValidationService(ILogger<CertificateValidationService> 
             while (!stoppingToken.IsCancellationRequested)
             {
                 using var scope = _serviceScopeFactory.CreateScope();
-                var certificateValidator = scope.ServiceProvider.GetRequiredService<CertificateValidator>();
+                var certificateValidator = scope.ServiceProvider.GetRequiredService<SPSS.Infrastructure.Services.CertificateValidator>();
+                var expirationNotifier = scope.ServiceProvider.GetRequiredService<SPSS.Infrastructure.Services.CertificateExpirationNotifier>();
 
                 await certificateValidator.ValidateCertificates(stoppingToken);
+                await expirationNotifier.NotifyExpiringCertificates(stoppingToken);
 
                 await Task.Delay(TimeSpan.FromMinutes(15), stoppingToken);
                 _logger.LogInformation("Completing Certificate Validation Service cycle...");

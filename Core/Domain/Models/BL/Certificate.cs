@@ -14,6 +14,7 @@ public sealed class Certificate : BaseEntity<string>
     public DateTimeOffset CachedOn { get; set; }
     public ICollection<Download> Downloads { get; set; } = [];
     public bool IsRevoked { get; set; } = false;
+    public bool IsExpirationWarningSent { get; set; } = false;
 }
 
 public sealed class CertificateConfiguration : IEntityTypeConfiguration<Certificate>
