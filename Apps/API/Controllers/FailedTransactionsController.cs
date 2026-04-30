@@ -12,6 +12,16 @@ public class FailedTransactionsController : BaseController
     public async Task<PagedResponse<FailedTransactionRecordDto>> Get([FromQuery] GetFailedTransactionsQuery query, CancellationToken ct)
         => await Mediator.Send(query, ct);
 
+    [HttpGet("compliance-reports")]
+    public async Task<PagedResponse<FailedTransactionComplianceReportDto>> GetComplianceReports(
+        [FromQuery] GetFailedTransactionComplianceReportsQuery query,
+        CancellationToken ct)
+        => await Mediator.Send(query, ct);
+
+    [HttpGet("compliance-reports/latest")]
+    public async Task<Response<FailedTransactionComplianceReportDto>> GetLatestComplianceReport(CancellationToken ct)
+        => await Mediator.Send(new GetLatestFailedTransactionComplianceReportQuery(), ct);
+
     [HttpPut("rules")]
     public async Task<Response<long>> PutRules([FromBody] UpdateFailedTransactionRuleIdsCommand command, CancellationToken ct)
         => await Mediator.Send(command, ct);

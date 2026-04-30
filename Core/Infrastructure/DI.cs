@@ -80,6 +80,8 @@ public static class DI
         CreateHome(nsiConfig);
 
         services.Configure<MonitHistoryCleanupConfiguration>(configuration.GetSection("MonitHistoryCleanup"));
+        services.Configure<FailedTransactionComplianceReportConfiguration>(configuration.GetSection("FailedTransactionComplianceReports"));
+        services.Configure<TransactionRetentionCleanupConfiguration>(configuration.GetSection("TransactionRetentionCleanup"));
 
         var TokenValidationParameters = new TokenValidationParameters
         {
@@ -103,6 +105,8 @@ public static class DI
         services.AddHostedService<CertificateValidationService>();
         services.AddHostedService<ParticipantStatusUpdaterWorker>();
         services.AddHostedService<MonitHistoryCleanupWorker>();
+        services.AddHostedService<FailedTransactionComplianceReportWorker>();
+        services.AddHostedService<TransactionRetentionCleanupWorker>();
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {

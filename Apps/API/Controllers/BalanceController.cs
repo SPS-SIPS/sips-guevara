@@ -15,4 +15,8 @@ public class BalanceController : BaseController
     [HttpPost("failed-transactions")]
     public async Task<Response<string>> PostFailedTransactions([FromBody] FailedTransactionsWebhookDto data, CancellationToken ct)
         => await Mediator.Send(new ProcessFailedTransactionsWebhookCommand(data), ct);
+
+    [HttpPost("processed-transactions")]
+    public async Task<Response<string>> PostProcessedTransactions([FromBody] ProcessedTransactionsWebhookDto data, CancellationToken ct)
+        => await Mediator.Send(new ProcessProcessedTransactionsWebhookCommand(data), ct);
 }

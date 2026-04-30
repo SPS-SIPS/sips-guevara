@@ -335,6 +335,91 @@ namespace SPSS.Infrastructure.Migrations
                     b.ToTable("failedtransactions", (string)null);
                 });
 
+            modelBuilder.Entity("SPSS.Domain.Models.BL.FailedTransactionComplianceReport", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<decimal>("BaselineAverageHourly")
+                        .HasColumnType("numeric")
+                        .HasColumnName("baselineaveragehourly");
+
+                    b.Property<DateTimeOffset>("BaselineEnd")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("baselineend");
+
+                    b.Property<DateTimeOffset>("BaselineStart")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("baselinestart");
+
+                    b.Property<int>("BaselineTotalFailed")
+                        .HasColumnType("integer")
+                        .HasColumnName("baselinetotalfailed");
+
+                    b.Property<DateTimeOffset>("GeneratedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("generatedat");
+
+                    b.Property<int>("HighRiskFindings")
+                        .HasColumnType("integer")
+                        .HasColumnName("highriskfindings");
+
+                    b.Property<int>("MediumRiskFindings")
+                        .HasColumnType("integer")
+                        .HasColumnName("mediumriskfindings");
+
+                    b.Property<string>("ReportJson")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("reportjson");
+
+                    b.Property<int>("TotalFailed")
+                        .HasColumnType("integer")
+                        .HasColumnName("totalfailed");
+
+                    b.Property<int>("UniqueCreditors")
+                        .HasColumnType("integer")
+                        .HasColumnName("uniquecreditors");
+
+                    b.Property<int>("UniqueDebtors")
+                        .HasColumnType("integer")
+                        .HasColumnName("uniquedebtors");
+
+                    b.Property<DateTimeOffset>("WindowEnd")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("windowend");
+
+                    b.Property<DateTimeOffset>("WindowStart")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("windowstart");
+
+                    b.HasKey("Id")
+                        .HasName("pk_failedtransactioncompliancereports");
+
+                    b.HasIndex("GeneratedAt")
+                        .HasDatabaseName("ix_failedtransactioncompliancereports_generatedat");
+
+                    b.HasIndex("HighRiskFindings")
+                        .HasDatabaseName("ix_failedtransactioncompliancereports_highriskfindings");
+
+                    b.HasIndex("TotalFailed")
+                        .HasDatabaseName("ix_failedtransactioncompliancereports_totalfailed");
+
+                    b.HasIndex("WindowStart", "WindowEnd")
+                        .IsUnique()
+                        .HasDatabaseName("ix_failedtransactioncompliancereports_windowstart_windowend");
+
+                    b.ToTable("failedtransactioncompliancereports", (string)null);
+                });
+
             modelBuilder.Entity("SPSS.Domain.Models.BL.FailedTransactionRuleAssignment", b =>
                 {
                     b.Property<long>("Id")
@@ -885,6 +970,149 @@ namespace SPSS.Infrastructure.Migrations
                         .HasDatabaseName("ix_participantthresholds_lastzonechangeat");
 
                     b.ToTable("participantthresholds", (string)null);
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.ProcessedTransaction", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("AcceptanceDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("acceptancedate");
+
+                    b.Property<string>("Amount")
+                        .HasColumnType("text")
+                        .HasColumnName("amount");
+
+                    b.Property<string>("BankFrom")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("bankfrom");
+
+                    b.Property<string>("BankFromName")
+                        .HasColumnType("text")
+                        .HasColumnName("bankfromname");
+
+                    b.Property<string>("BankTo")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("bankto");
+
+                    b.Property<string>("BankToName")
+                        .HasColumnType("text")
+                        .HasColumnName("banktoname");
+
+                    b.Property<string>("CdtrAcctId")
+                        .HasColumnType("text")
+                        .HasColumnName("cdtracctid");
+
+                    b.Property<string>("CdtrAddress")
+                        .HasColumnType("text")
+                        .HasColumnName("cdtraddress");
+
+                    b.Property<string>("CdtrName")
+                        .HasColumnType("text")
+                        .HasColumnName("cdtrname");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("createddate");
+
+                    b.Property<string>("Currency")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("currency");
+
+                    b.Property<string>("DbtrAcctId")
+                        .HasColumnType("text")
+                        .HasColumnName("dbtracctid");
+
+                    b.Property<string>("DbtrAcctType")
+                        .HasColumnType("text")
+                        .HasColumnName("dbtraccttype");
+
+                    b.Property<string>("DbtrAddress")
+                        .HasColumnType("text")
+                        .HasColumnName("dbtraddress");
+
+                    b.Property<string>("DbtrName")
+                        .HasColumnType("text")
+                        .HasColumnName("dbtrname");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<string>("IntrBkSttlmAtm")
+                        .HasColumnType("text")
+                        .HasColumnName("intrbksttlmatm");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modifieddate");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("receivedat");
+
+                    b.Property<string>("RequestId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("requestid");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("status");
+
+                    b.Property<long?>("SttlId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("sttlid");
+
+                    b.Property<string>("TransCode")
+                        .HasColumnType("text")
+                        .HasColumnName("transcode");
+
+                    b.Property<string>("TxId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("txid");
+
+                    b.Property<string>("Type")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_processedtransactions");
+
+                    b.HasIndex("BankFrom")
+                        .HasDatabaseName("ix_processedtransactions_bankfrom");
+
+                    b.HasIndex("BankTo")
+                        .HasDatabaseName("ix_processedtransactions_bankto");
+
+                    b.HasIndex("CreatedDate")
+                        .HasDatabaseName("ix_processedtransactions_createddate");
+
+                    b.HasIndex("ReceivedAt")
+                        .HasDatabaseName("ix_processedtransactions_receivedat");
+
+                    b.HasIndex("RequestId")
+                        .HasDatabaseName("ix_processedtransactions_requestid");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_processedtransactions_status");
+
+                    b.HasIndex("TxId")
+                        .HasDatabaseName("ix_processedtransactions_txid");
+
+                    b.HasIndex("Type")
+                        .HasDatabaseName("ix_processedtransactions_type");
+
+                    b.ToTable("processedtransactions", (string)null);
                 });
 
             modelBuilder.Entity("SPSS.Domain.Models.Identity.Claim", b =>
