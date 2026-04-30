@@ -193,19 +193,12 @@ namespace SPSS.Infrastructure.Migrations
             modelBuilder.Entity("SPSS.Domain.Models.BL.FailedTransaction", b =>
                 {
                     b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
                         .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTimeOffset?>("AcceptanceDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("acceptancedate");
-
-                    b.Property<bool>("Active")
-                        .HasColumnType("boolean")
-                        .HasColumnName("active");
 
                     b.Property<string>("Amount")
                         .HasColumnType("text")
@@ -283,39 +276,14 @@ namespace SPSS.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("intrbksttlmatm");
 
-                    b.Property<long>("IpsTransactionId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("ipstransactionid");
-
                     b.Property<DateTimeOffset?>("ModifiedDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("modifieddate");
-
-                    b.Property<DateTimeOffset>("ReceivedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("receivedat");
 
                     b.Property<string>("RequestId")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("requestid");
-
-                    b.Property<List<string>>("RuleIds")
-                        .IsRequired()
-                        .HasColumnType("text[]")
-                        .HasColumnName("ruleids");
-
-                    b.Property<DateTimeOffset>("SnapshotFromDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("snapshotfromdate");
-
-                    b.Property<DateTimeOffset>("SnapshotTimestamp")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("snapshottimestamp");
-
-                    b.Property<DateTimeOffset>("SnapshotToDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("snapshottodate");
 
                     b.Property<string>("Status")
                         .HasMaxLength(50)
@@ -352,18 +320,8 @@ namespace SPSS.Infrastructure.Migrations
                     b.HasIndex("CreatedDate")
                         .HasDatabaseName("ix_failedtransactions_createddate");
 
-                    b.HasIndex("IpsTransactionId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_failedtransactions_ipstransactionid");
-
                     b.HasIndex("RequestId")
                         .HasDatabaseName("ix_failedtransactions_requestid");
-
-                    b.HasIndex("SnapshotFromDate")
-                        .HasDatabaseName("ix_failedtransactions_snapshotfromdate");
-
-                    b.HasIndex("SnapshotToDate")
-                        .HasDatabaseName("ix_failedtransactions_snapshottodate");
 
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_failedtransactions_status");
@@ -375,6 +333,34 @@ namespace SPSS.Infrastructure.Migrations
                         .HasDatabaseName("ix_failedtransactions_type");
 
                     b.ToTable("failedtransactions", (string)null);
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.FailedTransactionRuleAssignment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("FailedTransactionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("failedtransactionid");
+
+                    b.Property<List<string>>("RuleIds")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("ruleids");
+
+                    b.HasKey("Id")
+                        .HasName("pk_failedtransactionruleassignments");
+
+                    b.HasIndex("FailedTransactionId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_failedtransactionruleassignments_failedtransactionid");
+
+                    b.ToTable("failedtransactionruleassignments", (string)null);
                 });
 
             modelBuilder.Entity("SPSS.Domain.Models.BL.MonitHistory", b =>
@@ -1280,6 +1266,16 @@ namespace SPSS.Infrastructure.Migrations
                     b.Navigation("Certificate");
 
                     b.Navigation("Participant");
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.FailedTransactionRuleAssignment", b =>
+                {
+                    b.HasOne("SPSS.Domain.Models.BL.FailedTransaction", null)
+                        .WithMany()
+                        .HasForeignKey("FailedTransactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_failedtransactionruleassignments_failedtransactions_failedt~");
                 });
 
             modelBuilder.Entity("SPSS.Domain.Models.BL.NetSettlementDetail", b =>

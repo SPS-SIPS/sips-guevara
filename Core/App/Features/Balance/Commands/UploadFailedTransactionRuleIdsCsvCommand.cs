@@ -31,8 +31,8 @@ public sealed class UploadFailedTransactionRuleIdsCsvCommandHandler(IStorageBrok
 
         var ipsTransactionIds = rows.Select(x => x.IpsTransactionId).Distinct().ToList();
         var existingTransactionIds = await _storage.FailedTransactions
-            .Where(x => x.Id.HasValue && ipsTransactionIds.Contains(x.Id.Value))
-            .Select(x => x.Id!.Value)
+            .Where(x => ipsTransactionIds.Contains(x.Id))
+            .Select(x => x.Id)
             .ToListAsync(cancellationToken);
         var existingTransactionIdSet = existingTransactionIds.ToHashSet();
 
