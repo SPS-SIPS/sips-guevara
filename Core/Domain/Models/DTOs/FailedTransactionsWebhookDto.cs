@@ -113,12 +113,6 @@ public sealed class FailedTransactionDto
 public sealed class FailedTransactionRecordDto
 {
     public long Id { get; set; }
-    public long IpsTransactionId { get; set; }
-    public DateTimeOffset SnapshotTimestamp { get; set; }
-    public DateTimeOffset SnapshotFromDate { get; set; }
-    public DateTimeOffset SnapshotToDate { get; set; }
-    public DateTimeOffset ReceivedAt { get; set; }
-    public List<string> RuleIds { get; set; } = [];
     public string? BankFrom { get; set; }
     public string? BankFromName { get; set; }
     public string? BankTo { get; set; }

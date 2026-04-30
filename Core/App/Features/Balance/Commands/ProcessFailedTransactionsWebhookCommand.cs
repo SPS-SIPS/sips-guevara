@@ -50,8 +50,8 @@ public sealed class ProcessFailedTransactionsWebhookCommandHandler(
         var existingTransactions = ipsTransactionIds.Count == 0
             ? new Dictionary<long, FailedTransaction>()
             : await _storage.FailedTransactions
-                .Where(x => ipsTransactionIds.Contains(x.IpsTransactionId))
-                .ToDictionaryAsync(x => x.IpsTransactionId, cancellationToken);
+                .Where(x => x.Id.HasValue && ipsTransactionIds.Contains(x.Id.Value))
+                .ToDictionaryAsync(x => x.Id!.Value, cancellationToken);
 
         var insertedCount = 0;
         var updatedCount = 0;
@@ -97,11 +97,7 @@ public sealed class ProcessFailedTransactionsWebhookCommandHandler(
         FailedTransactionDto transaction,
         FailedTransactionsWebhookDto snapshot)
     {
-        entity.IpsTransactionId = transaction.Id;
-        entity.SnapshotTimestamp = snapshot.Timestamp;
-        entity.SnapshotFromDate = snapshot.FromDate;
-        entity.SnapshotToDate = snapshot.ToDate;
-        entity.ReceivedAt = DateTimeOffset.UtcNow;
+        entity.Id = transaction.Id;
         entity.BankFrom = transaction.BankFrom;
         entity.BankFromName = transaction.BankFromName;
         entity.BankTo = transaction.BankTo;

@@ -2,12 +2,6 @@ namespace SPSS.Domain.Models.BL;
 
 public sealed class FailedTransaction : BaseEntity<long>
 {
-    public long IpsTransactionId { get; set; }
-    public DateTimeOffset SnapshotTimestamp { get; set; }
-    public DateTimeOffset SnapshotFromDate { get; set; }
-    public DateTimeOffset SnapshotToDate { get; set; }
-    public DateTimeOffset ReceivedAt { get; set; }
-    public List<string> RuleIds { get; set; } = [];
     public string? BankFrom { get; set; }
     public string? BankFromName { get; set; }
     public string? BankTo { get; set; }
@@ -36,21 +30,22 @@ public sealed class FailedTransaction : BaseEntity<long>
     public string? ErrorReason { get; set; }
 }
 
+public sealed class FailedTransactionRuleAssignment
+{
+    public long Id { get; set; }
+    public long FailedTransactionId { get; set; }
+    public List<string> RuleIds { get; set; } = [];
+}
+
 public sealed class FailedTransactionConfiguration : IEntityTypeConfiguration<FailedTransaction>
 {
     public void Configure(EntityTypeBuilder<FailedTransaction> builder)
     {
         builder.Ignore(e => e.DomainEvents);
+        builder.Ignore(e => e.Active);
 
         builder.HasKey(e => e.Id);
-        builder.Property(e => e.Id).ValueGeneratedOnAdd();
-
-        builder.Property(e => e.IpsTransactionId).IsRequired();
-        builder.Property(e => e.SnapshotTimestamp).IsRequired();
-        builder.Property(e => e.SnapshotFromDate).IsRequired();
-        builder.Property(e => e.SnapshotToDate).IsRequired();
-        builder.Property(e => e.ReceivedAt).IsRequired();
-        builder.Property(e => e.RuleIds);
+        builder.Property(e => e.Id).ValueGeneratedNever();
 
         builder.Property(e => e.BankFrom).HasMaxLength(20);
         builder.Property(e => e.BankTo).HasMaxLength(20);
@@ -61,7 +56,6 @@ public sealed class FailedTransactionConfiguration : IEntityTypeConfiguration<Fa
         builder.Property(e => e.Currency).HasMaxLength(10);
         builder.Property(e => e.ErrorReason).HasMaxLength(100);
 
-        builder.HasIndex(e => e.IpsTransactionId).IsUnique();
         builder.HasIndex(e => e.TxId);
         builder.HasIndex(e => e.RequestId);
         builder.HasIndex(e => e.BankFrom);
@@ -69,7 +63,22 @@ public sealed class FailedTransactionConfiguration : IEntityTypeConfiguration<Fa
         builder.HasIndex(e => e.CreatedDate);
         builder.HasIndex(e => e.Status);
         builder.HasIndex(e => e.Type);
-        builder.HasIndex(e => e.SnapshotFromDate);
-        builder.HasIndex(e => e.SnapshotToDate);
+    }
+}
+
+public sealed class FailedTransactionRuleAssignmentConfiguration : IEntityTypeConfiguration<FailedTransactionRuleAssignment>
+{
+    public void Configure(EntityTypeBuilder<FailedTransactionRuleAssignment> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Id).ValueGeneratedOnAdd();
+        builder.Property(e => e.FailedTransactionId).IsRequired();
+        builder.Property(e => e.RuleIds).IsRequired();
+
+        builder.HasIndex(e => e.FailedTransactionId).IsUnique();
+        builder.HasOne<FailedTransaction>()
+            .WithMany()
+            .HasForeignKey(e => e.FailedTransactionId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

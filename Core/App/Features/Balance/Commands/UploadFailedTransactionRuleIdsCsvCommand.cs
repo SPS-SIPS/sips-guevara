@@ -30,21 +30,41 @@ public sealed class UploadFailedTransactionRuleIdsCsvCommandHandler(IStorageBrok
         }
 
         var ipsTransactionIds = rows.Select(x => x.IpsTransactionId).Distinct().ToList();
-        var transactions = await _storage.FailedTransactions
-            .Where(x => ipsTransactionIds.Contains(x.IpsTransactionId))
-            .ToDictionaryAsync(x => x.IpsTransactionId, cancellationToken);
+        var existingTransactionIds = await _storage.FailedTransactions
+            .Where(x => x.Id.HasValue && ipsTransactionIds.Contains(x.Id.Value))
+            .Select(x => x.Id!.Value)
+            .ToListAsync(cancellationToken);
+        var existingTransactionIdSet = existingTransactionIds.ToHashSet();
+
+        var assignments = await _storage.FailedTransactionRuleAssignments
+            .Where(x => ipsTransactionIds.Contains(x.FailedTransactionId))
+            .ToDictionaryAsync(x => x.FailedTransactionId, cancellationToken);
 
         foreach (var row in rows)
         {
-            if (!transactions.TryGetValue(row.IpsTransactionId, out var transaction))
+            if (!existingTransactionIdSet.Contains(row.IpsTransactionId))
             {
                 result.NotFoundCount++;
                 result.MissingIpsTransactionIds.Add(row.IpsTransactionId);
                 continue;
             }
 
-            transaction.RuleIds = row.RuleIds;
-            _storage.FailedTransactions.Update(transaction);
+            if (assignments.TryGetValue(row.IpsTransactionId, out var assignment))
+            {
+                assignment.RuleIds = row.RuleIds;
+                _storage.FailedTransactionRuleAssignments.Update(assignment);
+            }
+            else
+            {
+                await _storage.FailedTransactionRuleAssignments.AddAsync(
+                    new FailedTransactionRuleAssignment
+                    {
+                        FailedTransactionId = row.IpsTransactionId,
+                        RuleIds = row.RuleIds
+                    },
+                    cancellationToken);
+            }
+
             result.UpdatedCount++;
             result.UpdatedIpsTransactionIds.Add(row.IpsTransactionId);
         }

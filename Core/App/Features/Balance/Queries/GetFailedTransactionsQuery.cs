@@ -69,13 +69,7 @@ public sealed class GetFailedTransactionsQueryHandler(IStorageBroker storage)
 
         var result = query.Select(x => new FailedTransactionRecordDto
         {
-            Id = x.Id,
-            IpsTransactionId = x.IpsTransactionId,
-            SnapshotTimestamp = x.SnapshotTimestamp,
-            SnapshotFromDate = x.SnapshotFromDate,
-            SnapshotToDate = x.SnapshotToDate,
-            ReceivedAt = x.ReceivedAt,
-            RuleIds = x.RuleIds,
+            Id = x.Id!.Value,
             BankFrom = x.BankFrom,
             BankFromName = x.BankFromName,
             BankTo = x.BankTo,

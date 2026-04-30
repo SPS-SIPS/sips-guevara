@@ -10,23 +10,41 @@ public sealed class UpdateFailedTransactionRuleIdsCommandHandler(IStorageBroker 
 
     public async ValueTask<Response<long>> Handle(UpdateFailedTransactionRuleIdsCommand request, CancellationToken cancellationToken)
     {
-        var transaction = await _storage.FailedTransactions
-            .FirstOrDefaultAsync(x => x.IpsTransactionId == request.IpsTransactionId, cancellationToken);
+        var transactionExists = await _storage.FailedTransactions
+            .AnyAsync(x => x.Id == request.IpsTransactionId, cancellationToken);
 
-        if (transaction is null)
+        if (!transactionExists)
         {
             return Response<long>.NotFound($"Failed transaction with IPS transaction ID {request.IpsTransactionId} was not found");
         }
 
-        transaction.RuleIds = request.RuleIds
+        var ruleIds = request.RuleIds
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .Select(x => x.Trim())
             .Distinct()
             .ToList();
 
-        _storage.FailedTransactions.Update(transaction);
+        var assignment = await _storage.FailedTransactionRuleAssignments
+            .FirstOrDefaultAsync(x => x.FailedTransactionId == request.IpsTransactionId, cancellationToken);
+
+        if (assignment is null)
+        {
+            await _storage.FailedTransactionRuleAssignments.AddAsync(
+                new FailedTransactionRuleAssignment
+                {
+                    FailedTransactionId = request.IpsTransactionId,
+                    RuleIds = ruleIds
+                },
+                cancellationToken);
+        }
+        else
+        {
+            assignment.RuleIds = ruleIds;
+            _storage.FailedTransactionRuleAssignments.Update(assignment);
+        }
+
         await _storage.SaveChangesAsync(cancellationToken);
 
-        return new Response<long>(transaction.IpsTransactionId);
+        return new Response<long>(request.IpsTransactionId);
     }
 }

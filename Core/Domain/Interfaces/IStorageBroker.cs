@@ -20,6 +20,7 @@ public interface IStorageBroker
     DbSet<ParticipantStatus> ParticipantStatuses { get; set; }
     DbSet<ParticipantThreshold> ParticipantThresholds { get; set; }
     DbSet<FailedTransaction> FailedTransactions { get; set; }
+    DbSet<FailedTransactionRuleAssignment> FailedTransactionRuleAssignments { get; set; }
     DbSet<NetSettlementHeader> NetSettlementHeaders { get; set; }
     DbSet<NetSettlementDetail> NetSettlementDetails { get; set; }
     DbSet<BicStatistic> BicStatistics { get; set; }
