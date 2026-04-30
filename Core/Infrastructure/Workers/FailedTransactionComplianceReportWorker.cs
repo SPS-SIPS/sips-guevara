@@ -20,6 +20,17 @@ public sealed class FailedTransactionComplianceReportConfiguration
     public int MaxFindings { get; set; } = 50;
     public int MediumRiskScore { get; set; } = 40;
     public int HighRiskScore { get; set; } = 70;
+    public string[] SensitiveErrorReasonCodes { get; set; } =
+    [
+        "FRAD",
+        "FRAUD",
+        "AML",
+        "SANCTION",
+        "WATCHLIST",
+        "BLACKLIST",
+        "RESTRICT",
+        "BLOCK"
+    ];
 }
 
 public sealed class FailedTransactionComplianceReportWorker(
@@ -125,6 +136,11 @@ public sealed class FailedTransactionComplianceReportWorker(
             var baselineProcessed = processedTransactions
                 .Where(x => x.CreatedDate >= baselineStart && x.CreatedDate < baselineEnd)
                 .ToList();
+            var reconciliation = await BuildNsiReconciliationAsync(
+                storage,
+                windowEnd,
+                currentProcessed.Concat(baselineProcessed).ToList(),
+                cancellationToken);
 
             var report = BuildReport(
                 windowStart,
@@ -134,7 +150,8 @@ public sealed class FailedTransactionComplianceReportWorker(
                 currentFailed,
                 baselineFailed,
                 currentProcessed,
-                baselineProcessed);
+                baselineProcessed,
+                reconciliation);
             var reportJson = JsonSerializer.Serialize(report, JsonOptions);
 
             var entity = await storage.FailedTransactionComplianceReports
@@ -180,7 +197,8 @@ public sealed class FailedTransactionComplianceReportWorker(
         List<ComplianceTransaction> current,
         List<ComplianceTransaction> baseline,
         List<ComplianceTransaction> currentProcessed,
-        List<ComplianceTransaction> baselineProcessed)
+        List<ComplianceTransaction> baselineProcessed,
+        FailedTransactionComplianceReconciliationDto reconciliation)
     {
         var baselineAverageHourly = Divide(baseline.Count, Math.Max(1, _config.BaselineHours));
         var baselineProcessedAverageHourly = Divide(baselineProcessed.Count, Math.Max(1, _config.BaselineHours));
@@ -192,7 +210,7 @@ public sealed class FailedTransactionComplianceReportWorker(
         findings.AddRange(BuildVolumeFindings("RECEIVER_BANK_STORM", current, baseline, x => x.BankTo, x => x.BankToName, x => x.DbtrAcctId));
         findings.AddRange(BuildVolumeFindings("BANK_ROUTE_SPIKE", current, baseline, x => JoinKey(x.BankFrom, x.BankTo), x => JoinKey(x.BankFromName, x.BankToName), x => x.DbtrAcctId));
         findings.AddRange(BuildVolumeFindings("DEBTOR_CREDITOR_REPEAT", current, baseline, x => JoinKey(x.DbtrAcctId, x.CdtrAcctId), x => JoinKey(x.DbtrName, x.CdtrName), x => x.CdtrAcctId));
-        findings.AddRange(BuildVolumeFindings("SENSITIVE_ERROR_REASON", current, baseline, x => FirstNonEmpty(x.ErrorReason, x.Error), x => x.Error, x => x.DbtrAcctId));
+        findings.AddRange(BuildVolumeFindings("SENSITIVE_ERROR_REASON", current, baseline, x => x.ErrorReason, x => x.Error, x => x.DbtrAcctId));
         findings.AddRange(BuildHighValueFindings(current));
         findings.AddRange(BuildManyCounterpartyFindings(current));
         findings.AddRange(BuildFailedToProcessedFindings(current, currentProcessed, baseline, baselineProcessed));
@@ -237,16 +255,107 @@ public sealed class FailedTransactionComplianceReportWorker(
                 HighValueTotalAmount = highValueTransactions.Sum(x => ParseAmount(x.Amount)),
                 HighRiskFindings = highRisk,
                 MediumRiskFindings = mediumRisk,
+                NsiReconciliation = reconciliation,
                 RiskWeights = BuildRiskWeights(),
                 TopDebtors = BuildTopDimensions(current, baseline, x => x.DbtrAcctId, x => x.DbtrName),
                 TopCreditors = BuildTopDimensions(current, baseline, x => x.CdtrAcctId, x => x.CdtrName),
                 TopRoutes = BuildTopDimensions(current, baseline, x => JoinKey(x.BankFrom, x.BankTo), x => JoinKey(x.BankFromName, x.BankToName)),
                 TopProcessedDebtors = BuildTopDimensions(currentProcessed, baselineProcessed, x => x.DbtrAcctId, x => x.DbtrName),
                 TopProcessedRoutes = BuildTopDimensions(currentProcessed, baselineProcessed, x => JoinKey(x.BankFrom, x.BankTo), x => JoinKey(x.BankFromName, x.BankToName)),
-                TopErrors = BuildTopDimensions(current, baseline, x => FirstNonEmpty(x.ErrorReason, x.Error), x => x.Error)
+                TopErrors = BuildTopDimensions(current, baseline, x => x.ErrorReason, x => x.Error)
             },
             Findings = findings
         };
+    }
+
+    private static async Task<FailedTransactionComplianceReconciliationDto> BuildNsiReconciliationAsync(
+        IStorageBroker storage,
+        DateTimeOffset windowEnd,
+        List<ComplianceTransaction> processedTransactions,
+        CancellationToken cancellationToken)
+    {
+        var latestNsi = await storage.NetSettlementHeaders
+            .AsNoTracking()
+            .OrderByDescending(x => x.CredDtTm)
+            .ThenByDescending(x => x.Id)
+            .Select(x => new
+            {
+                x.Id,
+                x.MsgId,
+                x.OriginalName,
+                x.CredDtTm,
+                x.ProcessedOn,
+                x.NumberOfTrans
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var processedTxIds = processedTransactions
+            .Select(x => x.TxId)
+            .Where(HasValue)
+            .Select(x => x!)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var result = new FailedTransactionComplianceReconciliationDto
+        {
+            LatestNsiMsgId = latestNsi?.MsgId,
+            LatestNsiFileName = latestNsi?.OriginalName,
+            LatestNsiCreatedAt = latestNsi?.CredDtTm,
+            LatestNsiProcessedAt = latestNsi?.ProcessedOn,
+            LatestNsiTransactionCount = latestNsi?.NumberOfTrans ?? 0,
+            ProcessedTxIdsCount = processedTxIds.Count
+        };
+
+        if (processedTxIds.Count == 0)
+        {
+            result.Status = "NO_PROCESSED_ACTIVITY";
+            result.CoveragePercent = 100;
+            return result;
+        }
+
+        if (latestNsi is null)
+        {
+            result.Status = "PENDING_NSI";
+            result.SampleUnreconciledTxIds = processedTxIds.Take(10).ToList();
+            result.UnreconciledProcessedTxIdsCount = processedTxIds.Count;
+            return result;
+        }
+
+        var reconciledTxIds = await storage.NetSettlementDetails
+            .AsNoTracking()
+            .Where(x => !x.IsFee && processedTxIds.Contains(x.TxId))
+            .Select(x => x.TxId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        var reconciledSet = reconciledTxIds.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var unreconciled = processedTxIds
+            .Where(x => !reconciledSet.Contains(x))
+            .ToList();
+
+        result.ReconciledProcessedTxIdsCount = reconciledSet.Count;
+        result.UnreconciledProcessedTxIdsCount = unreconciled.Count;
+        result.CoveragePercent = Divide(reconciledSet.Count * 100m, processedTxIds.Count);
+        result.SampleUnreconciledTxIds = unreconciled.Take(10).ToList();
+
+        if (unreconciled.Count == 0)
+        {
+            result.Status = "RECONCILED";
+        }
+        else if (latestNsi.CredDtTm < windowEnd)
+        {
+            result.Status = "PENDING_NSI";
+        }
+        else if (reconciledSet.Count > 0)
+        {
+            result.Status = "PARTIAL";
+        }
+        else
+        {
+            result.Status = "UNRECONCILED";
+        }
+
+        return result;
     }
 
     private IEnumerable<FailedTransactionComplianceFindingDto> BuildVolumeFindings(
@@ -683,16 +792,18 @@ public sealed class FailedTransactionComplianceReportWorker(
         return score >= _config.MediumRiskScore ? "MEDIUM" : "LOW";
     }
 
-    private static bool HasSensitiveError(ComplianceTransaction transaction)
+    private bool HasSensitiveError(ComplianceTransaction transaction)
     {
-        var value = $"{transaction.ErrorReason} {transaction.Error}".ToUpperInvariant();
-        return value.Contains("SANCTION", StringComparison.Ordinal) ||
-               value.Contains("BLOCK", StringComparison.Ordinal) ||
-               value.Contains("RESTRICT", StringComparison.Ordinal) ||
-               value.Contains("FRAUD", StringComparison.Ordinal) ||
-               value.Contains("AML", StringComparison.Ordinal) ||
-               value.Contains("BLACKLIST", StringComparison.Ordinal) ||
-               value.Contains("WATCHLIST", StringComparison.Ordinal);
+        if (string.IsNullOrWhiteSpace(transaction.ErrorReason))
+        {
+            return false;
+        }
+
+        var reasonCode = transaction.ErrorReason.Trim().ToUpperInvariant();
+        return _config.SensitiveErrorReasonCodes
+            .Where(HasValue)
+            .Select(x => x.Trim().ToUpperInvariant())
+            .Any(x => reasonCode == x || reasonCode.Contains(x, StringComparison.Ordinal));
     }
 
     private static decimal ParseAmount(string? value)

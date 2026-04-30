@@ -30,6 +30,7 @@ public sealed class FailedTransactionComplianceSummaryDto
     public decimal HighValueTotalAmount { get; set; }
     public int HighRiskFindings { get; set; }
     public int MediumRiskFindings { get; set; }
+    public FailedTransactionComplianceReconciliationDto NsiReconciliation { get; set; } = new();
     public FailedTransactionComplianceRiskWeightsDto RiskWeights { get; set; } = new();
     public List<FailedTransactionComplianceDimensionDto> TopDebtors { get; set; } = [];
     public List<FailedTransactionComplianceDimensionDto> TopCreditors { get; set; } = [];
@@ -66,6 +67,22 @@ public sealed class FailedTransactionComplianceFindingDto
     public FailedTransactionComplianceRiskContributionDto RiskContributions { get; set; } = new();
     public List<string> Reasons { get; set; } = [];
     public List<long> SampleTransactionIds { get; set; } = [];
+}
+
+public sealed class FailedTransactionComplianceReconciliationDto
+{
+    public string Status { get; set; } = "PENDING_NSI";
+    public string Source { get; set; } = "NSIMonitoring";
+    public string? LatestNsiMsgId { get; set; }
+    public string? LatestNsiFileName { get; set; }
+    public DateTimeOffset? LatestNsiCreatedAt { get; set; }
+    public DateTimeOffset? LatestNsiProcessedAt { get; set; }
+    public int LatestNsiTransactionCount { get; set; }
+    public int ProcessedTxIdsCount { get; set; }
+    public int ReconciledProcessedTxIdsCount { get; set; }
+    public int UnreconciledProcessedTxIdsCount { get; set; }
+    public decimal CoveragePercent { get; set; }
+    public List<string> SampleUnreconciledTxIds { get; set; } = [];
 }
 
 public sealed class FailedTransactionComplianceRiskWeightsDto

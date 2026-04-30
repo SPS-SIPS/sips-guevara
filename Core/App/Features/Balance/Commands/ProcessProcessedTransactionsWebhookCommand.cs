@@ -37,20 +37,38 @@ public sealed class ProcessProcessedTransactionsWebhookCommandHandler(
             data.TotalCount,
             transactions.Count);
 
-        var ipsTransactionIds = transactions.Select(x => x.Id).ToList();
-        var existingTransactions = ipsTransactionIds.Count == 0
+        var uniqueTransactions = transactions
+            .GroupBy(TransactionIdentity)
+            .Select(x => x.OrderByDescending(t => t.CreatedDate).First())
+            .ToList();
+        var duplicateCount = transactions.Count - uniqueTransactions.Count;
+        var txIds = uniqueTransactions.Select(x => x.TxId).Where(HasValue).Distinct().ToList();
+        var ipsTransactionIds = uniqueTransactions.Select(x => x.Id).ToList();
+        var existingTransactions = uniqueTransactions.Count == 0
             ? new Dictionary<long, ProcessedTransaction>()
             : await _storage.ProcessedTransactions
-                .Where(x => ipsTransactionIds.Contains(x.Id))
+                .Where(x => ipsTransactionIds.Contains(x.Id) || (x.TxId != null && txIds.Contains(x.TxId)))
                 .ToDictionaryAsync(x => x.Id, cancellationToken);
+        var existingByTxId = existingTransactions.Values
+            .Where(x => HasValue(x.TxId))
+            .GroupBy(x => x.TxId!)
+            .ToDictionary(x => x.Key, x => x.First());
 
         var insertedCount = 0;
         var updatedCount = 0;
         var receivedAt = DateTimeOffset.UtcNow;
 
-        foreach (var transaction in transactions)
+        foreach (var transaction in uniqueTransactions)
         {
-            if (existingTransactions.TryGetValue(transaction.Id, out var entity))
+            ProcessedTransaction? entity = null;
+            if (HasValue(transaction.TxId))
+            {
+                existingByTxId.TryGetValue(transaction.TxId!, out entity);
+            }
+
+            entity ??= existingTransactions.GetValueOrDefault(transaction.Id);
+
+            if (entity is not null)
             {
                 MapProcessedTransaction(entity, transaction, receivedAt);
                 _storage.ProcessedTransactions.Update(entity);
@@ -67,9 +85,16 @@ public sealed class ProcessProcessedTransactionsWebhookCommandHandler(
 
         await _storage.SaveChangesAsync(cancellationToken);
 
-        var summary = $"Processed {transactions.Count} processed transactions, inserted {insertedCount}, updated {updatedCount}";
+        var summary = $"Processed {uniqueTransactions.Count} processed transactions, inserted {insertedCount}, updated {updatedCount}, ignored {duplicateCount} duplicate retries";
         return new Response<string>(summary);
     }
+
+    private static string TransactionIdentity(ProcessedTransactionDto transaction)
+        => HasValue(transaction.TxId)
+            ? $"txid:{transaction.TxId}"
+            : $"ips-id:{transaction.Id}";
+
+    private static bool HasValue(string? value) => !string.IsNullOrWhiteSpace(value);
 
     private static ProcessedTransaction MapProcessedTransaction(
         ProcessedTransaction entity,
