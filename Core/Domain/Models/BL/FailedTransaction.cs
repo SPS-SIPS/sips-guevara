@@ -14,7 +14,6 @@ public sealed class FailedTransaction : BaseEntity<long>
     public string? BankToName { get; set; }
     public DateTimeOffset? CreatedDate { get; set; }
     public DateTimeOffset? ModifiedDate { get; set; }
-    public DateTimeOffset? LastModifiedDate { get; set; }
     public DateTimeOffset? AcceptanceDate { get; set; }
     public string? TxId { get; set; }
     public string? Type { get; set; }
@@ -23,7 +22,6 @@ public sealed class FailedTransaction : BaseEntity<long>
     public string? Description { get; set; }
     public long? SttlId { get; set; }
     public string? Currency { get; set; }
-    public string? IntrBkSttlmCurr { get; set; }
     public string? IntrBkSttlmAtm { get; set; }
     public string? DbtrAcctId { get; set; }
     public string? DbtrAcctType { get; set; }
@@ -34,17 +32,8 @@ public sealed class FailedTransaction : BaseEntity<long>
     public string? CdtrAddress { get; set; }
     public string? RequestId { get; set; }
     public string? TransCode { get; set; }
-    public string? OldBalance { get; set; }
-    public string? NewBalance { get; set; }
-    public string? AliasFrom { get; set; }
-    public string? AliasTo { get; set; }
-    public string? AliasTypeFrom { get; set; }
-    public string? AliasTypeTo { get; set; }
     public string? Error { get; set; }
     public string? ErrorReason { get; set; }
-    public string? RawTransactionJson { get; set; }
-    public string? TransactionsJson { get; set; }
-    public string? MessagesJson { get; set; }
 }
 
 public sealed class FailedTransactionConfiguration : IEntityTypeConfiguration<FailedTransaction>
@@ -70,7 +59,6 @@ public sealed class FailedTransactionConfiguration : IEntityTypeConfiguration<Fa
         builder.Property(e => e.Type).HasMaxLength(50);
         builder.Property(e => e.Status).HasMaxLength(50);
         builder.Property(e => e.Currency).HasMaxLength(10);
-        builder.Property(e => e.IntrBkSttlmCurr).HasMaxLength(10);
         builder.Property(e => e.ErrorReason).HasMaxLength(100);
 
         builder.HasIndex(e => e.IpsTransactionId).IsUnique();

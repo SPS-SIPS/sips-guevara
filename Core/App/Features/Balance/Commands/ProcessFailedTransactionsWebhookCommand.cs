@@ -1,4 +1,3 @@
-using System.Text.Json;
 using SPSS.Domain.Models.DTOs;
 
 namespace SPSS.App.Features.Balance.Commands;
@@ -103,14 +102,12 @@ public sealed class ProcessFailedTransactionsWebhookCommandHandler(
         entity.SnapshotFromDate = snapshot.FromDate;
         entity.SnapshotToDate = snapshot.ToDate;
         entity.ReceivedAt = DateTimeOffset.UtcNow;
-        entity.RuleIds = transaction.RuleIds ?? [];
         entity.BankFrom = transaction.BankFrom;
         entity.BankFromName = transaction.BankFromName;
         entity.BankTo = transaction.BankTo;
         entity.BankToName = transaction.BankToName;
         entity.CreatedDate = transaction.CreatedDate;
         entity.ModifiedDate = transaction.ModifiedDate;
-        entity.LastModifiedDate = transaction.LastModifiedDate;
         entity.AcceptanceDate = transaction.AcceptanceDate;
         entity.TxId = transaction.TxId;
         entity.Type = transaction.Type;
@@ -119,7 +116,6 @@ public sealed class ProcessFailedTransactionsWebhookCommandHandler(
         entity.Description = transaction.Description;
         entity.SttlId = transaction.SttlId;
         entity.Currency = transaction.Currency;
-        entity.IntrBkSttlmCurr = transaction.IntrBkSttlmCurr;
         entity.IntrBkSttlmAtm = transaction.IntrBkSttlmAtm;
         entity.DbtrAcctId = transaction.DbtrAcctId;
         entity.DbtrAcctType = transaction.DbtrAcctType;
@@ -130,19 +126,8 @@ public sealed class ProcessFailedTransactionsWebhookCommandHandler(
         entity.CdtrAddress = transaction.CdtrAddress;
         entity.RequestId = transaction.RequestId;
         entity.TransCode = transaction.TransCode;
-        entity.OldBalance = transaction.OldBalance;
-        entity.NewBalance = transaction.NewBalance;
-        entity.AliasFrom = transaction.AliasFrom;
-        entity.AliasTo = transaction.AliasTo;
-        entity.AliasTypeFrom = transaction.AliasTypeFrom;
-        entity.AliasTypeTo = transaction.AliasTypeTo;
         entity.Error = transaction.Error;
         entity.ErrorReason = transaction.ErrorReason;
-        entity.RawTransactionJson = transaction.Transaction is { ValueKind: not JsonValueKind.Undefined }
-            ? transaction.Transaction.Value.GetRawText()
-            : null;
-        entity.TransactionsJson = JsonSerializer.Serialize(transaction.Transactions);
-        entity.MessagesJson = JsonSerializer.Serialize(transaction.Messages);
 
         return entity;
     }

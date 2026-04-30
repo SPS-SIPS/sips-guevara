@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace SPSS.Domain.Models.DTOs;
@@ -32,9 +31,6 @@ public sealed class FailedTransactionDto
     [JsonPropertyName("id")]
     public long Id { get; set; }
 
-    [JsonPropertyName("rule_ids")]
-    public List<string> RuleIds { get; set; } = new();
-
     [JsonPropertyName("bankFrom")]
     public string? BankFrom { get; set; }
 
@@ -47,17 +43,11 @@ public sealed class FailedTransactionDto
     [JsonPropertyName("bankTo")]
     public string? BankTo { get; set; }
 
-    [JsonPropertyName("transaction")]
-    public JsonElement? Transaction { get; set; }
-
     [JsonPropertyName("createdDate")]
     public DateTimeOffset? CreatedDate { get; set; }
 
     [JsonPropertyName("modifiedDate")]
     public DateTimeOffset? ModifiedDate { get; set; }
-
-    [JsonPropertyName("lastModifiedDate")]
-    public DateTimeOffset? LastModifiedDate { get; set; }
 
     [JsonPropertyName("acceptanceDate")]
     public DateTimeOffset? AcceptanceDate { get; set; }
@@ -74,18 +64,6 @@ public sealed class FailedTransactionDto
     [JsonPropertyName("status")]
     public string? Status { get; set; }
 
-    [JsonPropertyName("bankFromSaPosition")]
-    public string? BankFromSaPosition { get; set; }
-
-    [JsonPropertyName("bankToSaPosition")]
-    public string? BankToSaPosition { get; set; }
-
-    [JsonPropertyName("bankFromWaPosition")]
-    public string? BankFromWaPosition { get; set; }
-
-    [JsonPropertyName("bankToWaPosition")]
-    public string? BankToWaPosition { get; set; }
-
     [JsonPropertyName("description")]
     public string? Description { get; set; }
 
@@ -94,9 +72,6 @@ public sealed class FailedTransactionDto
 
     [JsonPropertyName("currency")]
     public string? Currency { get; set; }
-
-    [JsonPropertyName("intrBkSttlmCurr")]
-    public string? IntrBkSttlmCurr { get; set; }
 
     [JsonPropertyName("intrBkSttlmAtm")]
     public string? IntrBkSttlmAtm { get; set; }
@@ -128,33 +103,57 @@ public sealed class FailedTransactionDto
     [JsonPropertyName("transCode")]
     public string? TransCode { get; set; }
 
-    [JsonPropertyName("oldBalance")]
-    public string? OldBalance { get; set; }
-
-    [JsonPropertyName("newBalance")]
-    public string? NewBalance { get; set; }
-
-    [JsonPropertyName("aliasFrom")]
-    public string? AliasFrom { get; set; }
-
-    [JsonPropertyName("aliasTo")]
-    public string? AliasTo { get; set; }
-
-    [JsonPropertyName("aliasTypeFrom")]
-    public string? AliasTypeFrom { get; set; }
-
-    [JsonPropertyName("aliasTypeTo")]
-    public string? AliasTypeTo { get; set; }
-
     [JsonPropertyName("error")]
     public string? Error { get; set; }
 
     [JsonPropertyName("errorReason")]
     public string? ErrorReason { get; set; }
+}
 
-    [JsonPropertyName("transactions")]
-    public List<JsonElement> Transactions { get; set; } = new();
+public sealed class FailedTransactionRecordDto
+{
+    public long Id { get; set; }
+    public long IpsTransactionId { get; set; }
+    public DateTimeOffset SnapshotTimestamp { get; set; }
+    public DateTimeOffset SnapshotFromDate { get; set; }
+    public DateTimeOffset SnapshotToDate { get; set; }
+    public DateTimeOffset ReceivedAt { get; set; }
+    public List<string> RuleIds { get; set; } = [];
+    public string? BankFrom { get; set; }
+    public string? BankFromName { get; set; }
+    public string? BankTo { get; set; }
+    public string? BankToName { get; set; }
+    public DateTimeOffset? CreatedDate { get; set; }
+    public DateTimeOffset? ModifiedDate { get; set; }
+    public DateTimeOffset? AcceptanceDate { get; set; }
+    public string? TxId { get; set; }
+    public string? Type { get; set; }
+    public string? Amount { get; set; }
+    public string? Status { get; set; }
+    public string? Description { get; set; }
+    public long? SttlId { get; set; }
+    public string? Currency { get; set; }
+    public string? IntrBkSttlmAtm { get; set; }
+    public string? DbtrAcctId { get; set; }
+    public string? DbtrAcctType { get; set; }
+    public string? DbtrName { get; set; }
+    public string? DbtrAddress { get; set; }
+    public string? CdtrAcctId { get; set; }
+    public string? CdtrName { get; set; }
+    public string? CdtrAddress { get; set; }
+    public string? RequestId { get; set; }
+    public string? TransCode { get; set; }
+    public string? Error { get; set; }
+    public string? ErrorReason { get; set; }
+}
 
-    [JsonPropertyName("messages")]
-    public List<JsonElement> Messages { get; set; } = new();
+public sealed class FailedTransactionRuleIdsCsvUploadResultDto
+{
+    public int TotalRows { get; set; }
+    public int UpdatedCount { get; set; }
+    public int NotFoundCount { get; set; }
+    public int InvalidRowCount { get; set; }
+    public List<long> UpdatedIpsTransactionIds { get; set; } = [];
+    public List<long> MissingIpsTransactionIds { get; set; } = [];
+    public List<string> Errors { get; set; } = [];
 }

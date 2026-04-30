@@ -46,4 +46,9 @@ public static class KnownClaims
     public const string QueryParticipantThreshold = "QPT";
     public const string UpdateParticipantThreshold = "UPT";
     public const string RemoveParticipantThreshold = "RPT";
+
+    // Transactions
+    public const string QueryTransactions = "QFT";
+    public const string UpdateTransactions = "UFT";
+
 }

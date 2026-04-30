@@ -207,22 +207,6 @@ namespace SPSS.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("active");
 
-                    b.Property<string>("AliasFrom")
-                        .HasColumnType("text")
-                        .HasColumnName("aliasfrom");
-
-                    b.Property<string>("AliasTo")
-                        .HasColumnType("text")
-                        .HasColumnName("aliasto");
-
-                    b.Property<string>("AliasTypeFrom")
-                        .HasColumnType("text")
-                        .HasColumnName("aliastypefrom");
-
-                    b.Property<string>("AliasTypeTo")
-                        .HasColumnType("text")
-                        .HasColumnName("aliastypeto");
-
                     b.Property<string>("Amount")
                         .HasColumnType("text")
                         .HasColumnName("amount");
@@ -299,38 +283,13 @@ namespace SPSS.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("intrbksttlmatm");
 
-                    b.Property<string>("IntrBkSttlmCurr")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)")
-                        .HasColumnName("intrbksttlmcurr");
-
                     b.Property<long>("IpsTransactionId")
                         .HasColumnType("bigint")
                         .HasColumnName("ipstransactionid");
 
-                    b.Property<DateTimeOffset?>("LastModifiedDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("lastmodifieddate");
-
-                    b.Property<string>("MessagesJson")
-                        .HasColumnType("text")
-                        .HasColumnName("messagesjson");
-
                     b.Property<DateTimeOffset?>("ModifiedDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("modifieddate");
-
-                    b.Property<string>("NewBalance")
-                        .HasColumnType("text")
-                        .HasColumnName("newbalance");
-
-                    b.Property<string>("OldBalance")
-                        .HasColumnType("text")
-                        .HasColumnName("oldbalance");
-
-                    b.Property<string>("RawTransactionJson")
-                        .HasColumnType("text")
-                        .HasColumnName("rawtransactionjson");
 
                     b.Property<DateTimeOffset>("ReceivedAt")
                         .HasColumnType("timestamp with time zone")
@@ -370,10 +329,6 @@ namespace SPSS.Infrastructure.Migrations
                     b.Property<string>("TransCode")
                         .HasColumnType("text")
                         .HasColumnName("transcode");
-
-                    b.Property<string>("TransactionsJson")
-                        .HasColumnType("text")
-                        .HasColumnName("transactionsjson");
 
                     b.Property<string>("TxId")
                         .HasMaxLength(100)
