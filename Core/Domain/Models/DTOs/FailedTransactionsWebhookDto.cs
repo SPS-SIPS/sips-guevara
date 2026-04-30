@@ -32,6 +32,9 @@ public sealed class FailedTransactionDto
     [JsonPropertyName("id")]
     public long Id { get; set; }
 
+    [JsonPropertyName("rule_ids")]
+    public List<string> RuleIds { get; set; } = new();
+
     [JsonPropertyName("bankFrom")]
     public string? BankFrom { get; set; }
 
