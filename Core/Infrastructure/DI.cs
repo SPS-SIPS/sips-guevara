@@ -14,6 +14,7 @@ public static class DI
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        var isOpenApiExport = configuration.GetValue<bool>("OpenApiExport");
 
         JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
@@ -77,7 +78,10 @@ public static class DI
         var nsiConfig = new NSI();
         configuration.Bind(nameof(NSI), nsiConfig);
         services.AddSingleton(nsiConfig);
-        CreateHome(nsiConfig);
+        if (!isOpenApiExport)
+        {
+            CreateHome(nsiConfig);
+        }
 
         services.Configure<MonitHistoryCleanupConfiguration>(configuration.GetSection("MonitHistoryCleanup"));
         services.Configure<FailedTransactionComplianceReportConfiguration>(configuration.GetSection("FailedTransactionComplianceReports"));
@@ -97,18 +101,21 @@ public static class DI
             ClockSkew = TimeSpan.FromSeconds(5)
         };
 
-        services.AddCronJob<BackupJob>(new JobConfiguration { Expression = backupConfiguration.Expression, TimeZoneInfo = backupConfiguration.TimeZoneInfo });
+        if (!isOpenApiExport)
+        {
+            services.AddCronJob<BackupJob>(new JobConfiguration { Expression = backupConfiguration.Expression, TimeZoneInfo = backupConfiguration.TimeZoneInfo });
 
-        var nsi = new JobConfiguration();
-        configuration.Bind("Jobs:NSI", nsi);
-        services.AddCronJob<NSIMonitoring>(nsi);
-        services.AddHostedService<CertificateFetchingService>();
-        services.AddHostedService<CertificateValidationService>();
-        services.AddHostedService<ParticipantStatusUpdaterWorker>();
-        services.AddHostedService<MonitHistoryCleanupWorker>();
-        services.AddHostedService<FailedTransactionComplianceReportWorker>();
-        services.AddHostedService<TransactionRetentionCleanupWorker>();
-        services.AddHostedService<ComplianceManagementDigestWorker>();
+            var nsi = new JobConfiguration();
+            configuration.Bind("Jobs:NSI", nsi);
+            services.AddCronJob<NSIMonitoring>(nsi);
+            services.AddHostedService<CertificateFetchingService>();
+            services.AddHostedService<CertificateValidationService>();
+            services.AddHostedService<ParticipantStatusUpdaterWorker>();
+            services.AddHostedService<MonitHistoryCleanupWorker>();
+            services.AddHostedService<FailedTransactionComplianceReportWorker>();
+            services.AddHostedService<TransactionRetentionCleanupWorker>();
+            services.AddHostedService<ComplianceManagementDigestWorker>();
+        }
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {

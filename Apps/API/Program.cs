@@ -5,6 +5,7 @@ using static SPSS.Domain.Extensions.InitializerExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
+var isOpenApiExport = builder.Configuration.GetValue<bool>("OpenApiExport");
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
@@ -20,13 +21,19 @@ builder.Host.UseSerilog((context, configuration) =>
 
 builder.Services.AddHttpClient();
 builder.Services.InstallerServicesInAssembly(builder.Configuration);
-builder.Services.AddHostedService<InvalidateExpireTokens>();
+if (!isOpenApiExport)
+{
+    builder.Services.AddHostedService<InvalidateExpireTokens>();
+}
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    await app.InitializeDatabaseAsync();
+    if (!isOpenApiExport)
+    {
+        await app.InitializeDatabaseAsync();
+    }
     app.UseHttpsRedirection();
     var swaggerConfig = new SwaggerConfig();
     builder.Configuration.Bind(nameof(SwaggerConfig), swaggerConfig);
@@ -40,7 +47,10 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    await app.InitializeDatabaseAsync();
+    if (!isOpenApiExport)
+    {
+        await app.InitializeDatabaseAsync();
+    }
     app.UseHsts();
 }
 
@@ -56,4 +66,3 @@ app.UseCors("default");
 app.MapControllers();
 
 app.Run();
-
