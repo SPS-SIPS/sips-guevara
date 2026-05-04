@@ -22,6 +22,7 @@ public interface IStorageBroker
     DbSet<FailedTransaction> FailedTransactions { get; set; }
     DbSet<FailedTransactionRuleAssignment> FailedTransactionRuleAssignments { get; set; }
     DbSet<FailedTransactionComplianceReport> FailedTransactionComplianceReports { get; set; }
+    DbSet<TransactionIngestionBatch> TransactionIngestionBatches { get; set; }
     DbSet<ProcessedTransaction> ProcessedTransactions { get; set; }
     DbSet<NetSettlementHeader> NetSettlementHeaders { get; set; }
     DbSet<NetSettlementDetail> NetSettlementDetails { get; set; }

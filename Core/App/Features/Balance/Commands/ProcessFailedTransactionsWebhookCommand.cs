@@ -120,11 +120,29 @@ public sealed class ProcessFailedTransactionsWebhookCommandHandler(
                 transaction.CreatedDate);
         }
 
-        if (insertedCount + updatedCount == 0 && uniqueTransactions.Count > 0)
-        {
-            return Response<string>.BadRequest(
-                $"Failed transactions webhook contained {uniqueTransactions.Count} rows, but none were valid for persistence. First errors: {string.Join(" | ", invalidRows.Take(5))}");
-        }
+        var batchStatus = BuildBatchStatus(insertedCount + updatedCount, invalidCount);
+        await _storage.TransactionIngestionBatches.AddAsync(
+            new TransactionIngestionBatch
+            {
+                BatchType = "FAILED_TRANSACTIONS",
+                Status = batchStatus,
+                FromDate = data.FromDate,
+                ToDate = data.ToDate,
+                ReceivedAt = data.Timestamp == default ? DateTimeOffset.UtcNow : data.Timestamp,
+                ProcessedAt = DateTimeOffset.UtcNow,
+                SnapshotType = data.Type,
+                SnapshotStatus = data.Status,
+                TotalCount = data.TotalCount,
+                ReceivedCount = transactions.Count,
+                UniqueCount = uniqueTransactions.Count,
+                InsertedCount = insertedCount,
+                UpdatedCount = updatedCount,
+                DuplicateCount = duplicateCount,
+                RejectedCount = invalidCount,
+                ErrorMessage = invalidCount > 0 ? "One or more rows were rejected before persistence" : null,
+                SampleErrors = invalidRows.Take(10).ToList()
+            },
+            cancellationToken);
 
         await _storage.SaveChangesAsync(cancellationToken);
 
@@ -140,6 +158,16 @@ public sealed class ProcessFailedTransactionsWebhookCommandHandler(
         }
 
         return new Response<string>(summary);
+    }
+
+    private static string BuildBatchStatus(int persistedCount, int rejectedCount)
+    {
+        if (rejectedCount == 0)
+        {
+            return "SUCCESS";
+        }
+
+        return persistedCount == 0 ? "REJECTED" : "PARTIAL";
     }
 
     private static string TransactionIdentity(FailedTransactionDto transaction)

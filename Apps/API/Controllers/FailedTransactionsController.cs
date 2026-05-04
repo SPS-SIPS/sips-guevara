@@ -22,6 +22,12 @@ public class FailedTransactionsController : BaseController
     public async Task<Response<FailedTransactionComplianceReportDto>> GetLatestComplianceReport(CancellationToken ct)
         => await Mediator.Send(new GetLatestFailedTransactionComplianceReportQuery(), ct);
 
+    [HttpGet("ingestion-batches")]
+    public async Task<PagedResponse<TransactionIngestionBatchDto>> GetIngestionBatches(
+        [FromQuery] GetTransactionIngestionBatchesQuery query,
+        CancellationToken ct)
+        => await Mediator.Send(query, ct);
+
     [HttpPut("rules")]
     public async Task<Response<long>> PutRules([FromBody] UpdateFailedTransactionRuleIdsCommand command, CancellationToken ct)
         => await Mediator.Send(command, ct);

@@ -253,3 +253,25 @@ public sealed class FailedTransactionRuleIdsCsvUploadResultDto
     public List<long> MissingIpsTransactionIds { get; set; } = [];
     public List<string> Errors { get; set; } = [];
 }
+
+public sealed class TransactionIngestionBatchDto
+{
+    public long Id { get; set; }
+    public string BatchType { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public DateTimeOffset FromDate { get; set; }
+    public DateTimeOffset ToDate { get; set; }
+    public DateTimeOffset ReceivedAt { get; set; }
+    public DateTimeOffset ProcessedAt { get; set; }
+    public string? SnapshotType { get; set; }
+    public string? SnapshotStatus { get; set; }
+    public int TotalCount { get; set; }
+    public int ReceivedCount { get; set; }
+    public int UniqueCount { get; set; }
+    public int InsertedCount { get; set; }
+    public int UpdatedCount { get; set; }
+    public int DuplicateCount { get; set; }
+    public int RejectedCount { get; set; }
+    public string? ErrorMessage { get; set; }
+    public List<string> SampleErrors { get; set; } = [];
+}

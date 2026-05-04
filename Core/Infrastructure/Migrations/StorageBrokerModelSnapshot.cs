@@ -1115,6 +1115,116 @@ namespace SPSS.Infrastructure.Migrations
                     b.ToTable("processedtransactions", (string)null);
                 });
 
+            modelBuilder.Entity("SPSS.Domain.Models.BL.TransactionIngestionBatch", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("BatchType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("batchtype");
+
+                    b.Property<int>("DuplicateCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("duplicatecount");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("errormessage");
+
+                    b.Property<DateTimeOffset>("FromDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fromdate");
+
+                    b.Property<int>("InsertedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("insertedcount");
+
+                    b.Property<DateTimeOffset>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processedat");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("receivedat");
+
+                    b.Property<int>("ReceivedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("receivedcount");
+
+                    b.Property<int>("RejectedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("rejectedcount");
+
+                    b.Property<List<string>>("SampleErrors")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("sampleerrors");
+
+                    b.Property<string>("SnapshotStatus")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("snapshotstatus");
+
+                    b.Property<string>("SnapshotType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("snapshottype");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("ToDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("todate");
+
+                    b.Property<int>("TotalCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("totalcount");
+
+                    b.Property<int>("UniqueCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("uniquecount");
+
+                    b.Property<int>("UpdatedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("updatedcount");
+
+                    b.HasKey("Id")
+                        .HasName("pk_transactioningestionbatches");
+
+                    b.HasIndex("BatchType")
+                        .HasDatabaseName("ix_transactioningestionbatches_batchtype");
+
+                    b.HasIndex("FromDate")
+                        .HasDatabaseName("ix_transactioningestionbatches_fromdate");
+
+                    b.HasIndex("ReceivedAt")
+                        .HasDatabaseName("ix_transactioningestionbatches_receivedat");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_transactioningestionbatches_status");
+
+                    b.HasIndex("ToDate")
+                        .HasDatabaseName("ix_transactioningestionbatches_todate");
+
+                    b.ToTable("transactioningestionbatches", (string)null);
+                });
+
             modelBuilder.Entity("SPSS.Domain.Models.Identity.Claim", b =>
                 {
                     b.Property<string>("Type")
