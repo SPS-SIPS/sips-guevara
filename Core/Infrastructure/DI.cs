@@ -82,6 +82,7 @@ public static class DI
         services.Configure<MonitHistoryCleanupConfiguration>(configuration.GetSection("MonitHistoryCleanup"));
         services.Configure<FailedTransactionComplianceReportConfiguration>(configuration.GetSection("FailedTransactionComplianceReports"));
         services.Configure<TransactionRetentionCleanupConfiguration>(configuration.GetSection("TransactionRetentionCleanup"));
+        services.Configure<ComplianceManagementDigestConfiguration>(configuration.GetSection("ComplianceManagementDigest"));
 
         var TokenValidationParameters = new TokenValidationParameters
         {
@@ -107,6 +108,7 @@ public static class DI
         services.AddHostedService<MonitHistoryCleanupWorker>();
         services.AddHostedService<FailedTransactionComplianceReportWorker>();
         services.AddHostedService<TransactionRetentionCleanupWorker>();
+        services.AddHostedService<ComplianceManagementDigestWorker>();
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
