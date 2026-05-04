@@ -1,0 +1,68 @@
+using SPSS.API.Installers;
+using SPSS.API.Jobs;
+using Serilog;
+using static SPSS.Domain.Extensions.InitializerExtensions;
+
+var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddEnvironmentVariables();
+var isOpenApiExport = builder.Configuration.GetValue<bool>("OpenApiExport");
+
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.SuppressModelStateInvalidFilter = true;
+});
+builder.Services.AddHttpContextAccessor();
+builder.Host.UseSerilog((context, configuration) =>
+{
+    configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .Enrich.FromLogContext();
+});
+
+builder.Services.AddHttpClient();
+builder.Services.InstallerServicesInAssembly(builder.Configuration);
+if (!isOpenApiExport)
+{
+    builder.Services.AddHostedService<InvalidateExpireTokens>();
+}
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    if (!isOpenApiExport)
+    {
+        await app.InitializeDatabaseAsync();
+    }
+    app.UseHttpsRedirection();
+    var swaggerConfig = new SwaggerConfig();
+    builder.Configuration.Bind(nameof(SwaggerConfig), swaggerConfig);
+    app.UseSwagger(o => { o.RouteTemplate = swaggerConfig.JsonRoute; });
+    app.UseSwaggerUI(o =>
+    {
+        o.SwaggerEndpoint(swaggerConfig.UiEndpoint, swaggerConfig.Name);
+        o.OAuthAppName(swaggerConfig.Name);
+        o.OAuthUsePkce();
+    });
+}
+else
+{
+    if (!isOpenApiExport)
+    {
+        await app.InitializeDatabaseAsync();
+    }
+    app.UseHsts();
+}
+
+app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseMiddleware<RequestLoggingMiddleware>();
+
+app.UseCors("default");
+
+app.MapControllers();
+
+app.Run();

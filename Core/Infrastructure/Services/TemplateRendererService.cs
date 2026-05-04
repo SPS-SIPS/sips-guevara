@@ -1,0 +1,255 @@
+using SPSS.Domain.Services;
+
+namespace SPSS.Infrastructure.Services;
+
+public class TemplateRendererService : ITemplateRenderer
+{
+    public async Task<string> RenderAsync(string templatesDirectory, string templateFileName, IDictionary<string, string> values, CancellationToken cancellationToken = default)
+    {
+        var templatePath = ResolveAndEnsureTemplate(templatesDirectory, templateFileName);
+        string content;
+        
+        using (var reader = new StreamReader(templatePath))
+        {
+            content = await reader.ReadToEndAsync(cancellationToken);
+        }
+        
+        foreach (var kv in values)
+        {
+            content = content.Replace("{{" + kv.Key + "}}", kv.Value ?? string.Empty);
+        }
+        
+        return content;
+    }
+
+    private static string ResolveAndEnsureTemplate(string templatesDirectory, string templateFileName)
+    {
+        var baseDir = AppContext.BaseDirectory;
+        var dir = string.IsNullOrWhiteSpace(templatesDirectory)
+            ? Path.Combine(baseDir, "Templates")
+            : (Path.IsPathRooted(templatesDirectory) ? templatesDirectory : Path.Combine(baseDir, templatesDirectory));
+
+        if (!Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+
+        var path = Path.Combine(dir, templateFileName);
+        if (!File.Exists(path))
+        {
+            // If the NSI template is missing, write a default one.
+            if (string.Equals(templateFileName, "nsi-reconciliation.html", StringComparison.OrdinalIgnoreCase))
+            {
+                File.WriteAllText(path, GetDefaultNsiTemplate());
+            }
+            else if (string.Equals(templateFileName, "balance-alert-amber.html", StringComparison.OrdinalIgnoreCase))
+            {
+                File.WriteAllText(path, GetDefaultAmberAlertTemplate());
+            }
+            else if (string.Equals(templateFileName, "balance-alert-red.html", StringComparison.OrdinalIgnoreCase))
+            {
+                File.WriteAllText(path, GetDefaultRedAlertTemplate());
+            }
+        }
+        
+        return path;
+    }
+
+    private static string GetDefaultNsiTemplate()
+    {
+        return @"<!DOCTYPE html>
+<html lang=""en"">
+  <head>
+    <meta charset=""utf-8"" />
+    <meta http-equiv=""x-ua-compatible"" content=""ie=edge"" />
+    <meta name=""viewport"" content=""width=device-width, initial-scale=1"" />
+    <title>NSI Reconciliation Report</title>
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: #222; }
+      .container { max-width: 640px; margin: 0 auto; padding: 24px; }
+      .muted { color: #666; font-size: 12px; }
+      .btn { display: inline-block; padding: 10px 16px; background: #1677ff; color: #fff !important; text-decoration: none; border-radius: 6px; }
+      .card { border: 1px solid #eee; border-radius: 8px; padding: 16px; margin-top: 12px; }
+      .row { margin: 6px 0; }
+      .label { color: #555; width: 160px; display: inline-block; }
+    </style>
+  </head>
+  <body>
+    <div class=""container"">
+      <h2>NSI Reconciliation Report</h2>
+      <p>Dear {{ParticipantName}},</p>
+      <p>
+        Please find attached the reconciliation report for your institution ({{BIC}}).
+      </p>
+      <div class=""card"">
+        <div class=""row""><span class=""label"">Message Id:</span><strong>{{MsgId}}</strong></div>
+        <div class=""row""><span class=""label"">Value Date:</span><strong>{{Date}}</strong></div>
+        <div class=""row""><span class=""label"">Institution (BIC):</span><strong>{{BIC}}</strong></div>
+      </div>
+      <p class=""muted"">Attachment: {{AttachmentName}}</p>
+      <p>If you have any questions, please reply to this email.</p>
+      <p>Regards,<br/>SPS Team</p>
+    </div>
+  </body>
+</html>";
+    }
+
+    private static string GetDefaultAmberAlertTemplate()
+    {
+        return @"<!DOCTYPE html>
+<html lang=""en"">
+  <head>
+    <meta charset=""utf-8"" />
+    <meta http-equiv=""x-ua-compatible"" content=""ie=edge"" />
+    <meta name=""viewport"" content=""width=device-width, initial-scale=1"" />
+    <title>Settlement Account Balance Alert</title>
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: #222; line-height: 1.6; }
+      .container { max-width: 640px; margin: 0 auto; padding: 24px; }
+      .header { background: #ff9800; color: #fff; padding: 16px; border-radius: 8px 8px 0 0; text-align: center; }
+      .header h2 { margin: 0; font-size: 20px; }
+      .content { border: 2px solid #ff9800; border-top: none; border-radius: 0 0 8px 8px; padding: 24px; }
+      .alert-box { background: #fff3e0; border-left: 4px solid #ff9800; padding: 16px; margin: 16px 0; }
+      .info-row { margin: 8px 0; font-size: 16px; }
+      .info-label { color: #666; font-weight: 500; }
+      .info-value { font-weight: bold; color: #222; font-size: 18px; }
+      .zone-badge { display: inline-block; padding: 4px 12px; background: #ff9800; color: #fff; border-radius: 4px; font-weight: bold; }
+      .action-box { background: #fff; border: 2px solid #ff9800; border-radius: 8px; padding: 20px; margin: 20px 0; }
+      .action-title { color: #ff9800; font-weight: bold; font-size: 18px; margin-bottom: 12px; }
+      .instruction-list { margin: 12px 0; padding-left: 20px; }
+      .instruction-list li { margin: 8px 0; }
+      .footer { color: #666; font-size: 14px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; }
+    </style>
+  </head>
+  <body>
+    <div class=""container"">
+      <div class=""header"">
+        <h2>🔔 URGENT: Settlement Account Balance Alert</h2>
+      </div>
+      <div class=""content"">
+        <p>Dear Settlement Operations Team,</p>
+        
+        <p>This is an <strong>URGENT</strong> notification regarding your settlement account balance.</p>
+        
+        <div class=""alert-box"">
+          <div class=""info-row"">
+            <span class=""info-label"">Current Balance:</span>
+            <span class=""info-value"">{{CurrentBalance}} {{Currency}}</span>
+          </div>
+          <div class=""info-row"">
+            <span class=""info-label"">Zone:</span>
+            <span class=""zone-badge"">AMBER</span>
+          </div>
+          <div class=""info-row"">
+            <span class=""info-label"">Limit Percentage:</span>
+            <span class=""info-value"">{{LimitPercentage}}%</span>
+          </div>
+        </div>
+
+        <p>Your settlement account balance is approaching the minimum operational level. <strong>Immediate action is required</strong> to maintain service continuity.</p>
+
+        <div class=""action-box"">
+          <div class=""action-title"">REQUIRED ACTION:</div>
+          <p>Please top up your settlement account immediately.</p>
+          
+          <p><strong>Top-Up Window:</strong> Between 9:00 AM and 3:30 PM</p>
+          
+          <p><strong>IMPORTANT:</strong> Once you successfully complete the top-up:</p>
+          <ol class=""instruction-list"">
+            <li>Call the Operations Department to confirm</li>
+            <li>Reply to this email with confirmation</li>
+          </ol>
+        </div>
+
+        <div class=""footer"">
+          <p>Best regards,<br/>
+          <strong>Payment Switch Operations</strong><br/>
+          Automated Balance Monitoring System</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>";
+    }
+
+    private static string GetDefaultRedAlertTemplate()
+    {
+        return @"<!DOCTYPE html>
+<html lang=""en"">
+  <head>
+    <meta charset=""utf-8"" />
+    <meta http-equiv=""x-ua-compatible"" content=""ie=edge"" />
+    <meta name=""viewport"" content=""width=device-width, initial-scale=1"" />
+    <title>Settlement Account Balance Critical</title>
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: #222; line-height: 1.6; }
+      .container { max-width: 640px; margin: 0 auto; padding: 24px; }
+      .header { background: #d32f2f; color: #fff; padding: 16px; border-radius: 8px 8px 0 0; text-align: center; }
+      .header h2 { margin: 0; font-size: 20px; }
+      .content { border: 2px solid #d32f2f; border-top: none; border-radius: 0 0 8px 8px; padding: 24px; }
+      .alert-box { background: #ffebee; border-left: 4px solid #d32f2f; padding: 16px; margin: 16px 0; }
+      .info-row { margin: 8px 0; font-size: 16px; }
+      .info-label { color: #666; font-weight: 500; }
+      .info-value { font-weight: bold; color: #222; font-size: 18px; }
+      .zone-badge { display: inline-block; padding: 4px 12px; background: #d32f2f; color: #fff; border-radius: 4px; font-weight: bold; }
+      .action-box { background: #fff; border: 2px solid #d32f2f; border-radius: 8px; padding: 20px; margin: 20px 0; }
+      .action-title { color: #d32f2f; font-weight: bold; font-size: 18px; margin-bottom: 12px; }
+      .instruction-list { margin: 12px 0; padding-left: 20px; }
+      .instruction-list li { margin: 8px 0; }
+      .warning { background: #ffebee; border: 1px solid #d32f2f; border-radius: 4px; padding: 12px; margin: 16px 0; color: #c62828; font-weight: 500; }
+      .footer { color: #666; font-size: 14px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; }
+    </style>
+  </head>
+  <body>
+    <div class=""container"">
+      <div class=""header"">
+        <h2>🚨 CRITICAL: Settlement Account Balance</h2>
+      </div>
+      <div class=""content"">
+        <p>Dear Settlement Operations Team,</p>
+        
+        <p>This is a <strong>CRITICAL</strong> notification regarding your settlement account balance.</p>
+        
+        <div class=""alert-box"">
+          <div class=""info-row"">
+            <span class=""info-label"">Current Balance:</span>
+            <span class=""info-value"">{{CurrentBalance}} {{Currency}}</span>
+          </div>
+          <div class=""info-row"">
+            <span class=""info-label"">Zone:</span>
+            <span class=""zone-badge"">RED</span>
+          </div>
+          <div class=""info-row"">
+            <span class=""info-label"">Limit Percentage:</span>
+            <span class=""info-value"">{{LimitPercentage}}%</span>
+          </div>
+        </div>
+
+        <p>Your settlement account balance has fallen below the required operational threshold. <strong>IMMEDIATE action is required</strong> to prevent service disruption.</p>
+
+        <div class=""action-box"">
+          <div class=""action-title"">REQUIRED ACTION:</div>
+          <p><strong>Please top up your settlement account IMMEDIATELY.</strong></p>
+          
+          <p><strong>Top-Up Window:</strong> Between 9:00 AM and 3:30 PM</p>
+          
+          <p><strong>IMPORTANT:</strong> Once you successfully complete the top-up:</p>
+          <ol class=""instruction-list"">
+            <li>Call the Operations Department to confirm</li>
+            <li>Reply to this email with confirmation</li>
+          </ol>
+        </div>
+
+        <div class=""warning"">⚠️ Failure to maintain adequate balance may result in transaction processing disruptions.</div>
+
+        <div class=""footer"">
+          <p>Best regards,<br/>
+          <strong>Payment Switch Operations</strong><br/>
+          Automated Balance Monitoring System</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>";
+    }
+}
