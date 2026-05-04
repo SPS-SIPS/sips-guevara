@@ -28,6 +28,10 @@ public sealed class FailedTransactionComplianceSummaryDto
     public int UniqueCreditors { get; set; }
     public int HighValueAttempts { get; set; }
     public decimal HighValueTotalAmount { get; set; }
+    public int ClassifiedFailedTransactions { get; set; }
+    public int UnclassifiedFailedTransactions { get; set; }
+    public decimal ClassificationCoveragePercent { get; set; }
+    public DateTimeOffset? ClassificationUpdatedAt { get; set; }
     public int HighRiskFindings { get; set; }
     public int MediumRiskFindings { get; set; }
     public FailedTransactionComplianceReconciliationDto NsiReconciliation { get; set; } = new();
@@ -38,6 +42,7 @@ public sealed class FailedTransactionComplianceSummaryDto
     public List<FailedTransactionComplianceDimensionDto> TopProcessedDebtors { get; set; } = [];
     public List<FailedTransactionComplianceDimensionDto> TopProcessedRoutes { get; set; } = [];
     public List<FailedTransactionComplianceDimensionDto> TopErrors { get; set; } = [];
+    public List<FailedTransactionComplianceDimensionDto> TopRuleIds { get; set; } = [];
 }
 
 public sealed class FailedTransactionComplianceDimensionDto
@@ -66,6 +71,7 @@ public sealed class FailedTransactionComplianceFindingDto
     public int UniqueCounterparties { get; set; }
     public FailedTransactionComplianceRiskContributionDto RiskContributions { get; set; } = new();
     public List<string> Reasons { get; set; } = [];
+    public List<string> RuleIds { get; set; } = [];
     public List<long> SampleTransactionIds { get; set; } = [];
 }
 

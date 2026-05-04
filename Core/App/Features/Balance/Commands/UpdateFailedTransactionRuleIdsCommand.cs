@@ -3,10 +3,13 @@ namespace SPSS.App.Features.Balance.Commands;
 [Authorize(Roles = UpdateTransactions)]
 public sealed record UpdateFailedTransactionRuleIdsCommand(long IpsTransactionId, List<string> RuleIds) : IRequest<Response<long>>;
 
-public sealed class UpdateFailedTransactionRuleIdsCommandHandler(IStorageBroker storage)
+public sealed class UpdateFailedTransactionRuleIdsCommandHandler(
+    IStorageBroker storage,
+    SPSS.App.Features.Balance.Services.IFailedTransactionComplianceClassificationRefresher classificationRefresher)
     : IRequestHandler<UpdateFailedTransactionRuleIdsCommand, Response<long>>
 {
     private readonly IStorageBroker _storage = storage;
+    private readonly SPSS.App.Features.Balance.Services.IFailedTransactionComplianceClassificationRefresher _classificationRefresher = classificationRefresher;
 
     public async ValueTask<Response<long>> Handle(UpdateFailedTransactionRuleIdsCommand request, CancellationToken cancellationToken)
     {
@@ -44,6 +47,7 @@ public sealed class UpdateFailedTransactionRuleIdsCommandHandler(IStorageBroker 
         }
 
         await _storage.SaveChangesAsync(cancellationToken);
+        await _classificationRefresher.RefreshByFailedTransactionIdsAsync([request.IpsTransactionId], cancellationToken);
 
         return new Response<long>(request.IpsTransactionId);
     }

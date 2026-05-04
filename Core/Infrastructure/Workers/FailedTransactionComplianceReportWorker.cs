@@ -101,6 +101,21 @@ public sealed class FailedTransactionComplianceReportWorker(
                     IsFailed = true
                 })
                 .ToListAsync(cancellationToken);
+            var failedTransactionIds = failedTransactions.Select(x => x.Id).ToList();
+            var ruleAssignments = failedTransactionIds.Count == 0
+                ? new Dictionary<long, List<string>>()
+                : await storage.FailedTransactionRuleAssignments
+                    .AsNoTracking()
+                    .Where(x => failedTransactionIds.Contains(x.FailedTransactionId))
+                    .ToDictionaryAsync(x => x.FailedTransactionId, x => x.RuleIds, cancellationToken);
+
+            foreach (var transaction in failedTransactions)
+            {
+                if (ruleAssignments.TryGetValue(transaction.Id, out var ruleIds))
+                {
+                    transaction.RuleIds = NormalizeRuleIds(ruleIds);
+                }
+            }
 
             var processedTransactions = await storage.ProcessedTransactions
                 .AsNoTracking()
@@ -229,6 +244,7 @@ public sealed class FailedTransactionComplianceReportWorker(
         var highRisk = findings.Count(x => x.Severity == "HIGH");
         var mediumRisk = findings.Count(x => x.Severity == "MEDIUM");
         var highValueTransactions = current.Where(x => ParseAmount(x.Amount) >= _config.HighValueThreshold).ToList();
+        var classifiedFailed = current.Count(x => x.RuleIds.Count > 0);
 
         return new FailedTransactionComplianceReportDto
         {
@@ -253,6 +269,9 @@ public sealed class FailedTransactionComplianceReportWorker(
                 UniqueCreditors = current.Select(x => x.CdtrAcctId).Where(HasValue).Distinct().Count(),
                 HighValueAttempts = highValueTransactions.Count,
                 HighValueTotalAmount = highValueTransactions.Sum(x => ParseAmount(x.Amount)),
+                ClassifiedFailedTransactions = classifiedFailed,
+                UnclassifiedFailedTransactions = Math.Max(0, current.Count - classifiedFailed),
+                ClassificationCoveragePercent = current.Count == 0 ? 100 : Divide(classifiedFailed * 100m, current.Count),
                 HighRiskFindings = highRisk,
                 MediumRiskFindings = mediumRisk,
                 NsiReconciliation = reconciliation,
@@ -262,7 +281,8 @@ public sealed class FailedTransactionComplianceReportWorker(
                 TopRoutes = BuildTopDimensions(current, baseline, x => JoinKey(x.BankFrom, x.BankTo), x => JoinKey(x.BankFromName, x.BankToName)),
                 TopProcessedDebtors = BuildTopDimensions(currentProcessed, baselineProcessed, x => x.DbtrAcctId, x => x.DbtrName),
                 TopProcessedRoutes = BuildTopDimensions(currentProcessed, baselineProcessed, x => JoinKey(x.BankFrom, x.BankTo), x => JoinKey(x.BankFromName, x.BankToName)),
-                TopErrors = BuildTopDimensions(current, baseline, x => x.ErrorReason, x => x.Error)
+                TopErrors = BuildTopDimensions(current, baseline, x => x.ErrorReason, x => x.Error),
+                TopRuleIds = BuildTopRuleIdDimensions(current, baseline)
             },
             Findings = findings
         };
@@ -433,6 +453,7 @@ public sealed class FailedTransactionComplianceReportWorker(
                     UniqueCounterparties = uniqueCounterparties,
                     RiskContributions = risk.Contributions,
                     Reasons = reasons,
+                    RuleIds = DistinctRuleIds(group),
                     SampleTransactionIds = group.OrderByDescending(x => x.CreatedDate).Take(10).Select(x => x.Id).ToList()
                 };
             })
@@ -466,6 +487,7 @@ public sealed class FailedTransactionComplianceReportWorker(
                     TotalAmount = x.Amount,
                     RiskContributions = risk.Contributions,
                     Reasons = [$"Failed attempt amount {x.Amount:0.##} is above configured threshold {_config.HighValueThreshold:0.##}."],
+                    RuleIds = x.Transaction.RuleIds,
                     SampleTransactionIds = [x.Transaction.Id]
                 };
             });
@@ -505,6 +527,7 @@ public sealed class FailedTransactionComplianceReportWorker(
                     UniqueCounterparties = uniqueCreditors,
                     RiskContributions = risk.Contributions,
                     Reasons = [$"Debtor attempted failed payments to {uniqueCreditors} unique creditors in one hour."],
+                    RuleIds = DistinctRuleIds(group),
                     SampleTransactionIds = group.OrderByDescending(x => x.CreatedDate).Take(10).Select(x => x.Id).ToList()
                 };
             })
@@ -577,6 +600,7 @@ public sealed class FailedTransactionComplianceReportWorker(
                         $"Debtor has {group.Count()} failed attempts and {processed.Count} processed transactions in the same hour.",
                         $"Failed-to-processed ratio is {Divide(group.Count(), Math.Max(1, processed.Count)):0.##}."
                     ],
+                    RuleIds = DistinctRuleIds(group),
                     SampleTransactionIds = group.Concat(processed)
                         .OrderByDescending(x => x.CreatedDate)
                         .Take(10)
@@ -684,6 +708,41 @@ public sealed class FailedTransactionComplianceReportWorker(
                 {
                     Key = group.Key,
                     Name = group.Select(nameSelector).FirstOrDefault(HasValue),
+                    CurrentCount = group.Count(),
+                    BaselineCount = baselineCount,
+                    BaselineAverageHourly = baselineAverageHourly,
+                    Multiplier = CalculateMultiplier(group.Count(), baselineAverageHourly),
+                    TotalAmount = group.Sum(x => ParseAmount(x.Amount))
+                };
+            })
+            .ToList();
+    }
+
+    private List<FailedTransactionComplianceDimensionDto> BuildTopRuleIdDimensions(
+        List<ComplianceTransaction> current,
+        List<ComplianceTransaction> baseline)
+    {
+        var baselineCounts = baseline
+            .SelectMany(x => x.RuleIds)
+            .Where(HasValue)
+            .GroupBy(x => x)
+            .ToDictionary(x => x.Key, x => x.Count());
+
+        return current
+            .SelectMany(x => x.RuleIds.Select(ruleId => new { RuleId = ruleId, x.Amount }))
+            .Where(x => HasValue(x.RuleId))
+            .GroupBy(x => x.RuleId)
+            .OrderByDescending(x => x.Count())
+            .ThenByDescending(x => x.Sum(t => ParseAmount(t.Amount)))
+            .Take(10)
+            .Select(group =>
+            {
+                baselineCounts.TryGetValue(group.Key, out var baselineCount);
+                var baselineAverageHourly = Divide(baselineCount, Math.Max(1, _config.BaselineHours));
+                return new FailedTransactionComplianceDimensionDto
+                {
+                    Key = group.Key,
+                    Name = group.Key,
                     CurrentCount = group.Count(),
                     BaselineCount = baselineCount,
                     BaselineAverageHourly = baselineAverageHourly,
@@ -843,6 +902,21 @@ public sealed class FailedTransactionComplianceReportWorker(
         return values.FirstOrDefault(HasValue) ?? "UNKNOWN";
     }
 
+    private static List<string> NormalizeRuleIds(IEnumerable<string>? ruleIds)
+    {
+        return ruleIds?
+            .Where(HasValue)
+            .Select(x => x.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Order()
+            .ToList() ?? [];
+    }
+
+    private static List<string> DistinctRuleIds(IEnumerable<ComplianceTransaction> transactions)
+    {
+        return NormalizeRuleIds(transactions.SelectMany(x => x.RuleIds));
+    }
+
     private sealed class ComplianceTransaction
     {
         public long Id { get; init; }
@@ -860,6 +934,7 @@ public sealed class FailedTransactionComplianceReportWorker(
         public string? CdtrName { get; init; }
         public string? Error { get; init; }
         public string? ErrorReason { get; init; }
+        public List<string> RuleIds { get; set; } = [];
         public bool IsFailed { get; init; }
     }
 

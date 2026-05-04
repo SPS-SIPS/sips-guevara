@@ -1,16 +1,20 @@
 using System.Globalization;
 using CsvHelper;
 using CsvHelper.Configuration;
+using SPSS.App.Features.Balance.Services;
 using SPSS.Domain.Models.DTOs;
 
 namespace SPSS.App.Features.Balance.Commands;
 [Authorize(Roles = UpdateTransactions)]
 public sealed record UploadFailedTransactionRuleIdsCsvCommand(string CsvContent) : IRequest<Response<FailedTransactionRuleIdsCsvUploadResultDto>>;
 
-public sealed class UploadFailedTransactionRuleIdsCsvCommandHandler(IStorageBroker storage)
+public sealed class UploadFailedTransactionRuleIdsCsvCommandHandler(
+    IStorageBroker storage,
+    IFailedTransactionComplianceClassificationRefresher classificationRefresher)
     : IRequestHandler<UploadFailedTransactionRuleIdsCsvCommand, Response<FailedTransactionRuleIdsCsvUploadResultDto>>
 {
     private readonly IStorageBroker _storage = storage;
+    private readonly IFailedTransactionComplianceClassificationRefresher _classificationRefresher = classificationRefresher;
 
     public async ValueTask<Response<FailedTransactionRuleIdsCsvUploadResultDto>> Handle(
         UploadFailedTransactionRuleIdsCsvCommand request,
@@ -70,6 +74,7 @@ public sealed class UploadFailedTransactionRuleIdsCsvCommandHandler(IStorageBrok
         }
 
         await _storage.SaveChangesAsync(cancellationToken);
+        await _classificationRefresher.RefreshByFailedTransactionIdsAsync(result.UpdatedIpsTransactionIds, cancellationToken);
 
         return new Response<FailedTransactionRuleIdsCsvUploadResultDto>(result);
     }
