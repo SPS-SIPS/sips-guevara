@@ -34,6 +34,10 @@ public sealed class NetSettlementDetailConfiguration : IEntityTypeConfiguration<
         builder.HasIndex(e => e.DebtorBic);
         builder.HasIndex(e => e.CreditorBic);
         builder.HasIndex(e => e.Date);
+        builder.HasIndex(e => e.TxId);
+        builder.HasIndex(e => new { e.IsFee, e.Date });
+        builder.HasIndex(e => new { e.DebtorBic, e.Date });
+        builder.HasIndex(e => new { e.CreditorBic, e.Date });
 
 
         builder.HasOne(e => e.NetSettlementHeader)

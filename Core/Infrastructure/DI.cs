@@ -71,6 +71,10 @@ public static class DI
         configuration.Bind(nameof(EmailConfig), emailConfig);
         services.AddSingleton(emailConfig);
 
+        var certificateExpirationNotificationConfig = new CertificateExpirationNotificationConfig();
+        configuration.Bind("CertificateExpirationNotifications", certificateExpirationNotificationConfig);
+        services.AddSingleton(certificateExpirationNotificationConfig);
+
         var backupConfiguration = new BackupConfiguration();
         configuration.Bind("Jobs:Backup", backupConfiguration);
         services.AddSingleton(backupConfiguration);

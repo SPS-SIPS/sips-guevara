@@ -6,30 +6,204 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Certificate Expiration Warning</title>
     <style>
-      body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: #222; }
-      .container { max-width: 640px; margin: 0 auto; padding: 24px; }
-      .muted { color: #666; font-size: 12px; }
-      .btn { display: inline-block; padding: 10px 16px; background: #1677ff; color: #fff !important; text-decoration: none; border-radius: 6px; }
-      .card { border: 1px solid #eee; border-radius: 8px; padding: 16px; margin-top: 12px; }
-      .row { margin: 6px 0; }
-      .label { color: #555; width: 160px; display: inline-block; }
+      body {
+        margin: 0;
+        background: #f4f6f8;
+        color: #1f2933;
+        font-family: Arial, Helvetica, sans-serif;
+        line-height: 1.55;
+      }
+
+      .shell {
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 28px 16px;
+      }
+
+      .panel {
+        background: #ffffff;
+        border: 1px solid #d9e2ec;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .header {
+        background: #12355b;
+        color: #ffffff;
+        padding: 24px 28px;
+      }
+
+      .eyebrow {
+        margin: 0 0 6px;
+        color: #f7c948;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 24px;
+        line-height: 1.25;
+      }
+
+      .content {
+        padding: 28px;
+      }
+
+      .notice {
+        margin: 0 0 22px;
+        padding: 14px 16px;
+        background: #fff8e6;
+        border-left: 4px solid #f0b429;
+        color: #513c06;
+      }
+
+      .details {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0 24px;
+        border: 1px solid #d9e2ec;
+      }
+
+      .details th,
+      .details td {
+        padding: 12px 14px;
+        border-bottom: 1px solid #d9e2ec;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .details th {
+        width: 34%;
+        background: #f8fafc;
+        color: #52606d;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .details tr:last-child th,
+      .details tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .expiry {
+        color: #b42318;
+        font-weight: 700;
+      }
+
+      .actions {
+        margin: 0 0 22px;
+        padding: 16px;
+        background: #f8fafc;
+        border: 1px solid #d9e2ec;
+        border-radius: 8px;
+      }
+
+      .actions p {
+        margin: 0 0 10px;
+        font-weight: 700;
+      }
+
+      .actions ol {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      .actions li {
+        margin: 6px 0;
+      }
+
+      .footer {
+        margin-top: 24px;
+        padding-top: 18px;
+        border-top: 1px solid #e4e7eb;
+        color: #627d98;
+        font-size: 13px;
+      }
+
+      @media only screen and (max-width: 520px) {
+        .header,
+        .content {
+          padding: 22px 18px;
+        }
+
+        h1 {
+          font-size: 21px;
+        }
+
+        .details th,
+        .details td {
+          display: block;
+          width: auto;
+        }
+
+        .details th {
+          border-bottom: 0;
+          padding-bottom: 4px;
+        }
+
+        .details td {
+          padding-top: 4px;
+        }
+      }
     </style>
   </head>
   <body>
-    <div class="container">
-      <h2>Certificate Expiration Warning</h2>
-      <p>Dear {{ParticipantName}},</p>
-      <p>
-        This is a courtesy notification to inform you that your certificate is scheduled to expire in exactly one month.
-      </p>
-      <div class="card">
-        <div class="row"><span class="label">Certificate Name:</span><strong>{{CertificateName}}</strong></div>
-        <div class="row"><span class="label">Institution (BIC):</span><strong>{{BIC}}</strong></div>
-        <div class="row"><span class="label">Expiration Date:</span><strong>{{ExpirationDate}}</strong></div>
+    <div class="shell">
+      <div class="panel">
+        <div class="header">
+          <p class="eyebrow">Certificate expiry notice</p>
+          <h1>Renewal required within {{DaysUntilExpiration}} days</h1>
+        </div>
+
+        <div class="content">
+          <p>Hello,</p>
+          <p class="notice">
+            A certificate for <strong>{{ParticipantName}}</strong> is scheduled to expire within the next month.
+            Please coordinate renewal before the expiration date to avoid service disruption.
+          </p>
+
+          <table class="details" role="presentation" aria-label="Certificate details">
+            <tr>
+              <th scope="row">Participant</th>
+              <td>{{ParticipantName}}</td>
+            </tr>
+            <tr>
+              <th scope="row">Institution BIC</th>
+              <td>{{BIC}}</td>
+            </tr>
+            <tr>
+              <th scope="row">Certificate</th>
+              <td>{{CertificateName}}</td>
+            </tr>
+            <tr>
+              <th scope="row">Expiration date</th>
+              <td class="expiry">{{ExpirationDate}}</td>
+            </tr>
+          </table>
+
+          <div class="actions">
+            <p>Recommended action</p>
+            <ol>
+              <li>Confirm the replacement certificate has been requested or issued.</li>
+              <li>Coordinate the certificate update with the participant and IT operations.</li>
+              <li>Verify the new certificate is active before the current certificate expires.</li>
+            </ol>
+          </div>
+
+          <p>
+            This notification is sent once when the certificate enters the one-month expiration window.
+          </p>
+
+          <p>Regards,<br />SPS Team</p>
+
+          <div class="footer">
+            This is an automated notification from the SPS certificate monitoring service.
+          </div>
+        </div>
       </div>
-      <p>Please take the necessary steps to renew your certificate and update your system configurations accordingly to avoid any disruptions.</p>
-      <p>If you have any questions or need assistance, please reply to this email.</p>
-      <p>Regards,<br/>SPS Team</p>
     </div>
   </body>
 </html>

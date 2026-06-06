@@ -612,6 +612,18 @@ namespace SPSS.Infrastructure.Migrations
                     b.HasIndex("NetSettlementHeaderId")
                         .HasDatabaseName("ix_netsettlementdetails_netsettlementheaderid");
 
+                    b.HasIndex("TxId")
+                        .HasDatabaseName("ix_netsettlementdetails_txid");
+
+                    b.HasIndex("CreditorBic", "Date")
+                        .HasDatabaseName("ix_netsettlementdetails_creditorbic_date");
+
+                    b.HasIndex("DebtorBic", "Date")
+                        .HasDatabaseName("ix_netsettlementdetails_debtorbic_date");
+
+                    b.HasIndex("IsFee", "Date")
+                        .HasDatabaseName("ix_netsettlementdetails_isfee_date");
+
                     b.ToTable("netsettlementdetails", (string)null);
                 });
 
