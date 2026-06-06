@@ -42,10 +42,13 @@ public sealed class GetRegulatorMonitoringCardsQueryHandler(IStorageBroker stora
         var successfulValue = await successfulQuery.SumAsync(x => (decimal?)x.Amount, cancellationToken) ?? 0;
         var report = await RegulatorDashboardQueryHelpers.GetLatestComplianceReportAsync(_storage, from, to, cancellationToken);
         var availability = await RegulatorDashboardQueryHelpers.BuildParticipantAvailabilityAsync(_storage, from, to, cancellationToken);
+        var transactionSummary = await RegulatorDashboardQueryHelpers.GetTransactionSummaryTotalsAsync(_storage, from, to, cancellationToken);
 
-        var failedToSuccessfulBps = successfulCount == 0 || report is null
+        var failedCount = transactionSummary.TotalFailed > 0 ? transactionSummary.TotalFailed : report?.Summary.TotalFailed ?? 0;
+        var rateDenominator = transactionSummary.TotalProcessed > 0 ? transactionSummary.TotalProcessed : successfulCount;
+        var failedToSuccessfulBps = rateDenominator == 0
             ? 0
-            : decimal.Round(report.Summary.TotalFailed * 10000m / successfulCount, 2);
+            : decimal.Round(failedCount * 10000m / rateDenominator, 2);
 
         var cards = new List<RegulatorMonitoringCardDto>
         {
@@ -416,6 +419,31 @@ internal static class RegulatorDashboardQueryHelpers
             },
             Participants = participants
         };
+    }
+
+    public static async Task<(int TotalFailed, int TotalProcessed)> GetTransactionSummaryTotalsAsync(
+        IStorageBroker storage,
+        DateTimeOffset from,
+        DateTimeOffset to,
+        CancellationToken cancellationToken)
+    {
+        var summaries = await storage.TransactionIngestionBatches
+            .AsNoTracking()
+            .Where(x => x.ToDate > from &&
+                        x.FromDate < to &&
+                        (x.BatchType == "FAILED_TRANSACTIONS_SUMMARY" ||
+                         x.BatchType == "PROCESSED_TRANSACTIONS_SUMMARY"))
+            .GroupBy(x => x.BatchType)
+            .Select(x => new
+            {
+                BatchType = x.Key,
+                Total = x.Sum(b => b.TotalCount)
+            })
+            .ToListAsync(cancellationToken);
+
+        return (
+            summaries.FirstOrDefault(x => x.BatchType == "FAILED_TRANSACTIONS_SUMMARY")?.Total ?? 0,
+            summaries.FirstOrDefault(x => x.BatchType == "PROCESSED_TRANSACTIONS_SUMMARY")?.Total ?? 0);
     }
 
     public static string ToPatternName(string findingType)

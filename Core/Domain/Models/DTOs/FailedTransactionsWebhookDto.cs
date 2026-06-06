@@ -50,6 +50,39 @@ public sealed class ProcessedTransactionsWebhookDto
     public List<ProcessedTransactionDto> Transactions { get; set; } = new();
 }
 
+public sealed class TransactionSummaryWebhookDto
+{
+    [JsonPropertyName("timestamp")]
+    public DateTimeOffset Timestamp { get; set; }
+
+    [JsonPropertyName("total_failed")]
+    public int TotalFailed { get; set; }
+
+    [JsonPropertyName("total_processed")]
+    public int TotalProcessed { get; set; }
+
+    [JsonPropertyName("failed_from_date")]
+    public DateTimeOffset FailedFromDate { get; set; }
+
+    [JsonPropertyName("failed_to_date")]
+    public DateTimeOffset FailedToDate { get; set; }
+
+    [JsonPropertyName("processed_from_date")]
+    public DateTimeOffset ProcessedFromDate { get; set; }
+
+    [JsonPropertyName("processed_to_date")]
+    public DateTimeOffset ProcessedToDate { get; set; }
+
+    [JsonPropertyName("failed_status")]
+    public string FailedStatus { get; set; } = string.Empty;
+
+    [JsonPropertyName("processed_status")]
+    public string ProcessedStatus { get; set; } = string.Empty;
+
+    [JsonPropertyName("transaction_type")]
+    public string TransactionType { get; set; } = string.Empty;
+}
+
 public sealed class ProcessedTransactionDto
 {
     [JsonPropertyName("id")]
