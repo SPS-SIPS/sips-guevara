@@ -26,6 +26,8 @@ public class RegulatorDashboardController : BaseController
         => await Mediator.Send(query, ct);
 
     [HttpGet("velocity-alert-heatmap")]
-    public async Task<Response<RegulatorVelocityAlertHeatmapDto>> GetVelocityAlertHeatmap(CancellationToken ct)
-        => await Mediator.Send(new GetRegulatorVelocityAlertHeatmapQuery(), ct);
+    public async Task<Response<RegulatorVelocityAlertHeatmapDto>> GetVelocityAlertHeatmap(
+        [FromQuery] GetRegulatorVelocityAlertHeatmapQuery query,
+        CancellationToken ct)
+        => await Mediator.Send(query, ct);
 }

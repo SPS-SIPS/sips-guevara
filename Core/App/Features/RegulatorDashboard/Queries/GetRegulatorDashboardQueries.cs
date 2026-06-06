@@ -4,19 +4,19 @@ using System.Text.Json;
 namespace SPSS.App.Features.RegulatorDashboard.Queries;
 
 [Authorize(Roles = QueryTransactions)]
-public sealed record GetRegulatorMonitoringCardsQuery(DateTimeOffset? From, DateTimeOffset? To)
+public sealed record GetRegulatorMonitoringCardsQuery(string? Period, DateTimeOffset? From, DateTimeOffset? To)
     : IRequest<Response<List<RegulatorMonitoringCardDto>>>;
 
 [Authorize(Roles = QueryTransactions)]
-public sealed record GetRegulatorTransactionVolumeHourlyQuery(DateTimeOffset? From, DateTimeOffset? To)
+public sealed record GetRegulatorTransactionVolumeHourlyQuery(string? Period, DateTimeOffset? From, DateTimeOffset? To)
     : IRequest<Response<Dictionary<string, int>>>;
 
 [Authorize(Roles = QueryTransactions)]
-public sealed record GetRegulatorVelocityAlertsQuery(int Limit = 20)
+public sealed record GetRegulatorVelocityAlertsQuery(string? Period, DateTimeOffset? From, DateTimeOffset? To, int Limit = 20)
     : IRequest<Response<List<RegulatorVelocityAlertDto>>>;
 
 [Authorize(Roles = QueryTransactions)]
-public sealed record GetRegulatorVelocityAlertHeatmapQuery()
+public sealed record GetRegulatorVelocityAlertHeatmapQuery(string? Period, DateTimeOffset? From, DateTimeOffset? To)
     : IRequest<Response<RegulatorVelocityAlertHeatmapDto>>;
 
 public sealed class GetRegulatorMonitoringCardsQueryHandler(IStorageBroker storage)
@@ -28,7 +28,7 @@ public sealed class GetRegulatorMonitoringCardsQueryHandler(IStorageBroker stora
         GetRegulatorMonitoringCardsQuery request,
         CancellationToken cancellationToken)
     {
-        var (from, to) = RegulatorDashboardQueryHelpers.ResolveWindow(request.From, request.To);
+        var (from, to) = RegulatorDashboardQueryHelpers.ResolveWindow(request.Period, request.From, request.To);
 
         var successfulQuery = _storage.NetSettlementDetails
             .AsNoTracking()
@@ -36,7 +36,7 @@ public sealed class GetRegulatorMonitoringCardsQueryHandler(IStorageBroker stora
 
         var successfulCount = await successfulQuery.CountAsync(cancellationToken);
         var successfulValue = await successfulQuery.SumAsync(x => (decimal?)x.Amount, cancellationToken) ?? 0;
-        var report = await RegulatorDashboardQueryHelpers.GetLatestComplianceReportAsync(_storage, cancellationToken);
+        var report = await RegulatorDashboardQueryHelpers.GetLatestComplianceReportAsync(_storage, from, to, cancellationToken);
 
         var failedToSuccessfulBps = successfulCount == 0 || report is null
             ? 0
@@ -87,7 +87,7 @@ public sealed class GetRegulatorTransactionVolumeHourlyQueryHandler(IStorageBrok
         GetRegulatorTransactionVolumeHourlyQuery request,
         CancellationToken cancellationToken)
     {
-        var (from, to) = RegulatorDashboardQueryHelpers.ResolveWindow(request.From, request.To);
+        var (from, to) = RegulatorDashboardQueryHelpers.ResolveWindow(request.Period, request.From, request.To);
 
         var counts = await _storage.NetSettlementDetails
             .AsNoTracking()
@@ -118,12 +118,14 @@ public sealed class GetRegulatorVelocityAlertsQueryHandler(IStorageBroker storag
         GetRegulatorVelocityAlertsQuery request,
         CancellationToken cancellationToken)
     {
-        var report = await RegulatorDashboardQueryHelpers.GetLatestComplianceReportAsync(_storage, cancellationToken);
+        var (from, to) = RegulatorDashboardQueryHelpers.ResolveWindow(request.Period, request.From, request.To);
+        var report = await RegulatorDashboardQueryHelpers.GetLatestComplianceReportAsync(_storage, from, to, cancellationToken);
         if (report is null)
         {
             return new Response<List<RegulatorVelocityAlertDto>>([]);
         }
 
+        var participantNames = await RegulatorDashboardQueryHelpers.LoadParticipantNamesAsync(_storage, cancellationToken);
         var timestamp = report.WindowEnd.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
         var alerts = report.Findings
             .OrderByDescending(x => x.RiskScore)
@@ -133,7 +135,7 @@ public sealed class GetRegulatorVelocityAlertsQueryHandler(IStorageBroker storag
             {
                 Id = (index + 1).ToString(CultureInfo.InvariantCulture),
                 AlertId = $"VA-{report.WindowEnd:yyyy}-{report.Id:0000}-{index + 1:00}",
-                Institution = RegulatorDashboardQueryHelpers.DisplayName(finding.ActorName, finding.ActorKey),
+                Institution = RegulatorDashboardQueryHelpers.DisplayName(finding.ActorName, finding.ActorKey, participantNames),
                 Pattern = RegulatorDashboardQueryHelpers.ToPatternName(finding.FindingType),
                 TxCount = finding.CurrentCount,
                 TimeWindow = RegulatorDashboardQueryHelpers.FormatWindow(report.WindowStart, report.WindowEnd),
@@ -159,14 +161,16 @@ public sealed class GetRegulatorVelocityAlertHeatmapQueryHandler(IStorageBroker 
         GetRegulatorVelocityAlertHeatmapQuery request,
         CancellationToken cancellationToken)
     {
-        var report = await RegulatorDashboardQueryHelpers.GetLatestComplianceReportAsync(_storage, cancellationToken);
+        var (from, to) = RegulatorDashboardQueryHelpers.ResolveWindow(request.Period, request.From, request.To);
+        var report = await RegulatorDashboardQueryHelpers.GetLatestComplianceReportAsync(_storage, from, to, cancellationToken);
         if (report is null)
         {
             return new Response<RegulatorVelocityAlertHeatmapDto>(new RegulatorVelocityAlertHeatmapDto());
         }
 
+        var participantNames = await RegulatorDashboardQueryHelpers.LoadParticipantNamesAsync(_storage, cancellationToken);
         var institutions = report.Findings
-            .GroupBy(x => RegulatorDashboardQueryHelpers.DisplayName(x.ActorName, x.ActorKey))
+            .GroupBy(x => RegulatorDashboardQueryHelpers.DisplayName(x.ActorName, x.ActorKey, participantNames))
             .Select(group =>
             {
                 var patterns = new RegulatorVelocityAlertPatternsDto();
@@ -202,10 +206,13 @@ internal static class RegulatorDashboardQueryHelpers
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    public static (DateTimeOffset From, DateTimeOffset To) ResolveWindow(DateTimeOffset? from, DateTimeOffset? to)
+    public static (DateTimeOffset From, DateTimeOffset To) ResolveWindow(
+        string? period,
+        DateTimeOffset? from,
+        DateTimeOffset? to)
     {
         var resolvedTo = to ?? DateTimeOffset.UtcNow;
-        var resolvedFrom = from ?? resolvedTo.AddHours(-24);
+        var resolvedFrom = from ?? ResolvePeriodStart(period, resolvedTo);
 
         return resolvedFrom <= resolvedTo
             ? (resolvedFrom, resolvedTo)
@@ -214,10 +221,13 @@ internal static class RegulatorDashboardQueryHelpers
 
     public static async Task<FailedTransactionComplianceReportDto?> GetLatestComplianceReportAsync(
         IStorageBroker storage,
+        DateTimeOffset from,
+        DateTimeOffset to,
         CancellationToken cancellationToken)
     {
         var report = await storage.FailedTransactionComplianceReports
             .AsNoTracking()
+            .Where(x => x.WindowEnd > from && x.WindowStart < to)
             .OrderByDescending(x => x.WindowStart)
             .Select(x => new
             {
@@ -238,8 +248,39 @@ internal static class RegulatorDashboardQueryHelpers
         return dto;
     }
 
-    public static string DisplayName(string? name, string key)
-        => string.IsNullOrWhiteSpace(name) ? key : name;
+    public static async Task<Dictionary<string, string>> LoadParticipantNamesAsync(
+        IStorageBroker storage,
+        CancellationToken cancellationToken)
+        => await storage.Participants
+            .AsNoTracking()
+            .Where(x => x.BicNo != string.Empty)
+            .Select(x => new
+            {
+                x.BicNo,
+                x.Name
+            })
+            .ToDictionaryAsync(x => x.BicNo, x => x.Name, StringComparer.OrdinalIgnoreCase, cancellationToken);
+
+    public static string DisplayName(string? name, string key, IReadOnlyDictionary<string, string> participantNames)
+    {
+        if (!string.IsNullOrWhiteSpace(name) && !string.Equals(name, key, StringComparison.OrdinalIgnoreCase))
+        {
+            return name;
+        }
+
+        if (participantNames.TryGetValue(key, out var participantName))
+        {
+            return participantName;
+        }
+
+        if (key.Contains("->", StringComparison.Ordinal))
+        {
+            var parts = key.Split("->", StringSplitOptions.TrimEntries);
+            return string.Join("->", parts.Select(part => participantNames.TryGetValue(part, out var mapped) ? mapped : part));
+        }
+
+        return key;
+    }
 
     public static string FormatWindow(DateTimeOffset from, DateTimeOffset to)
     {
@@ -295,6 +336,33 @@ internal static class RegulatorDashboardQueryHelpers
             "FAILED_AND_PROCESSED_SAME_DEBTOR" => DashboardPattern.BurstP2M,
             _ => DashboardPattern.Velocity
         };
+
+    private static DateTimeOffset ResolvePeriodStart(string? period, DateTimeOffset to)
+    {
+        var normalized = NormalizePeriod(period);
+        return normalized switch
+        {
+            "last-hour" => to.AddHours(-1),
+            "last-24-hours" => to.AddHours(-24),
+            "today" => new DateTimeOffset(to.Date, to.Offset),
+            "yesterday" => new DateTimeOffset(to.Date, to.Offset).AddDays(-1),
+            "week-to-date" => new DateTimeOffset(to.Date, to.Offset).AddDays(-DaysFromMonday(to.DayOfWeek)),
+            "month-to-date" => new DateTimeOffset(to.Year, to.Month, 1, 0, 0, 0, to.Offset),
+            "last-week" => to.AddDays(-7),
+            "last-month" => to.AddMonths(-1),
+            "last-quarter" => to.AddMonths(-3),
+            "last-year" => to.AddYears(-1),
+            _ => new DateTimeOffset(to.Date, to.Offset)
+        };
+    }
+
+    private static string NormalizePeriod(string? period)
+        => string.IsNullOrWhiteSpace(period)
+            ? "today"
+            : period.Trim().ToLowerInvariant().Replace("_", "-").Replace(" ", "-");
+
+    private static int DaysFromMonday(DayOfWeek dayOfWeek)
+        => dayOfWeek == DayOfWeek.Sunday ? 6 : (int)dayOfWeek - (int)DayOfWeek.Monday;
 
     private enum DashboardPattern
     {
