@@ -30,4 +30,10 @@ public class RegulatorDashboardController : BaseController
         [FromQuery] GetRegulatorVelocityAlertHeatmapQuery query,
         CancellationToken ct)
         => await Mediator.Send(query, ct);
+
+    [HttpGet("participant-availability")]
+    public async Task<Response<RegulatorParticipantAvailabilityDashboardDto>> GetParticipantAvailability(
+        [FromQuery] GetRegulatorParticipantAvailabilityQuery query,
+        CancellationToken ct)
+        => await Mediator.Send(query, ct);
 }

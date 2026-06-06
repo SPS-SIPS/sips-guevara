@@ -19,6 +19,10 @@ public sealed record GetRegulatorVelocityAlertsQuery(string? Period, DateTimeOff
 public sealed record GetRegulatorVelocityAlertHeatmapQuery(string? Period, DateTimeOffset? From, DateTimeOffset? To)
     : IRequest<Response<RegulatorVelocityAlertHeatmapDto>>;
 
+[Authorize(Roles = QueryTransactions)]
+public sealed record GetRegulatorParticipantAvailabilityQuery(string? Period, DateTimeOffset? From, DateTimeOffset? To)
+    : IRequest<Response<RegulatorParticipantAvailabilityDashboardDto>>;
+
 public sealed class GetRegulatorMonitoringCardsQueryHandler(IStorageBroker storage)
     : IRequestHandler<GetRegulatorMonitoringCardsQuery, Response<List<RegulatorMonitoringCardDto>>>
 {
@@ -37,6 +41,7 @@ public sealed class GetRegulatorMonitoringCardsQueryHandler(IStorageBroker stora
         var successfulCount = await successfulQuery.CountAsync(cancellationToken);
         var successfulValue = await successfulQuery.SumAsync(x => (decimal?)x.Amount, cancellationToken) ?? 0;
         var report = await RegulatorDashboardQueryHelpers.GetLatestComplianceReportAsync(_storage, from, to, cancellationToken);
+        var availability = await RegulatorDashboardQueryHelpers.BuildParticipantAvailabilityAsync(_storage, from, to, cancellationToken);
 
         var failedToSuccessfulBps = successfulCount == 0 || report is null
             ? 0
@@ -71,6 +76,20 @@ public sealed class GetRegulatorMonitoringCardsQueryHandler(IStorageBroker stora
                 Title = "Successful Settlement Value",
                 Value = successfulValue.ToString("N2", CultureInfo.InvariantCulture),
                 Description = "Total value excluding fee transactions"
+            },
+            new()
+            {
+                Id = 5,
+                Title = "Endpoint Availability",
+                Value = $"{availability.Summary.UptimePercent:0.##}%",
+                Description = $"{availability.Summary.SuccessChecks:N0} successful of {availability.Summary.TotalChecks:N0} checks"
+            },
+            new()
+            {
+                Id = 6,
+                Title = "Offline Participants",
+                Value = availability.Summary.OfflineParticipants.ToString("N0", CultureInfo.InvariantCulture),
+                Description = $"{availability.Summary.OpenIncidents:N0} with active incidents"
             }
         };
 
@@ -202,6 +221,22 @@ public sealed class GetRegulatorVelocityAlertHeatmapQueryHandler(IStorageBroker 
     }
 }
 
+public sealed class GetRegulatorParticipantAvailabilityQueryHandler(IStorageBroker storage)
+    : IRequestHandler<GetRegulatorParticipantAvailabilityQuery, Response<RegulatorParticipantAvailabilityDashboardDto>>
+{
+    private readonly IStorageBroker _storage = storage;
+
+    public async ValueTask<Response<RegulatorParticipantAvailabilityDashboardDto>> Handle(
+        GetRegulatorParticipantAvailabilityQuery request,
+        CancellationToken cancellationToken)
+    {
+        var (from, to) = RegulatorDashboardQueryHelpers.ResolveWindow(request.Period, request.From, request.To);
+        var availability = await RegulatorDashboardQueryHelpers.BuildParticipantAvailabilityAsync(_storage, from, to, cancellationToken);
+
+        return new Response<RegulatorParticipantAvailabilityDashboardDto>(availability);
+    }
+}
+
 internal static class RegulatorDashboardQueryHelpers
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
@@ -290,6 +325,99 @@ internal static class RegulatorDashboardQueryHelpers
             : $"{from:HH:mm} - {to:HH:mm}";
     }
 
+    public static async Task<RegulatorParticipantAvailabilityDashboardDto> BuildParticipantAvailabilityAsync(
+        IStorageBroker storage,
+        DateTimeOffset from,
+        DateTimeOffset to,
+        CancellationToken cancellationToken)
+    {
+        var statuses = await storage.ParticipantStatuses
+            .AsNoTracking()
+            .Select(x => new
+            {
+                x.InstitutionBic,
+                x.InstitutionName,
+                x.IsLive,
+                x.LastCheckedAt,
+                x.LastStatusChangeAt,
+                x.ConsecutiveFailures,
+                x.ConsecutiveSuccesses,
+                x.LastError
+            })
+            .ToListAsync(cancellationToken);
+
+        var history = await storage.MonitHistories
+            .AsNoTracking()
+            .Where(x => x.CheckedAt >= from && x.CheckedAt < to)
+            .GroupBy(x => x.InstitutionBic)
+            .Select(x => new
+            {
+                InstitutionBic = x.Key,
+                InstitutionName = x.Select(h => h.InstitutionName).FirstOrDefault(),
+                TotalChecks = x.Count(),
+                SuccessChecks = x.Count(h => h.Success),
+                FailedChecks = x.Count(h => !h.Success),
+                LastFailureAt = x.Where(h => !h.Success).Max(h => (DateTimeOffset?)h.CheckedAt)
+            })
+            .ToListAsync(cancellationToken);
+
+        var historyByBic = history.ToDictionary(x => x.InstitutionBic, StringComparer.OrdinalIgnoreCase);
+        var knownBics = statuses
+            .Select(x => x.InstitutionBic)
+            .Concat(history.Select(x => x.InstitutionBic))
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x)
+            .ToList();
+
+        var participants = knownBics.Select(bic =>
+        {
+            var status = statuses.FirstOrDefault(x => string.Equals(x.InstitutionBic, bic, StringComparison.OrdinalIgnoreCase));
+            historyByBic.TryGetValue(bic, out var participantHistory);
+
+            return new RegulatorParticipantAvailabilityDto
+            {
+                InstitutionBic = bic,
+                InstitutionName = FirstNonEmpty(status?.InstitutionName, participantHistory?.InstitutionName, bic),
+                IsLive = status?.IsLive ?? participantHistory?.FailedChecks == 0,
+                LastCheckedAt = status?.LastCheckedAt ?? default,
+                LastStatusChangeAt = status?.LastStatusChangeAt ?? default,
+                ConsecutiveFailures = status?.ConsecutiveFailures ?? 0,
+                ConsecutiveSuccesses = status?.ConsecutiveSuccesses ?? 0,
+                LastError = status?.LastError,
+                TotalChecks = participantHistory?.TotalChecks ?? 0,
+                SuccessChecks = participantHistory?.SuccessChecks ?? 0,
+                FailedChecks = participantHistory?.FailedChecks ?? 0,
+                UptimePercent = CalculateUptime(participantHistory?.SuccessChecks ?? 0, participantHistory?.TotalChecks ?? 0),
+                LastFailureAt = participantHistory?.LastFailureAt
+            };
+        })
+        .OrderBy(x => x.IsLive)
+        .ThenByDescending(x => x.ConsecutiveFailures)
+        .ThenBy(x => x.InstitutionName)
+        .ToList();
+
+        var totalChecks = participants.Sum(x => x.TotalChecks);
+        var successChecks = participants.Sum(x => x.SuccessChecks);
+        var failedChecks = participants.Sum(x => x.FailedChecks);
+
+        return new RegulatorParticipantAvailabilityDashboardDto
+        {
+            Summary = new RegulatorParticipantAvailabilitySummaryDto
+            {
+                TotalParticipants = participants.Count,
+                LiveParticipants = participants.Count(x => x.IsLive),
+                OfflineParticipants = participants.Count(x => !x.IsLive),
+                OpenIncidents = participants.Count(x => !x.IsLive || x.ConsecutiveFailures > 0),
+                TotalChecks = totalChecks,
+                SuccessChecks = successChecks,
+                FailedChecks = failedChecks,
+                UptimePercent = CalculateUptime(successChecks, totalChecks)
+            },
+            Participants = participants
+        };
+    }
+
     public static string ToPatternName(string findingType)
         => ToPatternBucket(findingType) switch
         {
@@ -337,6 +465,9 @@ internal static class RegulatorDashboardQueryHelpers
             _ => DashboardPattern.Velocity
         };
 
+    private static double CalculateUptime(int successChecks, int totalChecks)
+        => totalChecks == 0 ? 0 : Math.Round(successChecks * 100.0 / totalChecks, 2, MidpointRounding.AwayFromZero);
+
     private static DateTimeOffset ResolvePeriodStart(string? period, DateTimeOffset to)
     {
         var normalized = NormalizePeriod(period);
@@ -363,6 +494,9 @@ internal static class RegulatorDashboardQueryHelpers
 
     private static int DaysFromMonday(DayOfWeek dayOfWeek)
         => dayOfWeek == DayOfWeek.Sunday ? 6 : (int)dayOfWeek - (int)DayOfWeek.Monday;
+
+    private static string FirstNonEmpty(params string?[] values)
+        => values.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x)) ?? string.Empty;
 
     private enum DashboardPattern
     {

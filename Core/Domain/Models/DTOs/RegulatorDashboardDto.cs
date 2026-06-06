@@ -46,3 +46,38 @@ public sealed class RegulatorVelocityAlertPatternsDto
     public int Structuring { get; set; }
     public int BurstP2M { get; set; }
 }
+
+public sealed class RegulatorParticipantAvailabilityDashboardDto
+{
+    public RegulatorParticipantAvailabilitySummaryDto Summary { get; set; } = new();
+    public List<RegulatorParticipantAvailabilityDto> Participants { get; set; } = [];
+}
+
+public sealed class RegulatorParticipantAvailabilitySummaryDto
+{
+    public int TotalParticipants { get; set; }
+    public int LiveParticipants { get; set; }
+    public int OfflineParticipants { get; set; }
+    public int OpenIncidents { get; set; }
+    public int TotalChecks { get; set; }
+    public int SuccessChecks { get; set; }
+    public int FailedChecks { get; set; }
+    public double UptimePercent { get; set; }
+}
+
+public sealed class RegulatorParticipantAvailabilityDto
+{
+    public string InstitutionBic { get; set; } = string.Empty;
+    public string InstitutionName { get; set; } = string.Empty;
+    public bool IsLive { get; set; }
+    public DateTimeOffset LastCheckedAt { get; set; }
+    public DateTimeOffset LastStatusChangeAt { get; set; }
+    public int ConsecutiveFailures { get; set; }
+    public int ConsecutiveSuccesses { get; set; }
+    public string? LastError { get; set; }
+    public int TotalChecks { get; set; }
+    public int SuccessChecks { get; set; }
+    public int FailedChecks { get; set; }
+    public double UptimePercent { get; set; }
+    public DateTimeOffset? LastFailureAt { get; set; }
+}
