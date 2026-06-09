@@ -8,7 +8,10 @@ public sealed record GetFailedTransactionsQuery(
     string? BankFrom,
     string? BankTo,
     DateTimeOffset? CreatedDate,
+    DateTimeOffset? From,
+    DateTimeOffset? To,
     string? TxId,
+    string? Type,
     string? Status,
     long? SttlId,
     string? DbtrAcctId,
@@ -40,9 +43,24 @@ public sealed class GetFailedTransactionsQueryHandler(IStorageBroker storage)
             query = query.Where(x => x.CreatedDate >= from && x.CreatedDate < to);
         }
 
+        if (request.From.HasValue)
+        {
+            query = query.Where(x => x.CreatedDate >= request.From.Value);
+        }
+
+        if (request.To.HasValue)
+        {
+            query = query.Where(x => x.CreatedDate < request.To.Value);
+        }
+
         if (!string.IsNullOrWhiteSpace(request.TxId))
         {
             query = query.Where(x => x.TxId == request.TxId);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Type))
+        {
+            query = query.Where(x => x.Type == request.Type);
         }
 
         if (!string.IsNullOrWhiteSpace(request.Status))
