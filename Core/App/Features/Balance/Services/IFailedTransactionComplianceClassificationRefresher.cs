@@ -88,6 +88,9 @@ public sealed class FailedTransactionComplianceClassificationRefresher(IStorageB
             .Where(x => x.Value.Count > 0)
             .Select(x => x.Key)
             .ToHashSet();
+        var ruleLabels = await GetRuleLabelsAsync(
+            assignments.SelectMany(x => x.Value),
+            cancellationToken);
 
         report.Summary.ClassifiedFailedTransactions = classifiedIds.Count;
         report.Summary.UnclassifiedFailedTransactions = Math.Max(0, transactions.Count - classifiedIds.Count);
@@ -105,7 +108,7 @@ public sealed class FailedTransactionComplianceClassificationRefresher(IStorageB
             .Select(x => new FailedTransactionComplianceDimensionDto
             {
                 Key = x.Key,
-                Name = x.Key,
+                Name = RuleName(x.Key, ruleLabels),
                 CurrentCount = x.Count(),
                 TotalAmount = x.Sum(t => ParseAmount(t.Amount))
             })
@@ -120,6 +123,27 @@ public sealed class FailedTransactionComplianceClassificationRefresher(IStorageB
             finding.RuleIds = NormalizeRuleIds(ruleIds);
         }
     }
+
+    private async Task<Dictionary<string, string>> GetRuleLabelsAsync(
+        IEnumerable<string> ruleIds,
+        CancellationToken cancellationToken)
+    {
+        var ids = NormalizeRuleIds(ruleIds);
+        if (ids.Count == 0)
+        {
+            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        return await _storage.FailedTransactionRuleDefinitions
+            .AsNoTracking()
+            .Where(x => ids.Contains(x.RuleId) && x.Active)
+            .ToDictionaryAsync(x => x.RuleId, x => x.Label, StringComparer.OrdinalIgnoreCase, cancellationToken);
+    }
+
+    private static string RuleName(string ruleId, Dictionary<string, string> ruleLabels)
+        => ruleLabels.TryGetValue(ruleId, out var label) && !string.IsNullOrWhiteSpace(label)
+            ? label
+            : ruleId;
 
     private static List<string> NormalizeRuleIds(IEnumerable<string>? ruleIds)
     {

@@ -32,6 +32,18 @@ public class FailedTransactionsController : BaseController
     public async Task<Response<long>> PutRules([FromBody] UpdateFailedTransactionRuleIdsCommand command, CancellationToken ct)
         => await Mediator.Send(command, ct);
 
+    [HttpGet("rules/definitions")]
+    public async Task<PagedResponse<FailedTransactionRuleDefinitionDto>> GetRuleDefinitions(
+        [FromQuery] GetFailedTransactionRuleDefinitionsQuery query,
+        CancellationToken ct)
+        => await Mediator.Send(query, ct);
+
+    [HttpPut("rules/definitions")]
+    public async Task<Response<FailedTransactionRuleDefinitionDto>> PutRuleDefinition(
+        [FromBody] UpsertFailedTransactionRuleDefinitionCommand command,
+        CancellationToken ct)
+        => await Mediator.Send(command, ct);
+
     [HttpPost("rules/csv")]
     public async Task<Response<FailedTransactionRuleIdsCsvUploadResultDto>> UploadRulesCsv([FromForm] IFormFile file, CancellationToken ct)
     {

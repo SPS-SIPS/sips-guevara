@@ -116,6 +116,10 @@ public sealed class FailedTransactionComplianceReportWorker(
                     transaction.RuleIds = NormalizeRuleIds(ruleIds);
                 }
             }
+            var ruleLabels = await GetRuleLabelsAsync(
+                storage,
+                failedTransactions.SelectMany(x => x.RuleIds),
+                cancellationToken);
 
             var processedTransactions = await storage.ProcessedTransactions
                 .AsNoTracking()
@@ -166,7 +170,8 @@ public sealed class FailedTransactionComplianceReportWorker(
                 baselineFailed,
                 currentProcessed,
                 baselineProcessed,
-                reconciliation);
+                reconciliation,
+                ruleLabels);
             var reportJson = JsonSerializer.Serialize(report, JsonOptions);
 
             var entity = await storage.FailedTransactionComplianceReports
@@ -213,7 +218,8 @@ public sealed class FailedTransactionComplianceReportWorker(
         List<ComplianceTransaction> baseline,
         List<ComplianceTransaction> currentProcessed,
         List<ComplianceTransaction> baselineProcessed,
-        FailedTransactionComplianceReconciliationDto reconciliation)
+        FailedTransactionComplianceReconciliationDto reconciliation,
+        Dictionary<string, string> ruleLabels)
     {
         var baselineAverageHourly = Divide(baseline.Count, Math.Max(1, _config.BaselineHours));
         var baselineProcessedAverageHourly = Divide(baselineProcessed.Count, Math.Max(1, _config.BaselineHours));
@@ -282,7 +288,7 @@ public sealed class FailedTransactionComplianceReportWorker(
                 TopProcessedDebtors = BuildTopDimensions(currentProcessed, baselineProcessed, x => x.DbtrAcctId, x => x.DbtrName),
                 TopProcessedRoutes = BuildTopDimensions(currentProcessed, baselineProcessed, x => JoinKey(x.BankFrom, x.BankTo), x => JoinKey(x.BankFromName, x.BankToName)),
                 TopErrors = BuildTopDimensions(current, baseline, x => x.ErrorReason, x => x.Error),
-                TopRuleIds = BuildTopRuleIdDimensions(current, baseline)
+                TopRuleIds = BuildTopRuleIdDimensions(current, baseline, ruleLabels)
             },
             Findings = findings
         };
@@ -720,7 +726,8 @@ public sealed class FailedTransactionComplianceReportWorker(
 
     private List<FailedTransactionComplianceDimensionDto> BuildTopRuleIdDimensions(
         List<ComplianceTransaction> current,
-        List<ComplianceTransaction> baseline)
+        List<ComplianceTransaction> baseline,
+        Dictionary<string, string> ruleLabels)
     {
         var baselineCounts = baseline
             .SelectMany(x => x.RuleIds)
@@ -742,7 +749,7 @@ public sealed class FailedTransactionComplianceReportWorker(
                 return new FailedTransactionComplianceDimensionDto
                 {
                     Key = group.Key,
-                    Name = group.Key,
+                    Name = RuleName(group.Key, ruleLabels),
                     CurrentCount = group.Count(),
                     BaselineCount = baselineCount,
                     BaselineAverageHourly = baselineAverageHourly,
@@ -916,6 +923,28 @@ public sealed class FailedTransactionComplianceReportWorker(
     {
         return NormalizeRuleIds(transactions.SelectMany(x => x.RuleIds));
     }
+
+    private static async Task<Dictionary<string, string>> GetRuleLabelsAsync(
+        IStorageBroker storage,
+        IEnumerable<string> ruleIds,
+        CancellationToken cancellationToken)
+    {
+        var ids = NormalizeRuleIds(ruleIds);
+        if (ids.Count == 0)
+        {
+            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        return await storage.FailedTransactionRuleDefinitions
+            .AsNoTracking()
+            .Where(x => ids.Contains(x.RuleId) && x.Active)
+            .ToDictionaryAsync(x => x.RuleId, x => x.Label, StringComparer.OrdinalIgnoreCase, cancellationToken);
+    }
+
+    private static string RuleName(string ruleId, Dictionary<string, string> ruleLabels)
+        => ruleLabels.TryGetValue(ruleId, out var label) && !string.IsNullOrWhiteSpace(label)
+            ? label
+            : ruleId;
 
     private sealed class ComplianceTransaction
     {

@@ -33,6 +33,24 @@ public sealed class UploadFailedTransactionRuleIdsCsvCommandHandler(
             return Response<FailedTransactionRuleIdsCsvUploadResultDto>.BadRequest("CSV file has no valid rows", result);
         }
 
+        var uploadedRuleIds = rows
+            .SelectMany(x => x.RuleIds)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        var knownRuleIds = uploadedRuleIds.Count == 0
+            ? []
+            : await _storage.FailedTransactionRuleDefinitions
+                .AsNoTracking()
+                .Where(x => uploadedRuleIds.Contains(x.RuleId))
+                .Select(x => x.RuleId)
+                .ToListAsync(cancellationToken);
+        var knownRuleIdSet = knownRuleIds.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        result.UnknownRuleIds = uploadedRuleIds
+            .Where(x => !knownRuleIdSet.Contains(x))
+            .Order()
+            .ToList();
+        result.UnknownRuleIdCount = result.UnknownRuleIds.Count;
+
         var ipsTransactionIds = rows.Select(x => x.IpsTransactionId).Distinct().ToList();
         var existingTransactionIds = await _storage.FailedTransactions
             .Where(x => ipsTransactionIds.Contains(x.Id))

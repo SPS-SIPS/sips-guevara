@@ -20,6 +20,7 @@ public sealed class StorageBroker(DbContextOptions<StorageBroker> options) : DbC
     public DbSet<ParticipantThreshold> ParticipantThresholds { get; set; } = null!;
     public DbSet<FailedTransaction> FailedTransactions { get; set; } = null!;
     public DbSet<FailedTransactionRuleAssignment> FailedTransactionRuleAssignments { get; set; } = null!;
+    public DbSet<FailedTransactionRuleDefinition> FailedTransactionRuleDefinitions { get; set; } = null!;
     public DbSet<FailedTransactionComplianceReport> FailedTransactionComplianceReports { get; set; } = null!;
     public DbSet<TransactionIngestionBatch> TransactionIngestionBatches { get; set; } = null!;
     public DbSet<ProcessedTransaction> ProcessedTransactions { get; set; } = null!;

@@ -448,6 +448,57 @@ namespace SPSS.Infrastructure.Migrations
                     b.ToTable("failedtransactionruleassignments", (string)null);
                 });
 
+            modelBuilder.Entity("SPSS.Domain.Models.BL.FailedTransactionRuleDefinition", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("Category")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("category");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("label");
+
+                    b.Property<string>("RuleId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("ruleid");
+
+                    b.HasKey("Id")
+                        .HasName("pk_failedtransactionruledefinitions");
+
+                    b.HasIndex("Active")
+                        .HasDatabaseName("ix_failedtransactionruledefinitions_active");
+
+                    b.HasIndex("Category")
+                        .HasDatabaseName("ix_failedtransactionruledefinitions_category");
+
+                    b.HasIndex("RuleId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_failedtransactionruledefinitions_ruleid");
+
+                    b.ToTable("failedtransactionruledefinitions", (string)null);
+                });
+
             modelBuilder.Entity("SPSS.Domain.Models.BL.MonitHistory", b =>
                 {
                     b.Property<int>("Id")
@@ -785,10 +836,6 @@ namespace SPSS.Infrastructure.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("amountvalue");
 
-                    b.Property<string>("AttributesRaw")
-                        .HasColumnType("text")
-                        .HasColumnName("attributesraw");
-
                     b.Property<string>("BankFrom")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -925,10 +972,6 @@ namespace SPSS.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("mandatereqid");
 
-                    b.Property<string>("MessagesRaw")
-                        .HasColumnType("text")
-                        .HasColumnName("messagesraw");
-
                     b.Property<DateTimeOffset?>("ModifiedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("modifiedat");
@@ -1007,14 +1050,6 @@ namespace SPSS.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("transcode");
-
-                    b.Property<string>("TransactionRaw")
-                        .HasColumnType("text")
-                        .HasColumnName("transactionraw");
-
-                    b.Property<string>("TransactionsRaw")
-                        .HasColumnType("text")
-                        .HasColumnName("transactionsraw");
 
                     b.Property<string>("TxId")
                         .IsRequired()
