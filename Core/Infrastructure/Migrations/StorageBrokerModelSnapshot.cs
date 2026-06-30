@@ -754,6 +754,428 @@ namespace SPSS.Infrastructure.Migrations
                     b.ToTable("netsettlementheaders", (string)null);
                 });
 
+            modelBuilder.Entity("SPSS.Domain.Models.BL.OracleTransaction", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AcceptanceDate")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("acceptancedate");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("Amount")
+                        .HasColumnType("text")
+                        .HasColumnName("amount");
+
+                    b.Property<decimal?>("AmountValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amountvalue");
+
+                    b.Property<string>("AttributesRaw")
+                        .HasColumnType("text")
+                        .HasColumnName("attributesraw");
+
+                    b.Property<string>("BankFrom")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("bankfrom");
+
+                    b.Property<string>("BankFromSaPosition")
+                        .HasColumnType("text")
+                        .HasColumnName("bankfromsaposition");
+
+                    b.Property<string>("BankFromWaPosition")
+                        .HasColumnType("text")
+                        .HasColumnName("bankfromwaposition");
+
+                    b.Property<string>("BankTo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("bankto");
+
+                    b.Property<string>("BankToSaPosition")
+                        .HasColumnType("text")
+                        .HasColumnName("banktosaposition");
+
+                    b.Property<string>("BankToWaPosition")
+                        .HasColumnType("text")
+                        .HasColumnName("banktowaposition");
+
+                    b.Property<string>("CdtrAcctId")
+                        .HasColumnType("text")
+                        .HasColumnName("cdtracctid");
+
+                    b.Property<string>("CdtrAcctType")
+                        .HasColumnType("text")
+                        .HasColumnName("cdtraccttype");
+
+                    b.Property<string>("CdtrAddress")
+                        .HasColumnType("text")
+                        .HasColumnName("cdtraddress");
+
+                    b.Property<string>("CdtrName")
+                        .HasColumnType("text")
+                        .HasColumnName("cdtrname");
+
+                    b.Property<string>("CreatedDate")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("createddate");
+
+                    b.Property<string>("CtgyPurp")
+                        .HasColumnType("text")
+                        .HasColumnName("ctgypurp");
+
+                    b.Property<string>("Currency")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("currency");
+
+                    b.Property<string>("DbtrAcctId")
+                        .HasColumnType("text")
+                        .HasColumnName("dbtracctid");
+
+                    b.Property<string>("DbtrAcctType")
+                        .HasColumnType("text")
+                        .HasColumnName("dbtraccttype");
+
+                    b.Property<string>("DbtrAddress")
+                        .HasColumnType("text")
+                        .HasColumnName("dbtraddress");
+
+                    b.Property<string>("DbtrName")
+                        .HasColumnType("text")
+                        .HasColumnName("dbtrname");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<string>("EndToEndId")
+                        .HasColumnType("text")
+                        .HasColumnName("endtoendid");
+
+                    b.Property<string>("ErrDesc")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("errdesc");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("error");
+
+                    b.Property<string>("ErrorReason")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("errorreason");
+
+                    b.Property<string>("Iban")
+                        .HasColumnType("text")
+                        .HasColumnName("iban");
+
+                    b.Property<string>("IntrBkSttlmAtm")
+                        .HasColumnType("text")
+                        .HasColumnName("intrbksttlmatm");
+
+                    b.Property<decimal?>("IntrBkSttlmAtmValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("intrbksttlmatmvalue");
+
+                    b.Property<string>("IntrBkSttlmCurr")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("intrbksttlmcurr");
+
+                    b.Property<string>("LastModifiedDate")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("lastmodifieddate");
+
+                    b.Property<string>("LclInstrm")
+                        .HasColumnType("text")
+                        .HasColumnName("lclinstrm");
+
+                    b.Property<string>("MandateReqId")
+                        .HasColumnType("text")
+                        .HasColumnName("mandatereqid");
+
+                    b.Property<string>("MessagesRaw")
+                        .HasColumnType("text")
+                        .HasColumnName("messagesraw");
+
+                    b.Property<string>("ModifiedDate")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("modifieddate");
+
+                    b.Property<string>("NewBalance")
+                        .HasColumnType("text")
+                        .HasColumnName("newbalance");
+
+                    b.Property<string>("OldBalance")
+                        .HasColumnType("text")
+                        .HasColumnName("oldbalance");
+
+                    b.Property<long>("OracleId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("oracleid");
+
+                    b.Property<string>("OrgTrxId")
+                        .HasColumnType("text")
+                        .HasColumnName("orgtrxid");
+
+                    b.Property<long?>("ParentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("parentid");
+
+                    b.Property<string>("RawPayload")
+                        .HasColumnType("text")
+                        .HasColumnName("rawpayload");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("receivedat");
+
+                    b.Property<string>("RequestId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("requestid");
+
+                    b.Property<string>("RtpId")
+                        .HasColumnType("text")
+                        .HasColumnName("rtpid");
+
+                    b.Property<string>("RtrId")
+                        .HasColumnType("text")
+                        .HasColumnName("rtrid");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("StsRsnInfAddtlInf")
+                        .HasColumnType("text")
+                        .HasColumnName("stsrsninfaddtlinf");
+
+                    b.Property<string>("StsRsnInfRsn")
+                        .HasColumnType("text")
+                        .HasColumnName("stsrsninfrsn");
+
+                    b.Property<long?>("SttlId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("sttlid");
+
+                    b.Property<string>("TransCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("transcode");
+
+                    b.Property<string>("TransactionRaw")
+                        .HasColumnType("text")
+                        .HasColumnName("transactionraw");
+
+                    b.Property<string>("TransactionsRaw")
+                        .HasColumnType("text")
+                        .HasColumnName("transactionsraw");
+
+                    b.Property<string>("TxId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("txid");
+
+                    b.Property<string>("TxSts")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("txsts");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("type");
+
+                    b.Property<string>("TypeDescription")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("typedescription");
+
+                    b.HasKey("Id")
+                        .HasName("pk_oracletransactions");
+
+                    b.HasIndex("BankFrom")
+                        .HasDatabaseName("ix_oracletransactions_bankfrom");
+
+                    b.HasIndex("BankTo")
+                        .HasDatabaseName("ix_oracletransactions_bankto");
+
+                    b.HasIndex("ReceivedAt")
+                        .HasDatabaseName("ix_oracletransactions_receivedat");
+
+                    b.HasIndex("RequestId")
+                        .HasDatabaseName("ix_oracletransactions_requestid");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_oracletransactions_status");
+
+                    b.HasIndex("TxId")
+                        .HasDatabaseName("ix_oracletransactions_txid");
+
+                    b.HasIndex("TxSts")
+                        .HasDatabaseName("ix_oracletransactions_txsts");
+
+                    b.HasIndex("Type")
+                        .HasDatabaseName("ix_oracletransactions_type");
+
+                    b.HasIndex("Source", "OracleId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_oracletransactions_source_oracleid");
+
+                    b.ToTable("oracletransactions", (string)null);
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.OracleTransactionIngestionBatch", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<int>("DuplicateCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("duplicatecount");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("errormessage");
+
+                    b.Property<long>("FromId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("fromid");
+
+                    b.Property<long>("HighWatermarkId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("highwatermarkid");
+
+                    b.Property<int>("InsertedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("insertedcount");
+
+                    b.Property<DateTimeOffset>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processedat");
+
+                    b.Property<DateTimeOffset>("ProducerTimestamp")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("producertimestamp");
+
+                    b.Property<string>("RawPayload")
+                        .HasColumnType("text")
+                        .HasColumnName("rawpayload");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("receivedat");
+
+                    b.Property<int>("ReceivedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("receivedcount");
+
+                    b.Property<int>("RejectedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("rejectedcount");
+
+                    b.Property<List<string>>("SampleErrors")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("sampleerrors");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("status");
+
+                    b.Property<List<string>>("Statuses")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("statuses");
+
+                    b.Property<long>("ToId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("toid");
+
+                    b.Property<int>("TotalCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("totalcount");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("type");
+
+                    b.Property<int>("UpdatedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("updatedcount");
+
+                    b.HasKey("Id")
+                        .HasName("pk_oracletransactioningestionbatches");
+
+                    b.HasIndex("ProcessedAt")
+                        .HasDatabaseName("ix_oracletransactioningestionbatches_processedat");
+
+                    b.HasIndex("ReceivedAt")
+                        .HasDatabaseName("ix_oracletransactioningestionbatches_receivedat");
+
+                    b.HasIndex("Source")
+                        .HasDatabaseName("ix_oracletransactioningestionbatches_source");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_oracletransactioningestionbatches_status");
+
+                    b.HasIndex("Source", "FromId", "ToId", "HighWatermarkId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_oracletransactioningestionbatches_source_fromid_toid_highwa~");
+
+                    b.ToTable("oracletransactioningestionbatches", (string)null);
+                });
+
             modelBuilder.Entity("SPSS.Domain.Models.BL.Participant", b =>
                 {
                     b.Property<string>("Id")

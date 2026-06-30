@@ -24,6 +24,8 @@ public interface IStorageBroker
     DbSet<FailedTransactionComplianceReport> FailedTransactionComplianceReports { get; set; }
     DbSet<TransactionIngestionBatch> TransactionIngestionBatches { get; set; }
     DbSet<ProcessedTransaction> ProcessedTransactions { get; set; }
+    DbSet<OracleTransactionIngestionBatch> OracleTransactionIngestionBatches { get; set; }
+    DbSet<OracleTransaction> OracleTransactions { get; set; }
     DbSet<NetSettlementHeader> NetSettlementHeaders { get; set; }
     DbSet<NetSettlementDetail> NetSettlementDetails { get; set; }
     DbSet<BicStatistic> BicStatistics { get; set; }
