@@ -15,13 +15,11 @@ public sealed class LoggingBehavior<TMessage, TResponse>(ILogger<LoggingBehavior
         if (_identity.IsAuthenticated)
         {
             var username = _identity.Username;
-            _logger.LogError("Request: {Name} username: {username} body: {@Message}",
-            name, username, message);
+            _logger.LogInformation("Request: {Name} username: {username}", name, username);
         }
         else
         {
-            _logger.LogWarning("Request: {Name} username: not authenticated body: {@Message}",
-               name, message);
+            _logger.LogInformation("Request: {Name} username: not authenticated", name);
         }
         return await next(message, cancellationToken);
     }

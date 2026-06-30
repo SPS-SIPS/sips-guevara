@@ -1,3 +1,5 @@
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.AspNetCore.DataProtection;
 using SPSS.API.Installers;
 using SPSS.API.Jobs;
 using Serilog;
@@ -12,6 +14,25 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     options.SuppressModelStateInvalidFilter = true;
 });
 builder.Services.AddHttpContextAccessor();
+var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"];
+if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
+{
+    Directory.CreateDirectory(dataProtectionKeysPath);
+    var dataProtectionBuilder = builder.Services
+        .AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath))
+        .SetApplicationName(builder.Configuration["DataProtection:ApplicationName"] ?? builder.Environment.ApplicationName);
+
+    var dataProtectionCertificatePath = builder.Configuration["DataProtection:CertificatePath"];
+    if (!string.IsNullOrWhiteSpace(dataProtectionCertificatePath))
+    {
+        var dataProtectionCertificatePassword = builder.Configuration["DataProtection:CertificatePassword"];
+        dataProtectionBuilder.ProtectKeysWithCertificate(new X509Certificate2(
+            dataProtectionCertificatePath,
+            dataProtectionCertificatePassword));
+    }
+}
+
 builder.Host.UseSerilog((context, configuration) =>
 {
     configuration

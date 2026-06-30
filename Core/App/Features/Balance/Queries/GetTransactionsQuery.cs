@@ -34,166 +34,215 @@ public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
     {
         var kind = NormalizeKind(request.Kind);
 
-        IQueryable<TransactionRecordDto>? query = null;
+        var oracleQuery = ProjectOracle(ApplyOracleFilters(_storage.OracleTransactions.AsNoTracking(), request));
+        var failedQuery = ProjectFailed(ApplyFailedFilters(_storage.FailedTransactions.AsNoTracking(), request));
+        var processedQuery = ProjectProcessed(ApplyProcessedFilters(_storage.ProcessedTransactions.AsNoTracking(), request));
 
-        if (kind is "oracle" or "all")
+        if (kind is "oracle")
         {
-            query = ApplyOracleFilters(_storage.OracleTransactions.AsNoTracking(), request)
-                .Select(x => new TransactionRecordDto
-                {
-                    Source = x.Source,
-                    Id = x.OracleId,
-                    ParentId = x.ParentId,
-                    BankFrom = x.BankFrom,
-                    BankTo = x.BankTo,
-                    CreatedDate = x.CreatedAt,
-                    ModifiedDate = x.ModifiedAt,
-                    LastModifiedDate = x.LastModifiedAt,
-                    AcceptanceDate = x.AcceptanceAt,
-                    CreatedDateRaw = x.CreatedDate,
-                    ModifiedDateRaw = x.ModifiedDate,
-                    LastModifiedDateRaw = x.LastModifiedDate,
-                    AcceptanceDateRaw = x.AcceptanceDate,
-                    TxId = x.TxId,
-                    Type = x.Type,
-                    TypeDescription = x.TypeDescription,
-                    Amount = x.Amount,
-                    AmountValue = x.AmountValue,
-                    Status = x.Status,
-                    TxSts = x.TxSts,
-                    Description = x.Description,
-                    SttlId = x.SttlId,
-                    Currency = x.Currency,
-                    IntrBkSttlmAtm = x.IntrBkSttlmAtm,
-                    IntrBkSttlmAtmValue = x.IntrBkSttlmAtmValue,
-                    IntrBkSttlmCurr = x.IntrBkSttlmCurr,
-                    DbtrAcctId = x.DbtrAcctId,
-                    DbtrAcctType = x.DbtrAcctType,
-                    DbtrName = x.DbtrName,
-                    DbtrAddress = x.DbtrAddress,
-                    CdtrAcctId = x.CdtrAcctId,
-                    CdtrAcctType = x.CdtrAcctType,
-                    CdtrName = x.CdtrName,
-                    CdtrAddress = x.CdtrAddress,
-                    RequestId = x.RequestId,
-                    TransCode = x.TransCode,
-                    Error = x.Error,
-                    ErrDesc = x.ErrDesc,
-                    ErrorReason = x.ErrorReason,
-                    FailureCode = x.Error,
-                    FailureDescription = x.ErrDesc,
-                    FailureReason = x.ErrorReason ?? x.StsRsnInfAddtlInf ?? x.ErrDesc ?? x.Error,
-                    LocalInstrument = x.LclInstrm,
-                    CategoryPurpose = x.CtgyPurp,
-                    LclInstrm = x.LclInstrm,
-                    CtgyPurp = x.CtgyPurp,
-                    RtrId = x.RtrId,
-                    OldBalance = x.OldBalance,
-                    NewBalance = x.NewBalance,
-                    BankFromSaPosition = x.BankFromSaPosition,
-                    BankToSaPosition = x.BankToSaPosition,
-                    BankFromWaPosition = x.BankFromWaPosition,
-                    BankToWaPosition = x.BankToWaPosition,
-                    EndToEndId = x.EndToEndId,
-                    Iban = x.Iban,
-                    RtpId = x.RtpId,
-                    AttributesRaw = x.AttributesRaw,
-                    OrgTrxId = x.OrgTrxId,
-                    StsRsnInfRsn = x.StsRsnInfRsn,
-                    StsRsnInfAddtlInf = x.StsRsnInfAddtlInf,
-                    MandateReqId = x.MandateReqId,
-                    RawPayload = x.RawPayload,
-                    ReceivedAt = x.ReceivedAt
-                });
+            return await PaginationHelper<TransactionRecordDto>.CreateAsync(
+                oracleQuery.OrderByDescending(x => x.CreatedDate).ThenByDescending(x => x.Id),
+                request,
+                cancellationToken);
         }
 
-        if (kind is "all" or "legacy" or "failed")
+        if (kind is "failed")
         {
-            var failedQuery = ApplyFailedFilters(_storage.FailedTransactions.AsNoTracking(), request)
-                .Select(x => new TransactionRecordDto
-                {
-                    Source = "failed",
-                    Id = x.Id,
-                    BankFrom = x.BankFrom,
-                    BankFromName = x.BankFromName,
-                    BankTo = x.BankTo,
-                    BankToName = x.BankToName,
-                    CreatedDate = x.CreatedDate,
-                    ModifiedDate = x.ModifiedDate,
-                    AcceptanceDate = x.AcceptanceDate,
-                    TxId = x.TxId,
-                    Type = x.Type,
-                    Amount = x.Amount,
-                    Status = x.Status,
-                    Description = x.Description,
-                    SttlId = x.SttlId,
-                    Currency = x.Currency,
-                    IntrBkSttlmAtm = x.IntrBkSttlmAtm,
-                    DbtrAcctId = x.DbtrAcctId,
-                    DbtrAcctType = x.DbtrAcctType,
-                    DbtrName = x.DbtrName,
-                    DbtrAddress = x.DbtrAddress,
-                    CdtrAcctId = x.CdtrAcctId,
-                    CdtrName = x.CdtrName,
-                    CdtrAddress = x.CdtrAddress,
-                    RequestId = x.RequestId,
-                    TransCode = x.TransCode,
-                    Error = x.Error,
-                    ErrorReason = x.ErrorReason,
-                    FailureCode = x.Error,
-                    FailureReason = x.ErrorReason ?? x.Error,
-                    ReceivedAt = null
-                });
-
-            query = query is null ? failedQuery : query.Concat(failedQuery);
+            return await PaginationHelper<TransactionRecordDto>.CreateAsync(
+                failedQuery.OrderByDescending(x => x.CreatedDate).ThenByDescending(x => x.Id),
+                request,
+                cancellationToken);
         }
 
-        if (kind is "all" or "legacy" or "processed")
+        if (kind is "processed")
         {
-            var processedQuery = ApplyProcessedFilters(_storage.ProcessedTransactions.AsNoTracking(), request)
-                .Select(x => new TransactionRecordDto
-                {
-                    Source = "processed",
-                    Id = x.Id,
-                    BankFrom = x.BankFrom,
-                    BankFromName = x.BankFromName,
-                    BankTo = x.BankTo,
-                    BankToName = x.BankToName,
-                    CreatedDate = x.CreatedDate,
-                    ModifiedDate = x.ModifiedDate,
-                    AcceptanceDate = x.AcceptanceDate,
-                    TxId = x.TxId,
-                    Type = x.Type,
-                    Amount = x.Amount,
-                    Status = x.Status,
-                    Description = x.Description,
-                    SttlId = x.SttlId,
-                    Currency = x.Currency,
-                    IntrBkSttlmAtm = x.IntrBkSttlmAtm,
-                    DbtrAcctId = x.DbtrAcctId,
-                    DbtrAcctType = x.DbtrAcctType,
-                    DbtrName = x.DbtrName,
-                    DbtrAddress = x.DbtrAddress,
-                    CdtrAcctId = x.CdtrAcctId,
-                    CdtrName = x.CdtrName,
-                    CdtrAddress = x.CdtrAddress,
-                    RequestId = x.RequestId,
-                    TransCode = x.TransCode,
-                    Error = null,
-                    ErrorReason = null,
-                    FailureCode = null,
-                    FailureReason = null,
-                    ReceivedAt = x.ReceivedAt
-                });
-
-            query = query is null ? processedQuery : query.Concat(processedQuery);
+            return await PaginationHelper<TransactionRecordDto>.CreateAsync(
+                processedQuery.OrderByDescending(x => x.CreatedDate).ThenByDescending(x => x.Id),
+                request,
+                cancellationToken);
         }
 
-        query ??= Enumerable.Empty<TransactionRecordDto>().AsQueryable();
-        query = query.OrderByDescending(x => x.CreatedDate).ThenByDescending(x => x.Id);
+        var queries = kind is "legacy"
+            ? new[] { failedQuery, processedQuery }
+            : new[] { oracleQuery, failedQuery, processedQuery };
 
-        return await PaginationHelper<TransactionRecordDto>.CreateAsync(query, request, cancellationToken);
+        return await CreateCombinedPageAsync(queries, request, cancellationToken);
     }
+
+    private static async ValueTask<PagedResponse<TransactionRecordDto>> CreateCombinedPageAsync(
+        IEnumerable<IQueryable<TransactionRecordDto>> queries,
+        PaginationFilter filter,
+        CancellationToken cancellationToken)
+    {
+        var index = filter.Index < 1 ? 1 : filter.Index;
+        var size = filter.Size is > 500 or < 1 ? 10 : filter.Size;
+        var pageWindow = index * size;
+        var count = 0;
+        var candidates = new List<TransactionRecordDto>();
+
+        foreach (var query in queries)
+        {
+            count += await query.CountAsync(cancellationToken);
+
+            var pageCandidates = await query
+                .OrderByDescending(x => x.CreatedDate)
+                .ThenByDescending(x => x.Id)
+                .Take(pageWindow)
+                .ToListAsync(cancellationToken);
+
+            candidates.AddRange(pageCandidates);
+        }
+
+        var items = candidates
+            .OrderByDescending(x => x.CreatedDate)
+            .ThenByDescending(x => x.Id)
+            .Skip((index - 1) * size)
+            .Take(size)
+            .ToList();
+
+        return new PagedResponse<TransactionRecordDto>
+        {
+            Data = items,
+            Index = index,
+            Size = size,
+            Count = count
+        };
+    }
+
+    private static IQueryable<TransactionRecordDto> ProjectOracle(IQueryable<OracleTransaction> query) =>
+        query.Select(x => new TransactionRecordDto
+        {
+            Source = x.Source,
+            Id = x.OracleId,
+            ParentId = x.ParentId,
+            BankFrom = x.BankFrom,
+            BankTo = x.BankTo,
+            CreatedDate = x.CreatedAt,
+            ModifiedDate = x.ModifiedAt,
+            LastModifiedDate = x.LastModifiedAt,
+            AcceptanceDate = x.AcceptanceAt,
+            CreatedDateRaw = x.CreatedDate,
+            ModifiedDateRaw = x.ModifiedDate,
+            LastModifiedDateRaw = x.LastModifiedDate,
+            AcceptanceDateRaw = x.AcceptanceDate,
+            TxId = x.TxId,
+            Type = x.Type,
+            TypeDescription = x.TypeDescription,
+            Amount = x.Amount,
+            AmountValue = x.AmountValue,
+            Status = x.Status,
+            TxSts = x.TxSts,
+            Description = x.Description,
+            SttlId = x.SttlId,
+            Currency = x.Currency,
+            IntrBkSttlmAtm = x.IntrBkSttlmAtm,
+            IntrBkSttlmAtmValue = x.IntrBkSttlmAtmValue,
+            IntrBkSttlmCurr = x.IntrBkSttlmCurr,
+            DbtrAcctId = x.DbtrAcctId,
+            DbtrAcctType = x.DbtrAcctType,
+            DbtrName = x.DbtrName,
+            DbtrAddress = x.DbtrAddress,
+            CdtrAcctId = x.CdtrAcctId,
+            CdtrAcctType = x.CdtrAcctType,
+            CdtrName = x.CdtrName,
+            CdtrAddress = x.CdtrAddress,
+            RequestId = x.RequestId,
+            TransCode = x.TransCode,
+            Error = x.Error,
+            ErrDesc = x.ErrDesc,
+            ErrorReason = x.ErrorReason,
+            FailureCode = x.Error,
+            FailureDescription = x.ErrDesc,
+            FailureReason = x.ErrorReason ?? x.StsRsnInfAddtlInf ?? x.ErrDesc ?? x.Error,
+            LocalInstrument = x.LclInstrm,
+            CategoryPurpose = x.CtgyPurp,
+            LclInstrm = x.LclInstrm,
+            CtgyPurp = x.CtgyPurp,
+            RtrId = x.RtrId,
+            OldBalance = x.OldBalance,
+            NewBalance = x.NewBalance,
+            BankFromSaPosition = x.BankFromSaPosition,
+            BankToSaPosition = x.BankToSaPosition,
+            BankFromWaPosition = x.BankFromWaPosition,
+            BankToWaPosition = x.BankToWaPosition,
+            EndToEndId = x.EndToEndId,
+            Iban = x.Iban,
+            RtpId = x.RtpId,
+            AttributesRaw = x.AttributesRaw,
+            OrgTrxId = x.OrgTrxId,
+            StsRsnInfRsn = x.StsRsnInfRsn,
+            StsRsnInfAddtlInf = x.StsRsnInfAddtlInf,
+            MandateReqId = x.MandateReqId,
+            RawPayload = x.RawPayload,
+            ReceivedAt = x.ReceivedAt
+        });
+
+    private static IQueryable<TransactionRecordDto> ProjectFailed(IQueryable<FailedTransaction> query) =>
+        query.Select(x => new TransactionRecordDto
+        {
+            Source = "failed",
+            Id = x.Id,
+            BankFrom = x.BankFrom,
+            BankFromName = x.BankFromName,
+            BankTo = x.BankTo,
+            BankToName = x.BankToName,
+            CreatedDate = x.CreatedDate,
+            ModifiedDate = x.ModifiedDate,
+            AcceptanceDate = x.AcceptanceDate,
+            TxId = x.TxId,
+            Type = x.Type,
+            Amount = x.Amount,
+            Status = x.Status,
+            Description = x.Description,
+            SttlId = x.SttlId,
+            Currency = x.Currency,
+            IntrBkSttlmAtm = x.IntrBkSttlmAtm,
+            DbtrAcctId = x.DbtrAcctId,
+            DbtrAcctType = x.DbtrAcctType,
+            DbtrName = x.DbtrName,
+            DbtrAddress = x.DbtrAddress,
+            CdtrAcctId = x.CdtrAcctId,
+            CdtrName = x.CdtrName,
+            CdtrAddress = x.CdtrAddress,
+            RequestId = x.RequestId,
+            TransCode = x.TransCode,
+            Error = x.Error,
+            ErrorReason = x.ErrorReason,
+            FailureCode = x.Error,
+            FailureReason = x.ErrorReason ?? x.Error
+        });
+
+    private static IQueryable<TransactionRecordDto> ProjectProcessed(IQueryable<ProcessedTransaction> query) =>
+        query.Select(x => new TransactionRecordDto
+        {
+            Source = "processed",
+            Id = x.Id,
+            BankFrom = x.BankFrom,
+            BankFromName = x.BankFromName,
+            BankTo = x.BankTo,
+            BankToName = x.BankToName,
+            CreatedDate = x.CreatedDate,
+            ModifiedDate = x.ModifiedDate,
+            AcceptanceDate = x.AcceptanceDate,
+            TxId = x.TxId,
+            Type = x.Type,
+            Amount = x.Amount,
+            Status = x.Status,
+            Description = x.Description,
+            SttlId = x.SttlId,
+            Currency = x.Currency,
+            IntrBkSttlmAtm = x.IntrBkSttlmAtm,
+            DbtrAcctId = x.DbtrAcctId,
+            DbtrAcctType = x.DbtrAcctType,
+            DbtrName = x.DbtrName,
+            DbtrAddress = x.DbtrAddress,
+            CdtrAcctId = x.CdtrAcctId,
+            CdtrName = x.CdtrName,
+            CdtrAddress = x.CdtrAddress,
+            RequestId = x.RequestId,
+            TransCode = x.TransCode,
+            ReceivedAt = x.ReceivedAt
+        });
 
     private static string NormalizeKind(string? kind)
     {
@@ -310,6 +359,11 @@ public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
         IQueryable<FailedTransaction> query,
         GetTransactionsQuery request)
     {
+        if (HasOracleOnlyFilters(request))
+        {
+            return query.Where(_ => false);
+        }
+
         if (!string.IsNullOrWhiteSpace(request.BankFrom))
         {
             query = query.Where(x => x.BankFrom == request.BankFrom);
@@ -384,6 +438,13 @@ public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
         IQueryable<ProcessedTransaction> query,
         GetTransactionsQuery request)
     {
+        if (HasOracleOnlyFilters(request) ||
+            !string.IsNullOrWhiteSpace(request.Error) ||
+            !string.IsNullOrWhiteSpace(request.FailureReason))
+        {
+            return query.Where(_ => false);
+        }
+
         if (!string.IsNullOrWhiteSpace(request.BankFrom))
         {
             query = query.Where(x => x.BankFrom == request.BankFrom);
@@ -443,4 +504,9 @@ public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
 
         return query;
     }
+
+    private static bool HasOracleOnlyFilters(GetTransactionsQuery request) =>
+        !string.IsNullOrWhiteSpace(request.LocalInstrument) ||
+        !string.IsNullOrWhiteSpace(request.CategoryPurpose) ||
+        !string.IsNullOrWhiteSpace(request.TxSts);
 }
