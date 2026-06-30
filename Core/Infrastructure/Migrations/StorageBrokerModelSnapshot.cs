@@ -763,6 +763,10 @@ namespace SPSS.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<DateTimeOffset?>("AcceptanceAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("acceptanceat");
+
                     b.Property<string>("AcceptanceDate")
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)")
@@ -828,6 +832,10 @@ namespace SPSS.Infrastructure.Migrations
                     b.Property<string>("CdtrName")
                         .HasColumnType("text")
                         .HasColumnName("cdtrname");
+
+                    b.Property<DateTimeOffset?>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("createdat");
 
                     b.Property<string>("CreatedDate")
                         .HasMaxLength(40)
@@ -900,6 +908,10 @@ namespace SPSS.Infrastructure.Migrations
                         .HasColumnType("character varying(10)")
                         .HasColumnName("intrbksttlmcurr");
 
+                    b.Property<DateTimeOffset?>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lastmodifiedat");
+
                     b.Property<string>("LastModifiedDate")
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)")
@@ -916,6 +928,10 @@ namespace SPSS.Infrastructure.Migrations
                     b.Property<string>("MessagesRaw")
                         .HasColumnType("text")
                         .HasColumnName("messagesraw");
+
+                    b.Property<DateTimeOffset?>("ModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modifiedat");
 
                     b.Property<string>("ModifiedDate")
                         .HasMaxLength(40)
@@ -1030,6 +1046,9 @@ namespace SPSS.Infrastructure.Migrations
 
                     b.HasIndex("BankTo")
                         .HasDatabaseName("ix_oracletransactions_bankto");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_oracletransactions_createdat");
 
                     b.HasIndex("ReceivedAt")
                         .HasDatabaseName("ix_oracletransactions_receivedat");

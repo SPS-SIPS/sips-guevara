@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Globalization;
 using SPSS.Domain.Models.DTOs;
 
 namespace SPSS.App.Features.Balance.Commands;
@@ -252,9 +253,13 @@ public sealed class ProcessOracleTransactionsWebhookCommandHandler(
         entity.BankFrom = transaction.BankFrom!.Trim();
         entity.BankTo = transaction.BankTo!.Trim();
         entity.CreatedDate = transaction.CreatedDate;
+        entity.CreatedAt = ParseOracleTimestamp(transaction.CreatedDate);
         entity.ModifiedDate = transaction.ModifiedDate;
+        entity.ModifiedAt = ParseOracleTimestamp(transaction.ModifiedDate);
         entity.LastModifiedDate = transaction.LastModifiedDate;
+        entity.LastModifiedAt = ParseOracleTimestamp(transaction.LastModifiedDate);
         entity.AcceptanceDate = transaction.AcceptanceDate;
+        entity.AcceptanceAt = ParseOracleTimestamp(transaction.AcceptanceDate);
         entity.TxId = transaction.TxId!.Trim();
         entity.Type = transaction.Type!.Trim();
         entity.TypeDescription = transaction.TypeDescription;
@@ -318,5 +323,41 @@ public sealed class ProcessOracleTransactionsWebhookCommandHandler(
         }
 
         return value.Value.GetRawText();
+    }
+
+    private static DateTimeOffset? ParseOracleTimestamp(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var formats = new[]
+        {
+            "yyyy-MM-dd HH:mm:ss.FFF",
+            "yyyy-MM-dd HH:mm:ss.FF",
+            "yyyy-MM-dd HH:mm:ss.F",
+            "yyyy-MM-dd HH:mm:ss",
+            "yyyy-MM-dd'T'HH:mm:ss.FFFK",
+            "yyyy-MM-dd'T'HH:mm:ssK"
+        };
+
+        if (DateTimeOffset.TryParseExact(
+                value.Trim(),
+                formats,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                out var parsed))
+        {
+            return parsed;
+        }
+
+        return DateTimeOffset.TryParse(
+            value,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+            out parsed)
+            ? parsed
+            : null;
     }
 }

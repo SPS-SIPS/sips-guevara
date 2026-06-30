@@ -8,9 +8,13 @@ public sealed class OracleTransaction : BaseEntity<long>
     public string BankFrom { get; set; } = string.Empty;
     public string BankTo { get; set; } = string.Empty;
     public string? CreatedDate { get; set; }
+    public DateTimeOffset? CreatedAt { get; set; }
     public string? ModifiedDate { get; set; }
+    public DateTimeOffset? ModifiedAt { get; set; }
     public string? LastModifiedDate { get; set; }
+    public DateTimeOffset? LastModifiedAt { get; set; }
     public string? AcceptanceDate { get; set; }
+    public DateTimeOffset? AcceptanceAt { get; set; }
     public string TxId { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public string? TypeDescription { get; set; }
@@ -97,6 +101,7 @@ public sealed class OracleTransactionConfiguration : IEntityTypeConfiguration<Or
         builder.HasIndex(e => e.Type);
         builder.HasIndex(e => e.Status);
         builder.HasIndex(e => e.TxSts);
+        builder.HasIndex(e => e.CreatedAt);
         builder.HasIndex(e => e.BankFrom);
         builder.HasIndex(e => e.BankTo);
         builder.HasIndex(e => e.RequestId);

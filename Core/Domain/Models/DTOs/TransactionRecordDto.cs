@@ -4,31 +4,67 @@ public sealed class TransactionRecordDto
 {
     public string Source { get; set; } = string.Empty;
     public long Id { get; set; }
+    public long? ParentId { get; set; }
     public string? BankFrom { get; set; }
     public string? BankFromName { get; set; }
     public string? BankTo { get; set; }
     public string? BankToName { get; set; }
     public DateTimeOffset? CreatedDate { get; set; }
     public DateTimeOffset? ModifiedDate { get; set; }
+    public DateTimeOffset? LastModifiedDate { get; set; }
     public DateTimeOffset? AcceptanceDate { get; set; }
+    public string? CreatedDateRaw { get; set; }
+    public string? ModifiedDateRaw { get; set; }
+    public string? LastModifiedDateRaw { get; set; }
+    public string? AcceptanceDateRaw { get; set; }
     public string? TxId { get; set; }
     public string? Type { get; set; }
+    public string? TypeDescription { get; set; }
     public string? Amount { get; set; }
+    public decimal? AmountValue { get; set; }
     public string? Status { get; set; }
+    public string? TxSts { get; set; }
     public string? Description { get; set; }
     public long? SttlId { get; set; }
     public string? Currency { get; set; }
     public string? IntrBkSttlmAtm { get; set; }
+    public decimal? IntrBkSttlmAtmValue { get; set; }
+    public string? IntrBkSttlmCurr { get; set; }
     public string? DbtrAcctId { get; set; }
     public string? DbtrAcctType { get; set; }
     public string? DbtrName { get; set; }
     public string? DbtrAddress { get; set; }
     public string? CdtrAcctId { get; set; }
+    public string? CdtrAcctType { get; set; }
     public string? CdtrName { get; set; }
     public string? CdtrAddress { get; set; }
     public string? RequestId { get; set; }
     public string? TransCode { get; set; }
     public string? Error { get; set; }
+    public string? ErrDesc { get; set; }
     public string? ErrorReason { get; set; }
+    public string? FailureCode { get; set; }
+    public string? FailureDescription { get; set; }
+    public string? FailureReason { get; set; }
+    public string? LocalInstrument { get; set; }
+    public string? CategoryPurpose { get; set; }
+    public string? LclInstrm { get; set; }
+    public string? CtgyPurp { get; set; }
+    public string? RtrId { get; set; }
+    public string? OldBalance { get; set; }
+    public string? NewBalance { get; set; }
+    public string? BankFromSaPosition { get; set; }
+    public string? BankToSaPosition { get; set; }
+    public string? BankFromWaPosition { get; set; }
+    public string? BankToWaPosition { get; set; }
+    public string? EndToEndId { get; set; }
+    public string? Iban { get; set; }
+    public string? RtpId { get; set; }
+    public string? AttributesRaw { get; set; }
+    public string? OrgTrxId { get; set; }
+    public string? StsRsnInfRsn { get; set; }
+    public string? StsRsnInfAddtlInf { get; set; }
+    public string? MandateReqId { get; set; }
+    public string? RawPayload { get; set; }
     public DateTimeOffset? ReceivedAt { get; set; }
 }

@@ -503,7 +503,7 @@ This endpoint is fetchable now. It returns default values until the business sou
 
 Use these endpoints when a dashboard screen needs transaction-row drilldown instead of aggregate cards or charts.
 
-Both endpoints:
+These endpoints:
 
 - Require `Authorization: Bearer <accessToken>`.
 - Require the `QFT` permission.
@@ -526,11 +526,48 @@ Status=DECLINED
 SttlId=10001
 DbtrAcctId=25261...
 CdtrAcctId=25263...
+LocalInstrument=CRTRM
+CategoryPurpose=C2CCRT
+TxSts=RJCT
+Error=WBIC
+FailureReason=Black List
 ```
 
 Use `CreatedDate` for a single calendar day. Use `From` and `To` for dashboard ranges such as last hour, today, last week, or last month.
 
-### Failed Transactions
+### Unified Transactions
+
+```http
+GET /api/v1/Transactions?Index=1&Size=100&Type=50&Status=2&From=2026-06-20T00:00:00Z&To=2026-06-21T00:00:00Z
+```
+
+This is the recommended transaction drilldown endpoint. By default, it returns the new Oracle bridge rows saved from `POST /api/v1/balance/transactions`.
+
+Optional `Kind` values:
+
+- `oracle`: default; returns rows from `oracletransactions`.
+- `all`: returns Oracle rows plus legacy failed/processed rows.
+- `legacy`: returns only legacy failed and processed rows.
+- `failed`: returns only legacy failed rows.
+- `processed`: returns only legacy processed rows.
+
+Oracle response rows include the normalized fields plus Oracle-specific fields such as `typeDescription`, `amountValue`, `txSts`, `lclInstrm`, `ctgyPurp`, `endToEndId`, `attributesRaw`, and `rawPayload`.
+
+Consumer-friendly aliases are also returned:
+
+- `localInstrument`: same source as Oracle `lclInstrm`.
+- `categoryPurpose`: same source as Oracle `ctgyPurp`.
+- `failureCode`: same source as Oracle `error`.
+- `failureDescription`: same source as Oracle `errDesc`.
+- `failureReason`: best available reason from `errorReason`, `stsRsnInfAddtlInf`, `errDesc`, or `error`.
+
+Example failure drilldown:
+
+```http
+GET /api/v1/Transactions?TxSts=RJCT&LocalInstrument=CRTRM&CategoryPurpose=C2CCRT&FailureReason=Black%20List
+```
+
+### Legacy Failed Transactions
 
 ```http
 GET /api/v1/FailedTransactions?Index=1&Size=100&Type=FP_PAYMENT&Status=DECLINED&From=2026-06-06T09:00:00Z&To=2026-06-06T10:00:00Z
@@ -579,7 +616,7 @@ Response shape:
 }
 ```
 
-### Processed Transactions
+### Legacy Processed Transactions
 
 ```http
 GET /api/v1/ProcessedTransactions?Index=1&Size=100&Type=FP_PAYMENT&Status=PROCESSED&From=2026-06-06T09:00:00Z&To=2026-06-06T10:00:00Z

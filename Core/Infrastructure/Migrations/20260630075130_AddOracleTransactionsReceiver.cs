@@ -57,9 +57,13 @@ namespace SPSS.Infrastructure.Migrations
                     bankfrom = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     bankto = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     createddate = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: true),
+                    createdat = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     modifieddate = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: true),
+                    modifiedat = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     lastmodifieddate = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: true),
+                    lastmodifiedat = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     acceptancedate = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: true),
+                    acceptanceat = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     txid = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     typedescription = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
@@ -150,6 +154,11 @@ namespace SPSS.Infrastructure.Migrations
                 name: "ix_oracletransactions_bankto",
                 table: "oracletransactions",
                 column: "bankto");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_oracletransactions_createdat",
+                table: "oracletransactions",
+                column: "createdat");
 
             migrationBuilder.CreateIndex(
                 name: "ix_oracletransactions_receivedat",
