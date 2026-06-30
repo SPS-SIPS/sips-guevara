@@ -53,14 +53,10 @@ public sealed class OracleTransaction : BaseEntity<long>
     public string? EndToEndId { get; set; }
     public string? Iban { get; set; }
     public string? RtpId { get; set; }
-    public string? AttributesRaw { get; set; }
     public string? OrgTrxId { get; set; }
     public string? StsRsnInfRsn { get; set; }
     public string? StsRsnInfAddtlInf { get; set; }
     public string? MandateReqId { get; set; }
-    public string? TransactionRaw { get; set; }
-    public string? TransactionsRaw { get; set; }
-    public string? MessagesRaw { get; set; }
     public string? RawPayload { get; set; }
     public DateTimeOffset ReceivedAt { get; set; } = DateTimeOffset.UtcNow;
 }

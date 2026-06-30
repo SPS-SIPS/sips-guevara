@@ -551,7 +551,7 @@ Optional `Kind` values:
 - `failed`: returns only legacy failed rows.
 - `processed`: returns only legacy processed rows.
 
-Oracle response rows include the normalized fields plus Oracle-specific fields such as `typeDescription`, `amountValue`, `txSts`, `lclInstrm`, `ctgyPurp`, `endToEndId`, `attributesRaw`, and `rawPayload`.
+Oracle response rows include the normalized fields plus Oracle-specific fields such as `typeDescription`, `amountValue`, `txSts`, `lclInstrm`, `ctgyPurp`, `endToEndId`, and `rawPayload`.
 
 Consumer-friendly aliases are also returned:
 
@@ -712,6 +712,8 @@ X-API-Secret: <ApiAuth secret>
 ```
 
 This is the current receiver endpoint for full transaction batches from the Oracle transaction bridge.
+
+The current sender contract no longer includes row-level `attributes`, `transaction`, `transactions`, or `messages`. The receiver does not require or expose those fields.
 
 Durable persistence:
 

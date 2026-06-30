@@ -60,7 +60,6 @@ public sealed class TransactionRecordDto
     public string? EndToEndId { get; set; }
     public string? Iban { get; set; }
     public string? RtpId { get; set; }
-    public string? AttributesRaw { get; set; }
     public string? OrgTrxId { get; set; }
     public string? StsRsnInfRsn { get; set; }
     public string? StsRsnInfAddtlInf { get; set; }

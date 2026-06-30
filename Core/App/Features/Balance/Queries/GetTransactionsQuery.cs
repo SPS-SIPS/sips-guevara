@@ -168,7 +168,6 @@ public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
             EndToEndId = x.EndToEndId,
             Iban = x.Iban,
             RtpId = x.RtpId,
-            AttributesRaw = x.AttributesRaw,
             OrgTrxId = x.OrgTrxId,
             StsRsnInfRsn = x.StsRsnInfRsn,
             StsRsnInfAddtlInf = x.StsRsnInfAddtlInf,

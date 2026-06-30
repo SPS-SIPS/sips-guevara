@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace SPSS.Domain.Models.DTOs;
@@ -173,9 +172,6 @@ public sealed class OracleTransactionWebhookRowDto
     [JsonPropertyName("rtpId")]
     public string? RtpId { get; set; }
 
-    [JsonPropertyName("attributes")]
-    public string? Attributes { get; set; }
-
     [JsonPropertyName("orgTrxId")]
     public string? OrgTrxId { get; set; }
 
@@ -187,15 +183,6 @@ public sealed class OracleTransactionWebhookRowDto
 
     [JsonPropertyName("mandateReqId")]
     public string? MandateReqId { get; set; }
-
-    [JsonPropertyName("transaction")]
-    public JsonElement? Transaction { get; set; }
-
-    [JsonPropertyName("transactions")]
-    public JsonElement? Transactions { get; set; }
-
-    [JsonPropertyName("messages")]
-    public JsonElement? Messages { get; set; }
 }
 
 public sealed class OracleTransactionBatchResponseDto

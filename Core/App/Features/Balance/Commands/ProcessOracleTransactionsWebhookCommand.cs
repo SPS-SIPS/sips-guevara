@@ -1,5 +1,5 @@
-using System.Text.Json;
 using System.Globalization;
+using System.Text.Json;
 using SPSS.Domain.Models.DTOs;
 
 namespace SPSS.App.Features.Balance.Commands;
@@ -298,14 +298,10 @@ public sealed class ProcessOracleTransactionsWebhookCommandHandler(
         entity.EndToEndId = transaction.EndToEndId;
         entity.Iban = transaction.Iban;
         entity.RtpId = transaction.RtpId;
-        entity.AttributesRaw = transaction.Attributes;
         entity.OrgTrxId = transaction.OrgTrxId;
         entity.StsRsnInfRsn = transaction.StsRsnInfRsn;
         entity.StsRsnInfAddtlInf = transaction.StsRsnInfAddtlInf;
         entity.MandateReqId = transaction.MandateReqId;
-        entity.TransactionRaw = SerializeJsonElement(transaction.Transaction);
-        entity.TransactionsRaw = SerializeJsonElement(transaction.Transactions);
-        entity.MessagesRaw = SerializeJsonElement(transaction.Messages);
         entity.RawPayload = rawPayload;
         entity.ReceivedAt = receivedAt;
 
@@ -314,16 +310,6 @@ public sealed class ProcessOracleTransactionsWebhookCommandHandler(
 
     private static string BuildBatchKey(OracleTransactionsWebhookDto data)
         => $"{data.Source}:{data.FromId}:{data.ToId}:{data.HighWatermarkId}";
-
-    private static string? SerializeJsonElement(JsonElement? value)
-    {
-        if (value is null || value.Value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-        {
-            return null;
-        }
-
-        return value.Value.GetRawText();
-    }
 
     private static DateTimeOffset? ParseOracleTimestamp(string? value)
     {
