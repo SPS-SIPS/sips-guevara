@@ -159,12 +159,6 @@ public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
             LclInstrm = x.LclInstrm,
             CtgyPurp = x.CtgyPurp,
             RtrId = x.RtrId,
-            OldBalance = x.OldBalance,
-            NewBalance = x.NewBalance,
-            BankFromSaPosition = x.BankFromSaPosition,
-            BankToSaPosition = x.BankToSaPosition,
-            BankFromWaPosition = x.BankFromWaPosition,
-            BankToWaPosition = x.BankToWaPosition,
             EndToEndId = x.EndToEndId,
             Iban = x.Iban,
             RtpId = x.RtpId,
@@ -172,7 +166,6 @@ public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
             StsRsnInfRsn = x.StsRsnInfRsn,
             StsRsnInfAddtlInf = x.StsRsnInfAddtlInf,
             MandateReqId = x.MandateReqId,
-            RawPayload = x.RawPayload,
             ReceivedAt = x.ReceivedAt
         });
 

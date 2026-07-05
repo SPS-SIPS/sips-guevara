@@ -51,12 +51,6 @@ public sealed class TransactionRecordDto
     public string? LclInstrm { get; set; }
     public string? CtgyPurp { get; set; }
     public string? RtrId { get; set; }
-    public string? OldBalance { get; set; }
-    public string? NewBalance { get; set; }
-    public string? BankFromSaPosition { get; set; }
-    public string? BankToSaPosition { get; set; }
-    public string? BankFromWaPosition { get; set; }
-    public string? BankToWaPosition { get; set; }
     public string? EndToEndId { get; set; }
     public string? Iban { get; set; }
     public string? RtpId { get; set; }
@@ -64,6 +58,5 @@ public sealed class TransactionRecordDto
     public string? StsRsnInfRsn { get; set; }
     public string? StsRsnInfAddtlInf { get; set; }
     public string? MandateReqId { get; set; }
-    public string? RawPayload { get; set; }
     public DateTimeOffset? ReceivedAt { get; set; }
 }

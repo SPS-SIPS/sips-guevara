@@ -306,29 +306,6 @@ public sealed class ProcessedTransactionRecordDto
     public DateTimeOffset ReceivedAt { get; set; }
 }
 
-public sealed class FailedTransactionRuleIdsCsvUploadResultDto
-{
-    public int TotalRows { get; set; }
-    public int UpdatedCount { get; set; }
-    public int NotFoundCount { get; set; }
-    public int InvalidRowCount { get; set; }
-    public int UnknownRuleIdCount { get; set; }
-    public List<long> UpdatedIpsTransactionIds { get; set; } = [];
-    public List<long> MissingIpsTransactionIds { get; set; } = [];
-    public List<string> UnknownRuleIds { get; set; } = [];
-    public List<string> Errors { get; set; } = [];
-}
-
-public sealed class FailedTransactionRuleDefinitionDto
-{
-    public long? Id { get; set; }
-    public string RuleId { get; set; } = string.Empty;
-    public string Label { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public string? Category { get; set; }
-    public bool Active { get; set; } = true;
-}
-
 public sealed class TransactionIngestionBatchDto
 {
     public long Id { get; set; }

@@ -6,7 +6,7 @@ paths:
   /api/v1/Auth:
     get:
       tags:
-        - Auth
+      - Auth
       responses:
         '200':
           description: Success
@@ -15,11 +15,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserDtoResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Auth/Resend:
     post:
       tags:
-        - Auth
+      - Auth
       requestBody:
         content:
           application/json:
@@ -39,11 +39,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/GuidResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Auth/login:
     post:
       tags:
-        - Auth
+      - Auth
       requestBody:
         content:
           application/json:
@@ -63,11 +63,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/LoginDtoResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Auth/refresh:
     post:
       tags:
-        - Auth
+      - Auth
       requestBody:
         content:
           application/json:
@@ -87,11 +87,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/LoginDtoResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Auth/changeEmail:
     post:
       tags:
-        - Auth
+      - Auth
       requestBody:
         content:
           application/json:
@@ -111,11 +111,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/StringResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Auth/changePassword:
     post:
       tags:
-        - Auth
+      - Auth
       requestBody:
         content:
           application/json:
@@ -135,11 +135,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/StringResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Auth/changePhone:
     post:
       tags:
-        - Auth
+      - Auth
       requestBody:
         content:
           application/json:
@@ -159,11 +159,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/StringResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Auth/revokeToken:
     post:
       tags:
-        - Auth
+      - Auth
       requestBody:
         content:
           application/json:
@@ -183,11 +183,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/StringResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Balance/webhook:
     post:
       tags:
-        - Balance
+      - Balance
       requestBody:
         content:
           application/json:
@@ -207,11 +207,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/StringResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Balance/failed-transactions:
     post:
       tags:
-        - Balance
+      - Balance
       requestBody:
         content:
           application/json:
@@ -231,11 +231,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/StringResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Balance/processed-transactions:
     post:
       tags:
-        - Balance
+      - Balance
       requestBody:
         content:
           application/json:
@@ -255,44 +255,92 @@ paths:
               schema:
                 $ref: '#/components/schemas/StringResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
+  /api/v1/Balance/transactions:
+    post:
+      tags:
+      - Balance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OracleTransactionsWebhookDto'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/OracleTransactionsWebhookDto'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/OracleTransactionsWebhookDto'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OracleTransactionBatchResponseDtoResponse'
+      security:
+      - Bearer: []
+  /api/v1/Balance/transaction-summary:
+    post:
+      tags:
+      - Balance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionSummaryWebhookDto'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/TransactionSummaryWebhookDto'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/TransactionSummaryWebhookDto'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StringResponse'
+      security:
+      - Bearer: []
   /api/v1/Certificates:
     get:
       tags:
-        - Certificates
+      - Certificates
       parameters:
-        - name: Active
-          in: query
-          schema:
-            type: boolean
-        - name: IsRevoked
-          in: query
-          schema:
-            type: boolean
-        - name: UserId
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: ParticipantId
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Index
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Size
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Sort
-          in: query
-          schema:
-            type: string
+      - name: Active
+        in: query
+        schema:
+          type: boolean
+      - name: IsRevoked
+        in: query
+        schema:
+          type: boolean
+      - name: UserId
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: ParticipantId
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Index
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Size
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Sort
+        in: query
+        schema:
+          type: string
       responses:
         '200':
           description: Success
@@ -301,10 +349,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/CertificateDtoPagedResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
     put:
       tags:
-        - Certificates
+      - Certificates
       requestBody:
         content:
           application/json:
@@ -324,18 +372,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/StringResponse'
       security:
-        - Bearer: [ ]
-  '/api/v1/Certificates/{Id}':
+      - Bearer: []
+  /api/v1/Certificates/{Id}:
     get:
       tags:
-        - Certificates
+      - Certificates
       parameters:
-        - name: Id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
       responses:
         '200':
           description: Success
@@ -344,16 +392,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/CertificateDtoResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
     delete:
       tags:
-        - Certificates
+      - Certificates
       parameters:
-        - name: Id
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Success
@@ -362,11 +410,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/StringResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Certificates/download:
     post:
       tags:
-        - Certificates
+      - Certificates
       requestBody:
         content:
           application/json:
@@ -386,39 +434,153 @@ paths:
               schema:
                 $ref: '#/components/schemas/CertificateDownloadDtoResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
+  /api/dashboard/cards:
+    get:
+      tags:
+      - Dashboard
+      parameters:
+      - name: Period
+        in: query
+        schema:
+          type: string
+      - name: From
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: To
+        in: query
+        schema:
+          type: string
+          format: date-time
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoardDashboardCardsResponseDto'
+      security:
+      - Bearer: []
+  /api/dashboard/total-system-value:
+    get:
+      tags:
+      - Dashboard
+      parameters:
+      - name: Months
+        in: query
+        schema:
+          type: integer
+          format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoardTotalSystemValueResponseDto'
+      security:
+      - Bearer: []
+  /api/dashboard/transaction-type-mix:
+    get:
+      tags:
+      - Dashboard
+      parameters:
+      - name: Period
+        in: query
+        schema:
+          type: string
+      - name: From
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: To
+        in: query
+        schema:
+          type: string
+          format: date-time
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoardTransactionTypeMixResponseDto'
+      security:
+      - Bearer: []
+  /api/dashboard/financial-inclusion:
+    get:
+      tags:
+      - Dashboard
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoardFinancialInclusionResponseDto'
+      security:
+      - Bearer: []
+  /api/dashboard/new-accounts-onboarding:
+    get:
+      tags:
+      - Dashboard
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoardNewAccountsOnboardingResponseDto'
+      security:
+      - Bearer: []
+  /api/dashboard/rulebook-compliance-score:
+    get:
+      tags:
+      - Dashboard
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoardRulebookComplianceScoreDto'
+      security:
+      - Bearer: []
   /api/v1/Downloads:
     get:
       tags:
-        - Downloads
+      - Downloads
       parameters:
-        - name: UserId
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: ParticipantId
-          in: query
-          schema:
-            type: string
-        - name: CertificateId
-          in: query
-          schema:
-            type: string
-        - name: Index
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Size
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Sort
-          in: query
-          schema:
-            type: string
+      - name: UserId
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: ParticipantId
+        in: query
+        schema:
+          type: string
+      - name: CertificateId
+        in: query
+        schema:
+          type: string
+      - name: Index
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Size
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Sort
+        in: query
+        schema:
+          type: string
       responses:
         '200':
           description: Success
@@ -427,11 +589,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/DownloadDtoPagedResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Downloads/manual-nsi:
     post:
       tags:
-        - Downloads
+      - Downloads
       requestBody:
         content:
           application/json:
@@ -451,35 +613,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/StringResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Downloads/getNSIFiles:
     get:
       tags:
-        - Downloads
+      - Downloads
       parameters:
-        - name: Processed
-          in: query
-          schema:
-            type: boolean
-        - name: CredDtTm
-          in: query
-          schema:
-            type: string
-            format: date-time
-        - name: Index
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Size
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Sort
-          in: query
-          schema:
-            type: string
+      - name: Processed
+        in: query
+        schema:
+          type: boolean
+      - name: CredDtTm
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: Index
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Size
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Sort
+        in: query
+        schema:
+          type: string
       responses:
         '200':
           description: Success
@@ -488,31 +650,31 @@ paths:
               schema:
                 $ref: '#/components/schemas/NetSettlementHeaderDtoPagedResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Downloads/getNSIFile:
     get:
       tags:
-        - Downloads
+      - Downloads
       parameters:
-        - name: Id
-          in: query
-          schema:
-            type: integer
-            format: int64
+      - name: Id
+        in: query
+        schema:
+          type: integer
+          format: int64
       responses:
         '200':
           description: Success
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Downloads/GetDaySettlementInfo:
     get:
       tags:
-        - Downloads
+      - Downloads
       parameters:
-        - name: Date
-          in: query
-          schema:
-            type: string
+      - name: Date
+        in: query
+        schema:
+          type: string
       responses:
         '200':
           description: Success
@@ -521,49 +683,49 @@ paths:
               schema:
                 $ref: '#/components/schemas/NetSettlementHeaderSimpleDtoListResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Downloads/getNSIFile4party:
     get:
       tags:
-        - Downloads
+      - Downloads
       parameters:
-        - name: Id
-          in: query
-          schema:
-            type: integer
-            format: int64
-        - name: Party
-          in: query
-          schema:
-            type: string
+      - name: Id
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: Party
+        in: query
+        schema:
+          type: string
       responses:
         '200':
           description: Success
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Downloads/SettlementSummaryFile:
     get:
       tags:
-        - Downloads
+      - Downloads
       parameters:
-        - name: Id
-          in: query
-          schema:
-            type: integer
-            format: int64
-        - name: Fees
-          in: query
-          schema:
-            type: boolean
+      - name: Id
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: Fees
+        in: query
+        schema:
+          type: boolean
       responses:
         '200':
           description: Success
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Enumerations/fileTypes:
     get:
       tags:
-        - Enumerations
+      - Enumerations
       responses:
         '200':
           description: Success
@@ -572,60 +734,74 @@ paths:
               schema:
                 $ref: '#/components/schemas/StringLookupListResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/FailedTransactions:
     get:
       tags:
-        - FailedTransactions
+      - FailedTransactions
       parameters:
-        - name: BankFrom
-          in: query
-          schema:
-            type: string
-        - name: BankTo
-          in: query
-          schema:
-            type: string
-        - name: CreatedDate
-          in: query
-          schema:
-            type: string
-            format: date-time
-        - name: TxId
-          in: query
-          schema:
-            type: string
-        - name: Status
-          in: query
-          schema:
-            type: string
-        - name: SttlId
-          in: query
-          schema:
-            type: integer
-            format: int64
-        - name: DbtrAcctId
-          in: query
-          schema:
-            type: string
-        - name: CdtrAcctId
-          in: query
-          schema:
-            type: string
-        - name: Index
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Size
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Sort
-          in: query
-          schema:
-            type: string
+      - name: BankFrom
+        in: query
+        schema:
+          type: string
+      - name: BankTo
+        in: query
+        schema:
+          type: string
+      - name: CreatedDate
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: From
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: To
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: TxId
+        in: query
+        schema:
+          type: string
+      - name: Type
+        in: query
+        schema:
+          type: string
+      - name: Status
+        in: query
+        schema:
+          type: string
+      - name: SttlId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: DbtrAcctId
+        in: query
+        schema:
+          type: string
+      - name: CdtrAcctId
+        in: query
+        schema:
+          type: string
+      - name: Index
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Size
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Sort
+        in: query
+        schema:
+          type: string
       responses:
         '200':
           description: Success
@@ -634,99 +810,44 @@ paths:
               schema:
                 $ref: '#/components/schemas/FailedTransactionRecordDtoPagedResponse'
       security:
-        - Bearer: [ ]
-  /api/v1/FailedTransactions/compliance-reports:
-    get:
-      tags:
-        - FailedTransactions
-      parameters:
-        - name: From
-          in: query
-          schema:
-            type: string
-            format: date-time
-        - name: To
-          in: query
-          schema:
-            type: string
-            format: date-time
-        - name: Severity
-          in: query
-          schema:
-            type: string
-        - name: Index
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Size
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Sort
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FailedTransactionComplianceReportDtoPagedResponse'
-      security:
-        - Bearer: [ ]
-  /api/v1/FailedTransactions/compliance-reports/latest:
-    get:
-      tags:
-        - FailedTransactions
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FailedTransactionComplianceReportDtoResponse'
-      security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/FailedTransactions/ingestion-batches:
     get:
       tags:
-        - FailedTransactions
+      - FailedTransactions
       parameters:
-        - name: BatchType
-          in: query
-          schema:
-            type: string
-        - name: Status
-          in: query
-          schema:
-            type: string
-        - name: From
-          in: query
-          schema:
-            type: string
-            format: date-time
-        - name: To
-          in: query
-          schema:
-            type: string
-            format: date-time
-        - name: Index
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Size
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Sort
-          in: query
-          schema:
-            type: string
+      - name: BatchType
+        in: query
+        schema:
+          type: string
+      - name: Status
+        in: query
+        schema:
+          type: string
+      - name: From
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: To
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: Index
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Size
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Sort
+        in: query
+        schema:
+          type: string
       responses:
         '200':
           description: Success
@@ -735,127 +856,54 @@ paths:
               schema:
                 $ref: '#/components/schemas/TransactionIngestionBatchDtoPagedResponse'
       security:
-        - Bearer: [ ]
-  /api/v1/FailedTransactions/rules:
-    put:
-      tags:
-        - FailedTransactions
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateFailedTransactionRuleIdsCommand'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/UpdateFailedTransactionRuleIdsCommand'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/UpdateFailedTransactionRuleIdsCommand'
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Int64Response'
-      security:
-        - Bearer: [ ]
-  /api/v1/FailedTransactions/rules/csv:
-    post:
-      tags:
-        - FailedTransactions
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                ContentType:
-                  type: string
-                ContentDisposition:
-                  type: string
-                Headers:
-                  type: object
-                  additionalProperties:
-                    type: array
-                    items:
-                      type: string
-                Length:
-                  type: integer
-                  format: int64
-                Name:
-                  type: string
-                FileName:
-                  type: string
-            encoding:
-              ContentType:
-                style: form
-              ContentDisposition:
-                style: form
-              Headers:
-                style: form
-              Length:
-                style: form
-              Name:
-                style: form
-              FileName:
-                style: form
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FailedTransactionRuleIdsCsvUploadResultDtoResponse'
-      security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/History:
     get:
       tags:
-        - History
+      - History
       parameters:
-        - name: Institution
-          in: query
-          schema:
-            type: string
-        - name: Type
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Status
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: FromDate
-          in: query
-          schema:
-            type: string
-            format: date-time
-        - name: ToDate
-          in: query
-          schema:
-            type: string
-            format: date-time
-        - name: Sent
-          in: query
-          schema:
-            type: boolean
-        - name: Index
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Size
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Sort
-          in: query
-          schema:
-            type: string
+      - name: Institution
+        in: query
+        schema:
+          type: string
+      - name: Type
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Status
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: FromDate
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: ToDate
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: Sent
+        in: query
+        schema:
+          type: boolean
+      - name: Index
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Size
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Sort
+        in: query
+        schema:
+          type: string
       responses:
         '200':
           description: Success
@@ -864,26 +912,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/HistoryDtoPagedResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/History/uptime:
     get:
       tags:
-        - History
+      - History
       parameters:
-        - name: InstitutionBic
-          in: query
-          schema:
-            type: string
-        - name: FromDate
-          in: query
-          schema:
-            type: string
-            format: date-time
-        - name: ToDate
-          in: query
-          schema:
-            type: string
-            format: date-time
+      - name: InstitutionBic
+        in: query
+        schema:
+          type: string
+      - name: FromDate
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: ToDate
+        in: query
+        schema:
+          type: string
+          format: date-time
       responses:
         '200':
           description: Success
@@ -894,11 +942,11 @@ paths:
                 items:
                   $ref: '#/components/schemas/InstitutionUptimeDto'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/History/monit:
     post:
       tags:
-        - History
+      - History
       requestBody:
         content:
           application/json:
@@ -918,47 +966,47 @@ paths:
               schema:
                 $ref: '#/components/schemas/Int32Response'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Participants:
     get:
       tags:
-        - Participants
+      - Participants
       parameters:
-        - name: Name
-          in: query
-          schema:
-            type: string
-        - name: Active
-          in: query
-          schema:
-            type: boolean
-        - name: Deleted
-          in: query
-          schema:
-            type: boolean
-        - name: UserId
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Email
-          in: query
-          schema:
-            type: string
-        - name: Index
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Size
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Sort
-          in: query
-          schema:
-            type: string
+      - name: Name
+        in: query
+        schema:
+          type: string
+      - name: Active
+        in: query
+        schema:
+          type: boolean
+      - name: Deleted
+        in: query
+        schema:
+          type: boolean
+      - name: UserId
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Email
+        in: query
+        schema:
+          type: string
+      - name: Index
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Size
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Sort
+        in: query
+        schema:
+          type: string
       responses:
         '200':
           description: Success
@@ -967,10 +1015,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/ParticipantDtoPagedResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
     post:
       tags:
-        - Participants
+      - Participants
       requestBody:
         content:
           application/json:
@@ -990,10 +1038,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/StringResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
     put:
       tags:
-        - Participants
+      - Participants
       requestBody:
         content:
           application/json:
@@ -1013,16 +1061,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/StringResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Participants/lookup:
     get:
       tags:
-        - Participants
+      - Participants
       parameters:
-        - name: query
-          in: query
-          schema:
-            $ref: '#/components/schemas/GetParticipantsLookupListQuery'
+      - name: query
+        in: query
+        schema:
+          $ref: '#/components/schemas/GetParticipantsLookupListQuery'
       responses:
         '200':
           description: Success
@@ -1031,16 +1079,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/StringLookupListResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Participants/live:
     get:
       tags:
-        - Participants
+      - Participants
       parameters:
-        - name: IsLive
-          in: query
-          schema:
-            type: boolean
+      - name: IsLive
+        in: query
+        schema:
+          type: boolean
       responses:
         '200':
           description: Success
@@ -1049,17 +1097,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/LiveParticipantDtoListResponse'
       security:
-        - Bearer: [ ]
-  '/api/v1/Participants/{Id}':
+      - Bearer: []
+  /api/v1/Participants/{Id}:
     get:
       tags:
-        - Participants
+      - Participants
       parameters:
-        - name: Id
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Success
@@ -1068,16 +1116,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/ParticipantDtoResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
     delete:
       tags:
-        - Participants
+      - Participants
       parameters:
-        - name: Id
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Success
@@ -1086,11 +1134,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/StringResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Participants/balance-status:
     get:
       tags:
-        - Participants
+      - Participants
       responses:
         '200':
           description: Success
@@ -1099,11 +1147,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/ParticipantBalanceStatusDtoResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/ParticipantThresholds:
     get:
       tags:
-        - ParticipantThresholds
+      - ParticipantThresholds
       responses:
         '200':
           description: Success
@@ -1112,10 +1160,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/ParticipantThresholdDtoListResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
     post:
       tags:
-        - ParticipantThresholds
+      - ParticipantThresholds
       requestBody:
         content:
           application/json:
@@ -1135,10 +1183,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/Int32Response'
       security:
-        - Bearer: [ ]
+      - Bearer: []
     put:
       tags:
-        - ParticipantThresholds
+      - ParticipantThresholds
       requestBody:
         content:
           application/json:
@@ -1158,18 +1206,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/Int32Response'
       security:
-        - Bearer: [ ]
-  '/api/v1/ParticipantThresholds/{id}':
+      - Bearer: []
+  /api/v1/ParticipantThresholds/{id}:
     get:
       tags:
-        - ParticipantThresholds
+      - ParticipantThresholds
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
       responses:
         '200':
           description: Success
@@ -1178,17 +1226,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/ParticipantThresholdDtoResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
     delete:
       tags:
-        - ParticipantThresholds
+      - ParticipantThresholds
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
       responses:
         '200':
           description: Success
@@ -1197,16 +1245,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/Int32Response'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Permissions/lookup:
     get:
       tags:
-        - Permissions
+      - Permissions
       parameters:
-        - name: query
-          in: query
-          schema:
-            $ref: '#/components/schemas/GetClaimsLookupQuery'
+      - name: query
+        in: query
+        schema:
+          $ref: '#/components/schemas/GetClaimsLookupQuery'
       responses:
         '200':
           description: Success
@@ -1215,18 +1263,239 @@ paths:
               schema:
                 $ref: '#/components/schemas/StringLookupListResponse'
       security:
-        - Bearer: [ ]
-  '/api/v1/Reports/SettlementStatistics/{Id}':
+      - Bearer: []
+  /api/v1/ProcessedTransactions:
     get:
       tags:
-        - Reports
+      - ProcessedTransactions
       parameters:
-        - name: Id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
+      - name: BankFrom
+        in: query
+        schema:
+          type: string
+      - name: BankTo
+        in: query
+        schema:
+          type: string
+      - name: CreatedDate
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: From
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: To
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: TxId
+        in: query
+        schema:
+          type: string
+      - name: Type
+        in: query
+        schema:
+          type: string
+      - name: Status
+        in: query
+        schema:
+          type: string
+      - name: SttlId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: DbtrAcctId
+        in: query
+        schema:
+          type: string
+      - name: CdtrAcctId
+        in: query
+        schema:
+          type: string
+      - name: Index
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Size
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Sort
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcessedTransactionRecordDtoPagedResponse'
+      security:
+      - Bearer: []
+  /api/regulator-dashboard/realtime-monitoring-cards:
+    get:
+      tags:
+      - RegulatorDashboard
+      parameters:
+      - name: Period
+        in: query
+        schema:
+          type: string
+      - name: From
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: To
+        in: query
+        schema:
+          type: string
+          format: date-time
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegulatorMonitoringCardDtoListResponse'
+      security:
+      - Bearer: []
+  /api/regulator-dashboard/transaction-volume-hourly:
+    get:
+      tags:
+      - RegulatorDashboard
+      parameters:
+      - name: Period
+        in: query
+        schema:
+          type: string
+      - name: From
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: To
+        in: query
+        schema:
+          type: string
+          format: date-time
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StringInt32DictionaryResponse'
+      security:
+      - Bearer: []
+  /api/regulator-dashboard/velocity-alerts:
+    get:
+      tags:
+      - RegulatorDashboard
+      parameters:
+      - name: Period
+        in: query
+        schema:
+          type: string
+      - name: From
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: To
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: Limit
+        in: query
+        schema:
+          type: integer
+          format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegulatorVelocityAlertDtoListResponse'
+      security:
+      - Bearer: []
+  /api/regulator-dashboard/velocity-alert-heatmap:
+    get:
+      tags:
+      - RegulatorDashboard
+      parameters:
+      - name: Period
+        in: query
+        schema:
+          type: string
+      - name: From
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: To
+        in: query
+        schema:
+          type: string
+          format: date-time
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegulatorVelocityAlertHeatmapDtoResponse'
+      security:
+      - Bearer: []
+  /api/regulator-dashboard/participant-availability:
+    get:
+      tags:
+      - RegulatorDashboard
+      parameters:
+      - name: Period
+        in: query
+        schema:
+          type: string
+      - name: From
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: To
+        in: query
+        schema:
+          type: string
+          format: date-time
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegulatorParticipantAvailabilityDashboardDtoResponse'
+      security:
+      - Bearer: []
+  /api/v1/Reports/SettlementStatistics/{Id}:
+    get:
+      tags:
+      - Reports
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
       responses:
         '200':
           description: Success
@@ -1235,20 +1504,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/BicStatisticsDtoListResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Reports/FinancialReports:
     get:
       tags:
-        - Reports
+      - Reports
       parameters:
-        - name: FromDate
-          in: query
-          schema:
-            type: string
-        - name: ToDate
-          in: query
-          schema:
-            type: string
+      - name: FromDate
+        in: query
+        schema:
+          type: string
+      - name: ToDate
+        in: query
+        schema:
+          type: string
       responses:
         '200':
           description: Success
@@ -1257,35 +1526,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/CombinedReportDtoResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Roles:
     get:
       tags:
-        - Roles
+      - Roles
       parameters:
-        - name: Name
-          in: query
-          schema:
-            type: string
-        - name: UserId
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Index
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Size
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Sort
-          in: query
-          schema:
-            type: string
+      - name: Name
+        in: query
+        schema:
+          type: string
+      - name: UserId
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Index
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Size
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Sort
+        in: query
+        schema:
+          type: string
       responses:
         '200':
           description: Success
@@ -1294,10 +1563,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/RoleDtoPagedResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
     post:
       tags:
-        - Roles
+      - Roles
       requestBody:
         content:
           application/json:
@@ -1317,10 +1586,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/GuidResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
     put:
       tags:
-        - Roles
+      - Roles
       requestBody:
         content:
           application/json:
@@ -1340,16 +1609,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/GuidResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Roles/lookup:
     get:
       tags:
-        - Roles
+      - Roles
       parameters:
-        - name: query
-          in: query
-          schema:
-            $ref: '#/components/schemas/GetRoleLookupListQuery'
+      - name: query
+        in: query
+        schema:
+          $ref: '#/components/schemas/GetRoleLookupListQuery'
       responses:
         '200':
           description: Success
@@ -1358,18 +1627,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/GuidLookupListResponse'
       security:
-        - Bearer: [ ]
-  '/api/v1/Roles/{Id}':
+      - Bearer: []
+  /api/v1/Roles/{Id}:
     get:
       tags:
-        - Roles
+      - Roles
       parameters:
-        - name: Id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
           description: Success
@@ -1378,17 +1647,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/RoleDtoResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
     delete:
       tags:
-        - Roles
+      - Roles
       parameters:
-        - name: Id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
           description: Success
@@ -1397,18 +1666,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/GuidResponse'
       security:
-        - Bearer: [ ]
-  '/api/v1/Roles/{Id}/Claims':
+      - Bearer: []
+  /api/v1/Roles/{Id}/Claims:
     get:
       tags:
-        - Roles
+      - Roles
       parameters:
-        - name: Id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
           description: Success
@@ -1417,18 +1686,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/ClaimDtoPagedResponse'
       security:
-        - Bearer: [ ]
-  '/api/v1/Roles/{Id}/Users':
+      - Bearer: []
+  /api/v1/Roles/{Id}/Users:
     get:
       tags:
-        - Roles
+      - Roles
       parameters:
-        - name: Id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
           description: Success
@@ -1437,46 +1706,146 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserDtoPagedResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
+  /api/v1/Transactions:
+    get:
+      tags:
+      - Transactions
+      parameters:
+      - name: Kind
+        in: query
+        schema:
+          type: string
+      - name: BankFrom
+        in: query
+        schema:
+          type: string
+      - name: BankTo
+        in: query
+        schema:
+          type: string
+      - name: CreatedDate
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: From
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: To
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: TxId
+        in: query
+        schema:
+          type: string
+      - name: Type
+        in: query
+        schema:
+          type: string
+      - name: Status
+        in: query
+        schema:
+          type: string
+      - name: SttlId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: DbtrAcctId
+        in: query
+        schema:
+          type: string
+      - name: CdtrAcctId
+        in: query
+        schema:
+          type: string
+      - name: LocalInstrument
+        in: query
+        schema:
+          type: string
+      - name: CategoryPurpose
+        in: query
+        schema:
+          type: string
+      - name: TxSts
+        in: query
+        schema:
+          type: string
+      - name: Error
+        in: query
+        schema:
+          type: string
+      - name: FailureReason
+        in: query
+        schema:
+          type: string
+      - name: Index
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Size
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Sort
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionRecordDtoPagedResponse'
+      security:
+      - Bearer: []
   /api/v1/Users:
     get:
       tags:
-        - Users
+      - Users
       parameters:
-        - name: Username
-          in: query
-          schema:
-            type: string
-        - name: Email
-          in: query
-          schema:
-            type: string
-        - name: Phone
-          in: query
-          schema:
-            type: string
-        - name: Active
-          in: query
-          schema:
-            type: boolean
-        - name: Deleted
-          in: query
-          schema:
-            type: boolean
-        - name: Index
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Size
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Sort
-          in: query
-          schema:
-            type: string
+      - name: Username
+        in: query
+        schema:
+          type: string
+      - name: Email
+        in: query
+        schema:
+          type: string
+      - name: Phone
+        in: query
+        schema:
+          type: string
+      - name: Active
+        in: query
+        schema:
+          type: boolean
+      - name: Deleted
+        in: query
+        schema:
+          type: boolean
+      - name: Index
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Size
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Sort
+        in: query
+        schema:
+          type: string
       responses:
         '200':
           description: Success
@@ -1485,10 +1854,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserDtoPagedResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
     post:
       tags:
-        - Users
+      - Users
       requestBody:
         content:
           application/json:
@@ -1508,10 +1877,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/Int32Response'
       security:
-        - Bearer: [ ]
+      - Bearer: []
     put:
       tags:
-        - Users
+      - Users
       requestBody:
         content:
           application/json:
@@ -1531,26 +1900,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/Int32Response'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Users/Tokens:
     get:
       tags:
-        - Users
+      - Users
       parameters:
-        - name: Index
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Size
-          in: query
-          schema:
-            type: integer
-            format: int32
-        - name: Sort
-          in: query
-          schema:
-            type: string
+      - name: Index
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Size
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: Sort
+        in: query
+        schema:
+          type: string
       responses:
         '200':
           description: Success
@@ -1559,16 +1928,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenDtoPagedResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
   /api/v1/Users/lookup:
     get:
       tags:
-        - Users
+      - Users
       parameters:
-        - name: query
-          in: query
-          schema:
-            $ref: '#/components/schemas/GetUsersLookupListQuery'
+      - name: query
+        in: query
+        schema:
+          $ref: '#/components/schemas/GetUsersLookupListQuery'
       responses:
         '200':
           description: Success
@@ -1577,18 +1946,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/Int32LookupListResponse'
       security:
-        - Bearer: [ ]
-  '/api/v1/Users/{Id}':
+      - Bearer: []
+  /api/v1/Users/{Id}:
     get:
       tags:
-        - Users
+      - Users
       parameters:
-        - name: Id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
       responses:
         '200':
           description: Success
@@ -1597,17 +1966,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserDtoResponse'
       security:
-        - Bearer: [ ]
+      - Bearer: []
     delete:
       tags:
-        - Users
+      - Users
       parameters:
-        - name: Id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
+      - name: Id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
       responses:
         '200':
           description: Success
@@ -1616,7 +1985,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Int32Response'
       security:
-        - Bearer: [ ]
+      - Bearer: []
 components:
   schemas:
     AddMonitHistoryCommand:
@@ -1787,6 +2156,117 @@ components:
         cacheInMins:
           type: integer
           format: int32
+      additionalProperties: false
+    BoardDashboardCardDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        title:
+          type: string
+          nullable: true
+        value:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+      additionalProperties: false
+    BoardDashboardCardsResponseDto:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/BoardDashboardCardDto'
+          nullable: true
+      additionalProperties: false
+    BoardFinancialInclusionNationalDataDto:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+        adultPopulation:
+          type: integer
+          format: int64
+        activeUsers:
+          type: integer
+          format: int64
+        coverage:
+          type: number
+          format: double
+        targetGap:
+          type: number
+          format: double
+      additionalProperties: false
+    BoardFinancialInclusionResponseDto:
+      type: object
+      properties:
+        nationalData:
+          $ref: '#/components/schemas/BoardFinancialInclusionNationalDataDto'
+      additionalProperties: false
+    BoardMonthlyValueDto:
+      type: object
+      properties:
+        month:
+          type: string
+          nullable: true
+        value:
+          type: number
+          format: double
+      additionalProperties: false
+    BoardNewAccountsOnboardingResponseDto:
+      type: object
+      properties:
+        monthlyData:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+          nullable: true
+      additionalProperties: false
+    BoardRulebookComplianceScoreDto:
+      type: object
+      properties:
+        score:
+          type: number
+          format: double
+        previousScore:
+          type: number
+          format: double
+        totalReviews:
+          type: integer
+          format: int32
+        passedReviews:
+          type: integer
+          format: int32
+        failedReviews:
+          type: integer
+          format: int32
+        lastReviewDate:
+          type: string
+          nullable: true
+      additionalProperties: false
+    BoardTotalSystemValueResponseDto:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/BoardMonthlyValueDto'
+          nullable: true
+      additionalProperties: false
+    BoardTransactionTypeMixResponseDto:
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+          nullable: true
       additionalProperties: false
     CertificateDownloadDto:
       type: object
@@ -2249,357 +2729,6 @@ components:
             format: uuid
           nullable: true
       additionalProperties: false
-    FailedTransactionComplianceDimensionDto:
-      type: object
-      properties:
-        key:
-          type: string
-          nullable: true
-        name:
-          type: string
-          nullable: true
-        currentCount:
-          type: integer
-          format: int32
-        baselineCount:
-          type: integer
-          format: int32
-        baselineAverageHourly:
-          type: number
-          format: double
-        multiplier:
-          type: number
-          format: double
-        totalAmount:
-          type: number
-          format: double
-      additionalProperties: false
-    FailedTransactionComplianceFindingDto:
-      type: object
-      properties:
-        severity:
-          type: string
-          nullable: true
-        riskScore:
-          type: integer
-          format: int32
-        findingType:
-          type: string
-          nullable: true
-        actorKey:
-          type: string
-          nullable: true
-        actorName:
-          type: string
-          nullable: true
-        currentCount:
-          type: integer
-          format: int32
-        baselineCount:
-          type: integer
-          format: int32
-        baselineAverageHourly:
-          type: number
-          format: double
-        multiplier:
-          type: number
-          format: double
-        totalAmount:
-          type: number
-          format: double
-        uniqueCounterparties:
-          type: integer
-          format: int32
-        riskContributions:
-          $ref: '#/components/schemas/FailedTransactionComplianceRiskContributionDto'
-        reasons:
-          type: array
-          items:
-            type: string
-          nullable: true
-        ruleIds:
-          type: array
-          items:
-            type: string
-          nullable: true
-        sampleTransactionIds:
-          type: array
-          items:
-            type: integer
-            format: int64
-          nullable: true
-      additionalProperties: false
-    FailedTransactionComplianceReconciliationDto:
-      type: object
-      properties:
-        status:
-          type: string
-          nullable: true
-        source:
-          type: string
-          nullable: true
-        latestNsiMsgId:
-          type: string
-          nullable: true
-        latestNsiFileName:
-          type: string
-          nullable: true
-        latestNsiCreatedAt:
-          type: string
-          format: date-time
-          nullable: true
-        latestNsiProcessedAt:
-          type: string
-          format: date-time
-          nullable: true
-        latestNsiTransactionCount:
-          type: integer
-          format: int32
-        processedTxIdsCount:
-          type: integer
-          format: int32
-        reconciledProcessedTxIdsCount:
-          type: integer
-          format: int32
-        unreconciledProcessedTxIdsCount:
-          type: integer
-          format: int32
-        coveragePercent:
-          type: number
-          format: double
-        sampleUnreconciledTxIds:
-          type: array
-          items:
-            type: string
-          nullable: true
-      additionalProperties: false
-    FailedTransactionComplianceReportDto:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        windowStart:
-          type: string
-          format: date-time
-        windowEnd:
-          type: string
-          format: date-time
-        baselineStart:
-          type: string
-          format: date-time
-        baselineEnd:
-          type: string
-          format: date-time
-        generatedAt:
-          type: string
-          format: date-time
-        summary:
-          $ref: '#/components/schemas/FailedTransactionComplianceSummaryDto'
-        findings:
-          type: array
-          items:
-            $ref: '#/components/schemas/FailedTransactionComplianceFindingDto'
-          nullable: true
-      additionalProperties: false
-    FailedTransactionComplianceReportDtoPagedResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/FailedTransactionComplianceReportDto'
-          nullable: true
-        index:
-          type: integer
-          format: int32
-          nullable: true
-        size:
-          type: integer
-          format: int32
-          nullable: true
-        count:
-          type: integer
-          format: int32
-          nullable: true
-        hasPrevious:
-          type: boolean
-          readOnly: true
-        hasNext:
-          type: boolean
-          readOnly: true
-      additionalProperties: false
-    FailedTransactionComplianceReportDtoResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/FailedTransactionComplianceReportDto'
-        isSuccess:
-          type: boolean
-        statusCode:
-          type: integer
-          format: int32
-        message:
-          type: string
-          nullable: true
-        cacheInMins:
-          type: integer
-          format: int32
-      additionalProperties: false
-    FailedTransactionComplianceRiskContributionDto:
-      type: object
-      properties:
-        volumeSpike:
-          type: integer
-          format: int32
-        absoluteFailedCount:
-          type: integer
-          format: int32
-        manyUniqueCounterparties:
-          type: integer
-          format: int32
-        highValueAmount:
-          type: integer
-          format: int32
-        sensitiveErrorReason:
-          type: integer
-          format: int32
-        newActorNoBaseline:
-          type: integer
-          format: int32
-      additionalProperties: false
-    FailedTransactionComplianceRiskWeightsDto:
-      type: object
-      properties:
-        volumeSpike:
-          type: integer
-          format: int32
-        absoluteFailedCount:
-          type: integer
-          format: int32
-        manyUniqueCounterparties:
-          type: integer
-          format: int32
-        highValueAmount:
-          type: integer
-          format: int32
-        sensitiveErrorReason:
-          type: integer
-          format: int32
-        newActorNoBaseline:
-          type: integer
-          format: int32
-        mediumRiskScore:
-          type: integer
-          format: int32
-        highRiskScore:
-          type: integer
-          format: int32
-      additionalProperties: false
-    FailedTransactionComplianceSummaryDto:
-      type: object
-      properties:
-        totalFailed:
-          type: integer
-          format: int32
-        totalProcessed:
-          type: integer
-          format: int32
-        baselineTotalFailed:
-          type: integer
-          format: int32
-        baselineTotalProcessed:
-          type: integer
-          format: int32
-        baselineAverageHourly:
-          type: number
-          format: double
-        baselineProcessedAverageHourly:
-          type: number
-          format: double
-        currentVsBaselineMultiplier:
-          type: number
-          format: double
-        processedVsBaselineMultiplier:
-          type: number
-          format: double
-        failedToProcessedRatio:
-          type: number
-          format: double
-        processedValueTotal:
-          type: number
-          format: double
-        uniqueDebtors:
-          type: integer
-          format: int32
-        uniqueCreditors:
-          type: integer
-          format: int32
-        highValueAttempts:
-          type: integer
-          format: int32
-        highValueTotalAmount:
-          type: number
-          format: double
-        classifiedFailedTransactions:
-          type: integer
-          format: int32
-        unclassifiedFailedTransactions:
-          type: integer
-          format: int32
-        classificationCoveragePercent:
-          type: number
-          format: double
-        classificationUpdatedAt:
-          type: string
-          format: date-time
-          nullable: true
-        highRiskFindings:
-          type: integer
-          format: int32
-        mediumRiskFindings:
-          type: integer
-          format: int32
-        nsiReconciliation:
-          $ref: '#/components/schemas/FailedTransactionComplianceReconciliationDto'
-        riskWeights:
-          $ref: '#/components/schemas/FailedTransactionComplianceRiskWeightsDto'
-        topDebtors:
-          type: array
-          items:
-            $ref: '#/components/schemas/FailedTransactionComplianceDimensionDto'
-          nullable: true
-        topCreditors:
-          type: array
-          items:
-            $ref: '#/components/schemas/FailedTransactionComplianceDimensionDto'
-          nullable: true
-        topRoutes:
-          type: array
-          items:
-            $ref: '#/components/schemas/FailedTransactionComplianceDimensionDto'
-          nullable: true
-        topProcessedDebtors:
-          type: array
-          items:
-            $ref: '#/components/schemas/FailedTransactionComplianceDimensionDto'
-          nullable: true
-        topProcessedRoutes:
-          type: array
-          items:
-            $ref: '#/components/schemas/FailedTransactionComplianceDimensionDto'
-          nullable: true
-        topErrors:
-          type: array
-          items:
-            $ref: '#/components/schemas/FailedTransactionComplianceDimensionDto'
-          nullable: true
-        topRuleIds:
-          type: array
-          items:
-            $ref: '#/components/schemas/FailedTransactionComplianceDimensionDto'
-          nullable: true
-      additionalProperties: false
     FailedTransactionDto:
       type: object
       properties:
@@ -2804,56 +2933,6 @@ components:
         hasNext:
           type: boolean
           readOnly: true
-      additionalProperties: false
-    FailedTransactionRuleIdsCsvUploadResultDto:
-      type: object
-      properties:
-        totalRows:
-          type: integer
-          format: int32
-        updatedCount:
-          type: integer
-          format: int32
-        notFoundCount:
-          type: integer
-          format: int32
-        invalidRowCount:
-          type: integer
-          format: int32
-        updatedIpsTransactionIds:
-          type: array
-          items:
-            type: integer
-            format: int64
-          nullable: true
-        missingIpsTransactionIds:
-          type: array
-          items:
-            type: integer
-            format: int64
-          nullable: true
-        errors:
-          type: array
-          items:
-            type: string
-          nullable: true
-      additionalProperties: false
-    FailedTransactionRuleIdsCsvUploadResultDtoResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/FailedTransactionRuleIdsCsvUploadResultDto'
-        isSuccess:
-          type: boolean
-        statusCode:
-          type: integer
-          format: int32
-        message:
-          type: string
-          nullable: true
-        cacheInMins:
-          type: integer
-          format: int32
       additionalProperties: false
     FailedTransactionsWebhookDto:
       type: object
@@ -3094,24 +3173,6 @@ components:
         data:
           type: integer
           format: int32
-        isSuccess:
-          type: boolean
-        statusCode:
-          type: integer
-          format: int32
-        message:
-          type: string
-          nullable: true
-        cacheInMins:
-          type: integer
-          format: int32
-      additionalProperties: false
-    Int64Response:
-      type: object
-      properties:
-        data:
-          type: integer
-          format: int64
         isSuccess:
           type: boolean
         statusCode:
@@ -3441,6 +3502,238 @@ components:
         cacheInMins:
           type: integer
           format: int32
+      additionalProperties: false
+    OracleTransactionBatchResponseDto:
+      type: object
+      properties:
+        status:
+          type: string
+          nullable: true
+        batch_key:
+          type: string
+          nullable: true
+        received:
+          type: integer
+          format: int32
+        duplicates:
+          type: integer
+          format: int32
+        inserted:
+          type: integer
+          format: int32
+        updated:
+          type: integer
+          format: int32
+      additionalProperties: false
+    OracleTransactionBatchResponseDtoResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/OracleTransactionBatchResponseDto'
+        isSuccess:
+          type: boolean
+        statusCode:
+          type: integer
+          format: int32
+        message:
+          type: string
+          nullable: true
+        cacheInMins:
+          type: integer
+          format: int32
+      additionalProperties: false
+    OracleTransactionWebhookRowDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        bankFrom:
+          type: string
+          nullable: true
+        bankTo:
+          type: string
+          nullable: true
+        createdDate:
+          type: string
+          nullable: true
+        modifiedDate:
+          type: string
+          nullable: true
+        parentId:
+          type: integer
+          format: int64
+          nullable: true
+        lastModifiedDate:
+          type: string
+          nullable: true
+        acceptanceDate:
+          type: string
+          nullable: true
+        txId:
+          type: string
+          nullable: true
+        type:
+          type: string
+          nullable: true
+        typeDescription:
+          type: string
+          nullable: true
+        amount:
+          type: string
+          nullable: true
+        amountValue:
+          type: number
+          format: double
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        txSts:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        intrBkSttlmAtm:
+          type: string
+          nullable: true
+        intrBkSttlmAtmValue:
+          type: number
+          format: double
+          nullable: true
+        intrBkSttlmCurr:
+          type: string
+          nullable: true
+        dbtrAcctId:
+          type: string
+          nullable: true
+        dbtrAcctType:
+          type: string
+          nullable: true
+        dbtrName:
+          type: string
+          nullable: true
+        dbtrAddress:
+          type: string
+          nullable: true
+        cdtrName:
+          type: string
+          nullable: true
+        cdtrAddress:
+          type: string
+          nullable: true
+        cdtrAcctId:
+          type: string
+          nullable: true
+        cdtrAcctType:
+          type: string
+          nullable: true
+        sttlId:
+          type: integer
+          format: int64
+          nullable: true
+        error:
+          type: string
+          nullable: true
+        errDesc:
+          type: string
+          nullable: true
+        errorReason:
+          type: string
+          nullable: true
+        requestId:
+          type: string
+          nullable: true
+        transCode:
+          type: string
+          nullable: true
+        lclInstrm:
+          type: string
+          nullable: true
+        ctgyPurp:
+          type: string
+          nullable: true
+        rtrId:
+          type: string
+          nullable: true
+        oldBalance:
+          type: string
+          nullable: true
+        newBalance:
+          type: string
+          nullable: true
+        bankFromSaPosition:
+          type: string
+          nullable: true
+        bankToSaPosition:
+          type: string
+          nullable: true
+        bankFromWaPosition:
+          type: string
+          nullable: true
+        bankToWaPosition:
+          type: string
+          nullable: true
+        endToEndId:
+          type: string
+          nullable: true
+        iban:
+          type: string
+          nullable: true
+        rtpId:
+          type: string
+          nullable: true
+        orgTrxId:
+          type: string
+          nullable: true
+        stsRsnInfRsn:
+          type: string
+          nullable: true
+        stsRsnInfAddtlInf:
+          type: string
+          nullable: true
+        mandateReqId:
+          type: string
+          nullable: true
+      additionalProperties: false
+    OracleTransactionsWebhookDto:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        source:
+          type: string
+          nullable: true
+        from_id:
+          type: integer
+          format: int64
+        to_id:
+          type: integer
+          format: int64
+        high_watermark_id:
+          type: integer
+          format: int64
+        type:
+          type: string
+          nullable: true
+        statuses:
+          type: array
+          items:
+            type: string
+          nullable: true
+        total_count:
+          type: integer
+          format: int32
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/OracleTransactionWebhookRowDto'
+          nullable: true
       additionalProperties: false
     ParticipantBalanceDto:
       type: object
@@ -3778,6 +4071,119 @@ components:
           type: string
           nullable: true
       additionalProperties: false
+    ProcessedTransactionRecordDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        bankFrom:
+          type: string
+          nullable: true
+        bankFromName:
+          type: string
+          nullable: true
+        bankTo:
+          type: string
+          nullable: true
+        bankToName:
+          type: string
+          nullable: true
+        createdDate:
+          type: string
+          format: date-time
+          nullable: true
+        modifiedDate:
+          type: string
+          format: date-time
+          nullable: true
+        acceptanceDate:
+          type: string
+          format: date-time
+          nullable: true
+        txId:
+          type: string
+          nullable: true
+        type:
+          type: string
+          nullable: true
+        amount:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        sttlId:
+          type: integer
+          format: int64
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        intrBkSttlmAtm:
+          type: string
+          nullable: true
+        dbtrAcctId:
+          type: string
+          nullable: true
+        dbtrAcctType:
+          type: string
+          nullable: true
+        dbtrName:
+          type: string
+          nullable: true
+        dbtrAddress:
+          type: string
+          nullable: true
+        cdtrAcctId:
+          type: string
+          nullable: true
+        cdtrName:
+          type: string
+          nullable: true
+        cdtrAddress:
+          type: string
+          nullable: true
+        requestId:
+          type: string
+          nullable: true
+        transCode:
+          type: string
+          nullable: true
+        receivedAt:
+          type: string
+          format: date-time
+      additionalProperties: false
+    ProcessedTransactionRecordDtoPagedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessedTransactionRecordDto'
+          nullable: true
+        index:
+          type: integer
+          format: int32
+          nullable: true
+        size:
+          type: integer
+          format: int32
+          nullable: true
+        count:
+          type: integer
+          format: int32
+          nullable: true
+        hasPrevious:
+          type: boolean
+          readOnly: true
+        hasNext:
+          type: boolean
+          readOnly: true
+      additionalProperties: false
     ProcessedTransactionsWebhookDto:
       type: object
       properties:
@@ -3814,6 +4220,264 @@ components:
         refreshToken:
           type: string
           format: uuid
+      additionalProperties: false
+    RegulatorMonitoringCardDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        title:
+          type: string
+          nullable: true
+        value:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+      additionalProperties: false
+    RegulatorMonitoringCardDtoListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RegulatorMonitoringCardDto'
+          nullable: true
+        isSuccess:
+          type: boolean
+        statusCode:
+          type: integer
+          format: int32
+        message:
+          type: string
+          nullable: true
+        cacheInMins:
+          type: integer
+          format: int32
+      additionalProperties: false
+    RegulatorParticipantAvailabilityDashboardDto:
+      type: object
+      properties:
+        summary:
+          $ref: '#/components/schemas/RegulatorParticipantAvailabilitySummaryDto'
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/RegulatorParticipantAvailabilityDto'
+          nullable: true
+      additionalProperties: false
+    RegulatorParticipantAvailabilityDashboardDtoResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/RegulatorParticipantAvailabilityDashboardDto'
+        isSuccess:
+          type: boolean
+        statusCode:
+          type: integer
+          format: int32
+        message:
+          type: string
+          nullable: true
+        cacheInMins:
+          type: integer
+          format: int32
+      additionalProperties: false
+    RegulatorParticipantAvailabilityDto:
+      type: object
+      properties:
+        institutionBic:
+          type: string
+          nullable: true
+        institutionName:
+          type: string
+          nullable: true
+        isLive:
+          type: boolean
+        lastCheckedAt:
+          type: string
+          format: date-time
+        lastStatusChangeAt:
+          type: string
+          format: date-time
+        consecutiveFailures:
+          type: integer
+          format: int32
+        consecutiveSuccesses:
+          type: integer
+          format: int32
+        lastError:
+          type: string
+          nullable: true
+        totalChecks:
+          type: integer
+          format: int32
+        successChecks:
+          type: integer
+          format: int32
+        failedChecks:
+          type: integer
+          format: int32
+        uptimePercent:
+          type: number
+          format: double
+        lastFailureAt:
+          type: string
+          format: date-time
+          nullable: true
+      additionalProperties: false
+    RegulatorParticipantAvailabilitySummaryDto:
+      type: object
+      properties:
+        totalParticipants:
+          type: integer
+          format: int32
+        liveParticipants:
+          type: integer
+          format: int32
+        offlineParticipants:
+          type: integer
+          format: int32
+        openIncidents:
+          type: integer
+          format: int32
+        totalChecks:
+          type: integer
+          format: int32
+        successChecks:
+          type: integer
+          format: int32
+        failedChecks:
+          type: integer
+          format: int32
+        uptimePercent:
+          type: number
+          format: double
+      additionalProperties: false
+    RegulatorVelocityAlertDto:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+        alertId:
+          type: string
+          nullable: true
+        institution:
+          type: string
+          nullable: true
+        pattern:
+          type: string
+          nullable: true
+        txCount:
+          type: integer
+          format: int32
+        timeWindow:
+          type: string
+          nullable: true
+        value:
+          type: number
+          format: double
+        severity:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        timestamp:
+          type: string
+          nullable: true
+      additionalProperties: false
+    RegulatorVelocityAlertDtoListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RegulatorVelocityAlertDto'
+          nullable: true
+        isSuccess:
+          type: boolean
+        statusCode:
+          type: integer
+          format: int32
+        message:
+          type: string
+          nullable: true
+        cacheInMins:
+          type: integer
+          format: int32
+      additionalProperties: false
+    RegulatorVelocityAlertHeatmapDto:
+      type: object
+      properties:
+        maxAlerts:
+          type: integer
+          format: int32
+        institutions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RegulatorVelocityAlertInstitutionDto'
+          nullable: true
+      additionalProperties: false
+    RegulatorVelocityAlertHeatmapDtoResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/RegulatorVelocityAlertHeatmapDto'
+        isSuccess:
+          type: boolean
+        statusCode:
+          type: integer
+          format: int32
+        message:
+          type: string
+          nullable: true
+        cacheInMins:
+          type: integer
+          format: int32
+      additionalProperties: false
+    RegulatorVelocityAlertInstitutionDto:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+        patterns:
+          $ref: '#/components/schemas/RegulatorVelocityAlertPatternsDto'
+        totalAlerts:
+          type: integer
+          format: int32
+        riskScore:
+          type: integer
+          format: int32
+        peakTime:
+          type: string
+          nullable: true
+      additionalProperties: false
+    RegulatorVelocityAlertPatternsDto:
+      type: object
+      properties:
+        burstP2P:
+          type: integer
+          format: int32
+        smurfing:
+          type: integer
+          format: int32
+        roundTrip:
+          type: integer
+          format: int32
+        velocity:
+          type: integer
+          format: int32
+        structuring:
+          type: integer
+          format: int32
+        burstP2M:
+          type: integer
+          format: int32
       additionalProperties: false
     ResendOTPCommand:
       type: object
@@ -3884,6 +4548,27 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/RoleDto'
+        isSuccess:
+          type: boolean
+        statusCode:
+          type: integer
+          format: int32
+        message:
+          type: string
+          nullable: true
+        cacheInMins:
+          type: integer
+          format: int32
+      additionalProperties: false
+    StringInt32DictionaryResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int32
+          nullable: true
         isSuccess:
           type: boolean
         statusCode:
@@ -3984,9 +4669,9 @@ components:
       additionalProperties: false
     ThresholdZone:
       enum:
-        - 0
-        - 1
-        - 2
+      - 0
+      - 1
+      - 2
       type: integer
       format: int32
     TokenDto:
@@ -4135,6 +4820,251 @@ components:
           type: boolean
           readOnly: true
       additionalProperties: false
+    TransactionRecordDto:
+      type: object
+      properties:
+        source:
+          type: string
+          nullable: true
+        id:
+          type: integer
+          format: int64
+        parentId:
+          type: integer
+          format: int64
+          nullable: true
+        bankFrom:
+          type: string
+          nullable: true
+        bankFromName:
+          type: string
+          nullable: true
+        bankTo:
+          type: string
+          nullable: true
+        bankToName:
+          type: string
+          nullable: true
+        createdDate:
+          type: string
+          format: date-time
+          nullable: true
+        modifiedDate:
+          type: string
+          format: date-time
+          nullable: true
+        lastModifiedDate:
+          type: string
+          format: date-time
+          nullable: true
+        acceptanceDate:
+          type: string
+          format: date-time
+          nullable: true
+        createdDateRaw:
+          type: string
+          nullable: true
+        modifiedDateRaw:
+          type: string
+          nullable: true
+        lastModifiedDateRaw:
+          type: string
+          nullable: true
+        acceptanceDateRaw:
+          type: string
+          nullable: true
+        txId:
+          type: string
+          nullable: true
+        type:
+          type: string
+          nullable: true
+        typeDescription:
+          type: string
+          nullable: true
+        amount:
+          type: string
+          nullable: true
+        amountValue:
+          type: number
+          format: double
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        txSts:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        sttlId:
+          type: integer
+          format: int64
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        intrBkSttlmAtm:
+          type: string
+          nullable: true
+        intrBkSttlmAtmValue:
+          type: number
+          format: double
+          nullable: true
+        intrBkSttlmCurr:
+          type: string
+          nullable: true
+        dbtrAcctId:
+          type: string
+          nullable: true
+        dbtrAcctType:
+          type: string
+          nullable: true
+        dbtrName:
+          type: string
+          nullable: true
+        dbtrAddress:
+          type: string
+          nullable: true
+        cdtrAcctId:
+          type: string
+          nullable: true
+        cdtrAcctType:
+          type: string
+          nullable: true
+        cdtrName:
+          type: string
+          nullable: true
+        cdtrAddress:
+          type: string
+          nullable: true
+        requestId:
+          type: string
+          nullable: true
+        transCode:
+          type: string
+          nullable: true
+        error:
+          type: string
+          nullable: true
+        errDesc:
+          type: string
+          nullable: true
+        errorReason:
+          type: string
+          nullable: true
+        failureCode:
+          type: string
+          nullable: true
+        failureDescription:
+          type: string
+          nullable: true
+        failureReason:
+          type: string
+          nullable: true
+        localInstrument:
+          type: string
+          nullable: true
+        categoryPurpose:
+          type: string
+          nullable: true
+        lclInstrm:
+          type: string
+          nullable: true
+        ctgyPurp:
+          type: string
+          nullable: true
+        rtrId:
+          type: string
+          nullable: true
+        endToEndId:
+          type: string
+          nullable: true
+        iban:
+          type: string
+          nullable: true
+        rtpId:
+          type: string
+          nullable: true
+        orgTrxId:
+          type: string
+          nullable: true
+        stsRsnInfRsn:
+          type: string
+          nullable: true
+        stsRsnInfAddtlInf:
+          type: string
+          nullable: true
+        mandateReqId:
+          type: string
+          nullable: true
+        receivedAt:
+          type: string
+          format: date-time
+          nullable: true
+      additionalProperties: false
+    TransactionRecordDtoPagedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TransactionRecordDto'
+          nullable: true
+        index:
+          type: integer
+          format: int32
+          nullable: true
+        size:
+          type: integer
+          format: int32
+          nullable: true
+        count:
+          type: integer
+          format: int32
+          nullable: true
+        hasPrevious:
+          type: boolean
+          readOnly: true
+        hasNext:
+          type: boolean
+          readOnly: true
+      additionalProperties: false
+    TransactionSummaryWebhookDto:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        total_failed:
+          type: integer
+          format: int32
+        total_processed:
+          type: integer
+          format: int32
+        failed_from_date:
+          type: string
+          format: date-time
+        failed_to_date:
+          type: string
+          format: date-time
+        processed_from_date:
+          type: string
+          format: date-time
+        processed_to_date:
+          type: string
+          format: date-time
+        failed_status:
+          type: string
+          nullable: true
+        processed_status:
+          type: string
+          nullable: true
+        transaction_type:
+          type: string
+          nullable: true
+      additionalProperties: false
     TrendPackReportDto:
       type: object
       properties:
@@ -4156,18 +5086,6 @@ components:
         totalTransactions:
           type: integer
           format: int64
-      additionalProperties: false
-    UpdateFailedTransactionRuleIdsCommand:
-      type: object
-      properties:
-        ipsTransactionId:
-          type: integer
-          format: int64
-        ruleIds:
-          type: array
-          items:
-            type: string
-          nullable: true
       additionalProperties: false
     UpdateParticipantThresholdCommand:
       type: object
@@ -4299,4 +5217,4 @@ components:
       scheme: Bearer
       bearerFormat: JWT
 security:
-  - Bearer: [ ]
+- Bearer: []

@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using SPSS.App.Common;
-using SPSS.App.Features.Balance.Services;
 namespace SPSS.App;
 
 public static class DI
@@ -21,7 +20,6 @@ public static class DI
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuthorizationBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UnhandledExceptionBehavior<,>));
-        services.AddScoped<IFailedTransactionComplianceClassificationRefresher, FailedTransactionComplianceClassificationRefresher>();
 
         return services;
     }

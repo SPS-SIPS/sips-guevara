@@ -448,57 +448,6 @@ namespace SPSS.Infrastructure.Migrations
                     b.ToTable("failedtransactionruleassignments", (string)null);
                 });
 
-            modelBuilder.Entity("SPSS.Domain.Models.BL.FailedTransactionRuleDefinition", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<bool>("Active")
-                        .HasColumnType("boolean")
-                        .HasColumnName("active");
-
-                    b.Property<string>("Category")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("category");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)")
-                        .HasColumnName("description");
-
-                    b.Property<string>("Label")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)")
-                        .HasColumnName("label");
-
-                    b.Property<string>("RuleId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("ruleid");
-
-                    b.HasKey("Id")
-                        .HasName("pk_failedtransactionruledefinitions");
-
-                    b.HasIndex("Active")
-                        .HasDatabaseName("ix_failedtransactionruledefinitions_active");
-
-                    b.HasIndex("Category")
-                        .HasDatabaseName("ix_failedtransactionruledefinitions_category");
-
-                    b.HasIndex("RuleId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_failedtransactionruledefinitions_ruleid");
-
-                    b.ToTable("failedtransactionruledefinitions", (string)null);
-                });
-
             modelBuilder.Entity("SPSS.Domain.Models.BL.MonitHistory", b =>
                 {
                     b.Property<int>("Id")

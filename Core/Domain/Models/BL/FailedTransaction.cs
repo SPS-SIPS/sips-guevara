@@ -37,14 +37,6 @@ public sealed class FailedTransactionRuleAssignment
     public List<string> RuleIds { get; set; } = [];
 }
 
-public sealed class FailedTransactionRuleDefinition : BaseEntity<long>
-{
-    public string RuleId { get; set; } = string.Empty;
-    public string Label { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public string? Category { get; set; }
-}
-
 public sealed class FailedTransactionConfiguration : IEntityTypeConfiguration<FailedTransaction>
 {
     public void Configure(EntityTypeBuilder<FailedTransaction> builder)
@@ -88,25 +80,5 @@ public sealed class FailedTransactionRuleAssignmentConfiguration : IEntityTypeCo
             .WithMany()
             .HasForeignKey(e => e.FailedTransactionId)
             .OnDelete(DeleteBehavior.Cascade);
-    }
-}
-
-public sealed class FailedTransactionRuleDefinitionConfiguration : IEntityTypeConfiguration<FailedTransactionRuleDefinition>
-{
-    public void Configure(EntityTypeBuilder<FailedTransactionRuleDefinition> builder)
-    {
-        builder.Ignore(e => e.DomainEvents);
-
-        builder.HasKey(e => e.Id);
-        builder.Property(e => e.Id).ValueGeneratedOnAdd();
-        builder.Property(e => e.RuleId).HasMaxLength(100).IsRequired();
-        builder.Property(e => e.Label).HasMaxLength(250).IsRequired();
-        builder.Property(e => e.Description).HasMaxLength(1000);
-        builder.Property(e => e.Category).HasMaxLength(100);
-        builder.Property(e => e.Active).IsRequired();
-
-        builder.HasIndex(e => e.RuleId).IsUnique();
-        builder.HasIndex(e => e.Category);
-        builder.HasIndex(e => e.Active);
     }
 }

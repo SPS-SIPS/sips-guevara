@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text.Json;
 using SPSS.Domain.Models.DTOs;
 
 namespace SPSS.App.Features.Balance.Commands;
@@ -72,7 +71,6 @@ public sealed class ProcessOracleTransactionsWebhookCommandHandler(
         }
 
         var source = data.Source.Trim();
-        var rawPayload = JsonSerializer.Serialize(data);
         var receivedAt = DateTimeOffset.UtcNow;
         var duplicateCount = transactions.Count - transactions.Select(x => x.Id).Distinct().Count();
         var uniqueTransactions = transactions
@@ -90,17 +88,16 @@ public sealed class ProcessOracleTransactionsWebhookCommandHandler(
 
         foreach (var transaction in uniqueTransactions)
         {
-            var transactionRawPayload = JsonSerializer.Serialize(transaction);
             if (existingTransactions.TryGetValue(transaction.Id, out var entity))
             {
-                MapOracleTransaction(entity, source, transaction, receivedAt, transactionRawPayload);
+                MapOracleTransaction(entity, source, transaction, receivedAt);
                 _storage.OracleTransactions.Update(entity);
                 updatedCount++;
             }
             else
             {
                 await _storage.OracleTransactions.AddAsync(
-                    MapOracleTransaction(new OracleTransaction(), source, transaction, receivedAt, transactionRawPayload),
+                    MapOracleTransaction(new OracleTransaction(), source, transaction, receivedAt),
                     cancellationToken);
                 insertedCount++;
             }
@@ -125,7 +122,7 @@ public sealed class ProcessOracleTransactionsWebhookCommandHandler(
                 UpdatedCount = updatedCount,
                 DuplicateCount = duplicateCount,
                 RejectedCount = 0,
-                RawPayload = rawPayload
+                RawPayload = null
             },
             cancellationToken);
 
@@ -244,8 +241,7 @@ public sealed class ProcessOracleTransactionsWebhookCommandHandler(
         OracleTransaction entity,
         string source,
         OracleTransactionWebhookRowDto transaction,
-        DateTimeOffset receivedAt,
-        string rawPayload)
+        DateTimeOffset receivedAt)
     {
         entity.Source = source;
         entity.OracleId = transaction.Id;
@@ -302,7 +298,7 @@ public sealed class ProcessOracleTransactionsWebhookCommandHandler(
         entity.StsRsnInfRsn = transaction.StsRsnInfRsn;
         entity.StsRsnInfAddtlInf = transaction.StsRsnInfAddtlInf;
         entity.MandateReqId = transaction.MandateReqId;
-        entity.RawPayload = rawPayload;
+        entity.RawPayload = null;
         entity.ReceivedAt = receivedAt;
 
         return entity;
