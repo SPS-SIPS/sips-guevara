@@ -59,4 +59,17 @@ public sealed class TransactionRecordDto
     public string? StsRsnInfAddtlInf { get; set; }
     public string? MandateReqId { get; set; }
     public DateTimeOffset? ReceivedAt { get; set; }
+    public TransactionFraudContextDto? Fraud { get; set; }
+}
+
+public sealed class TransactionFraudContextDto
+{
+    public long Utrnno { get; set; }
+    public string RespCode { get; set; } = string.Empty;
+    public string FraudZone { get; set; } = string.Empty;
+    public string? RulesList { get; set; }
+    public List<string> Rules { get; set; } = [];
+    public string Refnum { get; set; } = string.Empty;
+    public string? RiskValue { get; set; }
+    public DateTimeOffset ReceivedAt { get; set; }
 }

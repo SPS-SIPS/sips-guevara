@@ -551,7 +551,7 @@ Optional `Kind` values:
 - `failed`: returns only legacy failed rows.
 - `processed`: returns only legacy processed rows.
 
-Oracle response rows include the normalized fields plus Oracle-specific fields such as `typeDescription`, `amountValue`, `txSts`, `lclInstrm`, `ctgyPurp`, `endToEndId`, and `rawPayload`.
+Oracle response rows include the normalized fields plus Oracle-specific fields such as `typeDescription`, `amountValue`, `txSts`, `lclInstrm`, `ctgyPurp`, and `endToEndId`.
 
 Consumer-friendly aliases are also returned:
 

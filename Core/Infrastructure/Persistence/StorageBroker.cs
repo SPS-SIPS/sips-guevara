@@ -25,6 +25,8 @@ public sealed class StorageBroker(DbContextOptions<StorageBroker> options) : DbC
     public DbSet<ProcessedTransaction> ProcessedTransactions { get; set; } = null!;
     public DbSet<OracleTransactionIngestionBatch> OracleTransactionIngestionBatches { get; set; } = null!;
     public DbSet<OracleTransaction> OracleTransactions { get; set; } = null!;
+    public DbSet<OracleFraudTransactionIngestionBatch> OracleFraudTransactionIngestionBatches { get; set; } = null!;
+    public DbSet<OracleFraudTransaction> OracleFraudTransactions { get; set; } = null!;
     public DbSet<NetSettlementHeader> NetSettlementHeaders { get; set; } = null!;
     public DbSet<NetSettlementDetail> NetSettlementDetails { get; set; } = null!;
     public DbSet<BicStatistic> BicStatistics { get; set; } = null!;

@@ -754,6 +754,196 @@ namespace SPSS.Infrastructure.Migrations
                     b.ToTable("netsettlementheaders", (string)null);
                 });
 
+            modelBuilder.Entity("SPSS.Domain.Models.BL.OracleFraudTransaction", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("FraudZone")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("fraudzone");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("receivedat");
+
+                    b.Property<string>("Refnum")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("refnum");
+
+                    b.Property<string>("RespCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("respcode");
+
+                    b.Property<string>("RiskValue")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("riskvalue");
+
+                    b.Property<List<string>>("Rules")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("rules");
+
+                    b.Property<string>("RulesList")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("ruleslist");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("source");
+
+                    b.Property<long>("Utrnno")
+                        .HasColumnType("bigint")
+                        .HasColumnName("utrnno");
+
+                    b.HasKey("Id")
+                        .HasName("pk_oraclefraudtransactions");
+
+                    b.HasIndex("FraudZone")
+                        .HasDatabaseName("ix_oraclefraudtransactions_fraudzone");
+
+                    b.HasIndex("ReceivedAt")
+                        .HasDatabaseName("ix_oraclefraudtransactions_receivedat");
+
+                    b.HasIndex("Refnum")
+                        .HasDatabaseName("ix_oraclefraudtransactions_refnum");
+
+                    b.HasIndex("RespCode")
+                        .HasDatabaseName("ix_oraclefraudtransactions_respcode");
+
+                    b.HasIndex("Utrnno")
+                        .HasDatabaseName("ix_oraclefraudtransactions_utrnno");
+
+                    b.HasIndex("Source", "Utrnno")
+                        .IsUnique()
+                        .HasDatabaseName("ix_oraclefraudtransactions_source_utrnno");
+
+                    b.ToTable("oraclefraudtransactions", (string)null);
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.OracleFraudTransactionIngestionBatch", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<int>("DuplicateCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("duplicatecount");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("errormessage");
+
+                    b.Property<long>("FromUtrnno")
+                        .HasColumnType("bigint")
+                        .HasColumnName("fromutrnno");
+
+                    b.Property<long>("HighWatermarkUtrnno")
+                        .HasColumnType("bigint")
+                        .HasColumnName("highwatermarkutrnno");
+
+                    b.Property<int>("InsertedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("insertedcount");
+
+                    b.Property<DateTimeOffset>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processedat");
+
+                    b.Property<DateTimeOffset>("ProducerTimestamp")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("producertimestamp");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("receivedat");
+
+                    b.Property<int>("ReceivedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("receivedcount");
+
+                    b.Property<int>("RejectedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("rejectedcount");
+
+                    b.Property<List<string>>("SampleErrors")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("sampleerrors");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("status");
+
+                    b.Property<long>("ToUtrnno")
+                        .HasColumnType("bigint")
+                        .HasColumnName("toutrnno");
+
+                    b.Property<int>("TotalCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("totalcount");
+
+                    b.Property<int>("UpdatedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("updatedcount");
+
+                    b.HasKey("Id")
+                        .HasName("pk_oraclefraudtransactioningestionbatches");
+
+                    b.HasIndex("ProcessedAt")
+                        .HasDatabaseName("ix_oraclefraudtransactioningestionbatches_processedat");
+
+                    b.HasIndex("ReceivedAt")
+                        .HasDatabaseName("ix_oraclefraudtransactioningestionbatches_receivedat");
+
+                    b.HasIndex("Source")
+                        .HasDatabaseName("ix_oraclefraudtransactioningestionbatches_source");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_oraclefraudtransactioningestionbatches_status");
+
+                    b.HasIndex("Source", "FromUtrnno", "ToUtrnno", "HighWatermarkUtrnno")
+                        .IsUnique()
+                        .HasDatabaseName("ix_oraclefraudtransactioningestionbatches_source_fromutrnno_to~");
+
+                    b.ToTable("oraclefraudtransactioningestionbatches", (string)null);
+                });
+
             modelBuilder.Entity("SPSS.Domain.Models.BL.OracleTransaction", b =>
                 {
                     b.Property<long>("Id")

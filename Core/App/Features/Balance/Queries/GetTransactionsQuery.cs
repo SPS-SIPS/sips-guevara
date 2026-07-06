@@ -34,7 +34,9 @@ public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
     {
         var kind = NormalizeKind(request.Kind);
 
-        var oracleQuery = ProjectOracle(ApplyOracleFilters(_storage.OracleTransactions.AsNoTracking(), request));
+        var oracleQuery = ProjectOracle(
+            ApplyOracleFilters(_storage.OracleTransactions.AsNoTracking(), request),
+            _storage.OracleFraudTransactions.AsNoTracking());
         var failedQuery = ProjectFailed(ApplyFailedFilters(_storage.FailedTransactions.AsNoTracking(), request));
         var processedQuery = ProjectProcessed(ApplyProcessedFilters(_storage.ProcessedTransactions.AsNoTracking(), request));
 
@@ -109,7 +111,9 @@ public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
         };
     }
 
-    private static IQueryable<TransactionRecordDto> ProjectOracle(IQueryable<OracleTransaction> query) =>
+    private static IQueryable<TransactionRecordDto> ProjectOracle(
+        IQueryable<OracleTransaction> query,
+        IQueryable<OracleFraudTransaction> fraudQuery) =>
         query.Select(x => new TransactionRecordDto
         {
             Source = x.Source,
@@ -166,7 +170,23 @@ public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
             StsRsnInfRsn = x.StsRsnInfRsn,
             StsRsnInfAddtlInf = x.StsRsnInfAddtlInf,
             MandateReqId = x.MandateReqId,
-            ReceivedAt = x.ReceivedAt
+            ReceivedAt = x.ReceivedAt,
+            Fraud = fraudQuery
+                .Where(f => f.Refnum == x.TxId)
+                .OrderByDescending(f => f.Utrnno)
+                .ThenByDescending(f => f.ReceivedAt)
+                .Select(f => new TransactionFraudContextDto
+                {
+                    Utrnno = f.Utrnno,
+                    RespCode = f.RespCode,
+                    FraudZone = f.FraudZone,
+                    RulesList = f.RulesList,
+                    Rules = f.Rules,
+                    Refnum = f.Refnum,
+                    RiskValue = f.RiskValue,
+                    ReceivedAt = f.ReceivedAt
+                })
+                .FirstOrDefault()
         });
 
     private static IQueryable<TransactionRecordDto> ProjectFailed(IQueryable<FailedTransaction> query) =>

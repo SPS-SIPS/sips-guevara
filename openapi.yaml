@@ -280,6 +280,30 @@ paths:
                 $ref: '#/components/schemas/OracleTransactionBatchResponseDtoResponse'
       security:
       - Bearer: []
+  /api/v1/Balance/fraud-transactions:
+    post:
+      tags:
+      - Balance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OracleFraudTransactionsWebhookDto'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/OracleFraudTransactionsWebhookDto'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/OracleFraudTransactionsWebhookDto'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OracleFraudTransactionBatchResponseDtoResponse'
+      security:
+      - Bearer: []
   /api/v1/Balance/transaction-summary:
     post:
       tags:
@@ -3503,6 +3527,94 @@ components:
           type: integer
           format: int32
       additionalProperties: false
+    OracleFraudTransactionBatchResponseDto:
+      type: object
+      properties:
+        status:
+          type: string
+          nullable: true
+        batch_key:
+          type: string
+          nullable: true
+        received:
+          type: integer
+          format: int32
+        duplicates:
+          type: integer
+          format: int32
+        inserted:
+          type: integer
+          format: int32
+        updated:
+          type: integer
+          format: int32
+      additionalProperties: false
+    OracleFraudTransactionBatchResponseDtoResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/OracleFraudTransactionBatchResponseDto'
+        isSuccess:
+          type: boolean
+        statusCode:
+          type: integer
+          format: int32
+        message:
+          type: string
+          nullable: true
+        cacheInMins:
+          type: integer
+          format: int32
+      additionalProperties: false
+    OracleFraudTransactionWebhookRowDto:
+      type: object
+      properties:
+        utrnno:
+          type: integer
+          format: int64
+        respCode:
+          type: string
+          nullable: true
+        fraudZone:
+          type: string
+          nullable: true
+        rulesList:
+          type: string
+          nullable: true
+        refnum:
+          type: string
+          nullable: true
+        riskValue:
+          type: string
+          nullable: true
+      additionalProperties: false
+    OracleFraudTransactionsWebhookDto:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        source:
+          type: string
+          nullable: true
+        from_utrnno:
+          type: integer
+          format: int64
+        to_utrnno:
+          type: integer
+          format: int64
+        high_watermark_utrnno:
+          type: integer
+          format: int64
+        total_count:
+          type: integer
+          format: int32
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/OracleFraudTransactionWebhookRowDto'
+          nullable: true
+      additionalProperties: false
     OracleTransactionBatchResponseDto:
       type: object
       properties:
@@ -4733,6 +4845,36 @@ components:
           type: boolean
           readOnly: true
       additionalProperties: false
+    TransactionFraudContextDto:
+      type: object
+      properties:
+        utrnno:
+          type: integer
+          format: int64
+        respCode:
+          type: string
+          nullable: true
+        fraudZone:
+          type: string
+          nullable: true
+        rulesList:
+          type: string
+          nullable: true
+        rules:
+          type: array
+          items:
+            type: string
+          nullable: true
+        refnum:
+          type: string
+          nullable: true
+        riskValue:
+          type: string
+          nullable: true
+        receivedAt:
+          type: string
+          format: date-time
+      additionalProperties: false
     TransactionIngestionBatchDto:
       type: object
       properties:
@@ -5003,6 +5145,8 @@ components:
           type: string
           format: date-time
           nullable: true
+        fraud:
+          $ref: '#/components/schemas/TransactionFraudContextDto'
       additionalProperties: false
     TransactionRecordDtoPagedResponse:
       type: object

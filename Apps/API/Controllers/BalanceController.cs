@@ -24,6 +24,12 @@ public class BalanceController : BaseController
     public async Task<Response<OracleTransactionBatchResponseDto>> PostTransactions([FromBody] OracleTransactionsWebhookDto data, CancellationToken ct)
         => await Mediator.Send(new ProcessOracleTransactionsWebhookCommand(data), ct);
 
+    [HttpPost("fraud-transactions")]
+    public async Task<Response<OracleFraudTransactionBatchResponseDto>> PostFraudTransactions(
+        [FromBody] OracleFraudTransactionsWebhookDto data,
+        CancellationToken ct)
+        => await Mediator.Send(new ProcessOracleFraudTransactionsWebhookCommand(data), ct);
+
     [HttpPost("transaction-summary")]
     public async Task<Response<string>> PostTransactionSummary([FromBody] TransactionSummaryWebhookDto data, CancellationToken ct)
         => await Mediator.Send(new ProcessTransactionSummaryWebhookCommand(data), ct);
