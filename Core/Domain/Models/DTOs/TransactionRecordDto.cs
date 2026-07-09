@@ -73,3 +73,20 @@ public sealed class TransactionFraudContextDto
     public string? RiskValue { get; set; }
     public DateTimeOffset ReceivedAt { get; set; }
 }
+
+public sealed class TransactionSummaryDto
+{
+    public int TotalTransactions { get; set; }
+    public decimal TotalAmount { get; set; }
+    public int RejectedTransactions { get; set; }
+    public decimal RejectedAmount { get; set; }
+    public int FraudMatchedTransactions { get; set; }
+    public List<TransactionRejectionCodeSummaryDto> RejectedByCode { get; set; } = [];
+}
+
+public sealed class TransactionRejectionCodeSummaryDto
+{
+    public string Code { get; set; } = string.Empty;
+    public int Count { get; set; }
+    public decimal Amount { get; set; }
+}

@@ -6,6 +6,7 @@ namespace SPSS.App.Features.Balance.Queries;
 [Authorize(Roles = QueryTransactions)]
 public sealed record GetTransactionsQuery(
     string? Kind,
+    string? Bank,
     string? BankFrom,
     string? BankTo,
     DateTimeOffset? CreatedDate,
@@ -22,6 +23,27 @@ public sealed record GetTransactionsQuery(
     string? TxSts,
     string? Error,
     string? FailureReason) : PaginationFilter, IRequest<PagedResponse<TransactionRecordDto>>;
+
+[Authorize(Roles = QueryTransactions)]
+public sealed record GetTransactionsSummaryQuery(
+    string? Kind,
+    string? Bank,
+    string? BankFrom,
+    string? BankTo,
+    DateTimeOffset? CreatedDate,
+    DateTimeOffset? From,
+    DateTimeOffset? To,
+    string? TxId,
+    string? Type,
+    string? Status,
+    long? SttlId,
+    string? DbtrAcctId,
+    string? CdtrAcctId,
+    string? LocalInstrument,
+    string? CategoryPurpose,
+    string? TxSts,
+    string? Error,
+    string? FailureReason) : IRequest<Response<TransactionSummaryDto>>;
 
 public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
     : IRequestHandler<GetTransactionsQuery, PagedResponse<TransactionRecordDto>>
@@ -274,10 +296,15 @@ public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
         };
     }
 
-    private static IQueryable<OracleTransaction> ApplyOracleFilters(
+    internal static IQueryable<OracleTransaction> ApplyOracleFilters(
         IQueryable<OracleTransaction> query,
         GetTransactionsQuery request)
     {
+        if (!string.IsNullOrWhiteSpace(request.Bank))
+        {
+            query = query.Where(x => x.BankFrom == request.Bank || x.BankTo == request.Bank);
+        }
+
         if (!string.IsNullOrWhiteSpace(request.BankFrom))
         {
             query = query.Where(x => x.BankFrom == request.BankFrom);
@@ -367,13 +394,18 @@ public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
         return query;
     }
 
-    private static IQueryable<FailedTransaction> ApplyFailedFilters(
+    internal static IQueryable<FailedTransaction> ApplyFailedFilters(
         IQueryable<FailedTransaction> query,
         GetTransactionsQuery request)
     {
         if (HasOracleOnlyFilters(request))
         {
             return query.Where(_ => false);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Bank))
+        {
+            query = query.Where(x => x.BankFrom == request.Bank || x.BankTo == request.Bank);
         }
 
         if (!string.IsNullOrWhiteSpace(request.BankFrom))
@@ -446,7 +478,7 @@ public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
         return query;
     }
 
-    private static IQueryable<ProcessedTransaction> ApplyProcessedFilters(
+    internal static IQueryable<ProcessedTransaction> ApplyProcessedFilters(
         IQueryable<ProcessedTransaction> query,
         GetTransactionsQuery request)
     {
@@ -455,6 +487,11 @@ public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
             !string.IsNullOrWhiteSpace(request.FailureReason))
         {
             return query.Where(_ => false);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Bank))
+        {
+            query = query.Where(x => x.BankFrom == request.Bank || x.BankTo == request.Bank);
         }
 
         if (!string.IsNullOrWhiteSpace(request.BankFrom))
@@ -517,8 +554,177 @@ public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
         return query;
     }
 
-    private static bool HasOracleOnlyFilters(GetTransactionsQuery request) =>
+    internal static bool HasOracleOnlyFilters(GetTransactionsQuery request) =>
         !string.IsNullOrWhiteSpace(request.LocalInstrument) ||
         !string.IsNullOrWhiteSpace(request.CategoryPurpose) ||
         !string.IsNullOrWhiteSpace(request.TxSts);
+}
+
+public sealed class GetTransactionsSummaryQueryHandler(IStorageBroker storage)
+    : IRequestHandler<GetTransactionsSummaryQuery, Response<TransactionSummaryDto>>
+{
+    private readonly IStorageBroker _storage = storage;
+
+    public async ValueTask<Response<TransactionSummaryDto>> Handle(
+        GetTransactionsSummaryQuery request,
+        CancellationToken cancellationToken)
+    {
+        var filter = ToTransactionsQuery(request);
+        var kind = NormalizeKind(request.Kind);
+
+        var oracleQuery = ProjectOracleSummary(
+            GetTransactionsQueryHandler.ApplyOracleFilters(_storage.OracleTransactions.AsNoTracking(), filter),
+            _storage.OracleFraudTransactions.AsNoTracking());
+        var failedQuery = ProjectFailedSummary(GetTransactionsQueryHandler.ApplyFailedFilters(_storage.FailedTransactions.AsNoTracking(), filter));
+        var processedQuery = ProjectProcessedSummary(GetTransactionsQueryHandler.ApplyProcessedFilters(_storage.ProcessedTransactions.AsNoTracking(), filter));
+
+        var queries = kind switch
+        {
+            "oracle" => new[] { oracleQuery },
+            "failed" => new[] { failedQuery },
+            "processed" => new[] { processedQuery },
+            "legacy" => new[] { failedQuery, processedQuery },
+            _ => new[] { oracleQuery, failedQuery, processedQuery }
+        };
+
+        var summary = new TransactionSummaryDto();
+        var rejectedByCode = new Dictionary<string, TransactionRejectionCodeSummaryDto>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var query in queries)
+        {
+            var aggregate = await query
+                .GroupBy(_ => 1)
+                .Select(g => new
+                {
+                    TotalTransactions = g.Count(),
+                    TotalAmount = g.Sum(x => x.Amount),
+                    RejectedTransactions = g.Count(x => x.IsRejected),
+                    RejectedAmount = g.Where(x => x.IsRejected).Sum(x => x.Amount),
+                    FraudMatchedTransactions = g.Count(x => x.HasFraud)
+                })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (aggregate is not null)
+            {
+                summary.TotalTransactions += aggregate.TotalTransactions;
+                summary.TotalAmount += aggregate.TotalAmount;
+                summary.RejectedTransactions += aggregate.RejectedTransactions;
+                summary.RejectedAmount += aggregate.RejectedAmount;
+                summary.FraudMatchedTransactions += aggregate.FraudMatchedTransactions;
+            }
+
+            var groups = await query
+                .Where(x => x.IsRejected)
+                .GroupBy(x => x.RejectionCode)
+                .Select(g => new TransactionRejectionCodeSummaryDto
+                {
+                    Code = g.Key,
+                    Count = g.Count(),
+                    Amount = g.Sum(x => x.Amount)
+                })
+                .ToListAsync(cancellationToken);
+
+            foreach (var group in groups)
+            {
+                var code = string.IsNullOrWhiteSpace(group.Code) ? "UNKNOWN" : group.Code;
+                if (!rejectedByCode.TryGetValue(code, out var existing))
+                {
+                    rejectedByCode[code] = new TransactionRejectionCodeSummaryDto
+                    {
+                        Code = code,
+                        Count = group.Count,
+                        Amount = group.Amount
+                    };
+                    continue;
+                }
+
+                existing.Count += group.Count;
+                existing.Amount += group.Amount;
+            }
+        }
+
+        summary.RejectedByCode = rejectedByCode.Values
+            .OrderByDescending(x => x.Amount)
+            .ThenByDescending(x => x.Count)
+            .ThenBy(x => x.Code)
+            .ToList();
+
+        return new Response<TransactionSummaryDto>(summary);
+    }
+
+    private static GetTransactionsQuery ToTransactionsQuery(GetTransactionsSummaryQuery request) =>
+        new(
+            request.Kind,
+            request.Bank,
+            request.BankFrom,
+            request.BankTo,
+            request.CreatedDate,
+            request.From,
+            request.To,
+            request.TxId,
+            request.Type,
+            request.Status,
+            request.SttlId,
+            request.DbtrAcctId,
+            request.CdtrAcctId,
+            request.LocalInstrument,
+            request.CategoryPurpose,
+            request.TxSts,
+            request.Error,
+            request.FailureReason);
+
+    private static string NormalizeKind(string? kind)
+    {
+        if (string.IsNullOrWhiteSpace(kind))
+        {
+            return "oracle";
+        }
+
+        return kind.Trim().ToLowerInvariant() switch
+        {
+            "all" or "both" => "all",
+            "oracle" or "new" => "oracle",
+            "legacy" => "legacy",
+            "failed" or "declined" => "failed",
+            "processed" or "succeeded" or "successful" => "processed",
+            _ => throw new BadRequestException("Kind must be one of: oracle, all, legacy, failed, processed")
+        };
+    }
+
+    private static IQueryable<TransactionSummaryProjection> ProjectOracleSummary(
+        IQueryable<OracleTransaction> query,
+        IQueryable<OracleFraudTransaction> fraudQuery) =>
+        query.Select(x => new TransactionSummaryProjection
+        {
+            Amount = x.AmountValue ?? x.IntrBkSttlmAtmValue ?? 0,
+            IsRejected = x.Status == "2" || x.TxSts == "RJCT" || x.Status == "REJECTED" || x.Status == "DECLINED" || x.Status == "FAILED",
+            RejectionCode = x.Error ?? x.StsRsnInfRsn ?? x.TxSts ?? x.Status ?? "UNKNOWN",
+            HasFraud = fraudQuery.Any(f => f.Refnum == x.TxId)
+        });
+
+    private static IQueryable<TransactionSummaryProjection> ProjectFailedSummary(IQueryable<FailedTransaction> query) =>
+        query.Select(x => new TransactionSummaryProjection
+        {
+            Amount = 0,
+            IsRejected = true,
+            RejectionCode = x.Error ?? x.ErrorReason ?? x.Status ?? "UNKNOWN",
+            HasFraud = false
+        });
+
+    private static IQueryable<TransactionSummaryProjection> ProjectProcessedSummary(IQueryable<ProcessedTransaction> query) =>
+        query.Select(x => new TransactionSummaryProjection
+        {
+            Amount = 0,
+            IsRejected = false,
+            RejectionCode = "NONE",
+            HasFraud = false
+        });
+
+    private sealed class TransactionSummaryProjection
+    {
+        public decimal Amount { get; set; }
+        public bool IsRejected { get; set; }
+        public string RejectionCode { get; set; } = string.Empty;
+        public bool HasFraud { get; set; }
+    }
 }

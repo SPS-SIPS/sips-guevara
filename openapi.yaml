@@ -1740,6 +1740,10 @@ paths:
         in: query
         schema:
           type: string
+      - name: Bank
+        in: query
+        schema:
+          type: string
       - name: BankFrom
         in: query
         schema:
@@ -1829,6 +1833,96 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TransactionRecordDtoPagedResponse'
+      security:
+      - Bearer: []
+  /api/v1/Transactions/summary:
+    get:
+      tags:
+      - Transactions
+      parameters:
+      - name: Kind
+        in: query
+        schema:
+          type: string
+      - name: Bank
+        in: query
+        schema:
+          type: string
+      - name: BankFrom
+        in: query
+        schema:
+          type: string
+      - name: BankTo
+        in: query
+        schema:
+          type: string
+      - name: CreatedDate
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: From
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: To
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: TxId
+        in: query
+        schema:
+          type: string
+      - name: Type
+        in: query
+        schema:
+          type: string
+      - name: Status
+        in: query
+        schema:
+          type: string
+      - name: SttlId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: DbtrAcctId
+        in: query
+        schema:
+          type: string
+      - name: CdtrAcctId
+        in: query
+        schema:
+          type: string
+      - name: LocalInstrument
+        in: query
+        schema:
+          type: string
+      - name: CategoryPurpose
+        in: query
+        schema:
+          type: string
+      - name: TxSts
+        in: query
+        schema:
+          type: string
+      - name: Error
+        in: query
+        schema:
+          type: string
+      - name: FailureReason
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionSummaryDtoResponse'
       security:
       - Bearer: []
   /api/v1/Users:
@@ -5174,6 +5268,60 @@ components:
         hasNext:
           type: boolean
           readOnly: true
+      additionalProperties: false
+    TransactionRejectionCodeSummaryDto:
+      type: object
+      properties:
+        code:
+          type: string
+          nullable: true
+        count:
+          type: integer
+          format: int32
+        amount:
+          type: number
+          format: double
+      additionalProperties: false
+    TransactionSummaryDto:
+      type: object
+      properties:
+        totalTransactions:
+          type: integer
+          format: int32
+        totalAmount:
+          type: number
+          format: double
+        rejectedTransactions:
+          type: integer
+          format: int32
+        rejectedAmount:
+          type: number
+          format: double
+        fraudMatchedTransactions:
+          type: integer
+          format: int32
+        rejectedByCode:
+          type: array
+          items:
+            $ref: '#/components/schemas/TransactionRejectionCodeSummaryDto'
+          nullable: true
+      additionalProperties: false
+    TransactionSummaryDtoResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/TransactionSummaryDto'
+        isSuccess:
+          type: boolean
+        statusCode:
+          type: integer
+          format: int32
+        message:
+          type: string
+          nullable: true
+        cacheInMins:
+          type: integer
+          format: int32
       additionalProperties: false
     TransactionSummaryWebhookDto:
       type: object

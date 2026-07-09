@@ -12,4 +12,10 @@ public class TransactionsController : BaseController
         [FromQuery] GetTransactionsQuery query,
         CancellationToken ct)
         => await Mediator.Send(query, ct);
+
+    [HttpGet("summary")]
+    public async Task<Response<TransactionSummaryDto>> GetSummary(
+        [FromQuery] GetTransactionsSummaryQuery query,
+        CancellationToken ct)
+        => await Mediator.Send(query, ct);
 }
