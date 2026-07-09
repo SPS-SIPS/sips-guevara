@@ -309,6 +309,7 @@ public sealed class ProcessedTransactionRecordDto
 public sealed class TransactionIngestionBatchDto
 {
     public long Id { get; set; }
+    public string? Source { get; set; }
     public string BatchType { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public DateTimeOffset FromDate { get; set; }
@@ -326,4 +327,9 @@ public sealed class TransactionIngestionBatchDto
     public int RejectedCount { get; set; }
     public string? ErrorMessage { get; set; }
     public List<string> SampleErrors { get; set; } = [];
+    public long? FromId { get; set; }
+    public long? ToId { get; set; }
+    public long? HighWatermarkId { get; set; }
+    public DateTimeOffset? ProducerTimestamp { get; set; }
+    public List<string> Statuses { get; set; } = [];
 }
