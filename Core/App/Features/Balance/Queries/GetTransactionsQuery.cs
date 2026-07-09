@@ -22,7 +22,9 @@ public sealed record GetTransactionsQuery(
     string? CategoryPurpose,
     string? TxSts,
     string? Error,
-    string? FailureReason) : PaginationFilter, IRequest<PagedResponse<TransactionRecordDto>>;
+    string? FailureReason,
+    string? FraudZone,
+    string? FraudRule) : PaginationFilter, IRequest<PagedResponse<TransactionRecordDto>>;
 
 [Authorize(Roles = QueryTransactions)]
 public sealed record GetTransactionsSummaryQuery(
@@ -43,7 +45,9 @@ public sealed record GetTransactionsSummaryQuery(
     string? CategoryPurpose,
     string? TxSts,
     string? Error,
-    string? FailureReason) : IRequest<Response<TransactionSummaryDto>>;
+    string? FailureReason,
+    string? FraudZone,
+    string? FraudRule) : IRequest<Response<TransactionSummaryDto>>;
 
 public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
     : IRequestHandler<GetTransactionsQuery, PagedResponse<TransactionRecordDto>>
@@ -56,9 +60,13 @@ public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
     {
         var kind = NormalizeKind(request.Kind);
 
+        var fraudRows = _storage.OracleFraudTransactions.AsNoTracking();
         var oracleQuery = ProjectOracle(
-            ApplyOracleFilters(_storage.OracleTransactions.AsNoTracking(), request),
-            _storage.OracleFraudTransactions.AsNoTracking());
+            ApplyOracleFraudFilters(
+                ApplyOracleFilters(_storage.OracleTransactions.AsNoTracking(), request),
+                fraudRows,
+                request),
+            fraudRows);
         var failedQuery = ProjectFailed(ApplyFailedFilters(_storage.FailedTransactions.AsNoTracking(), request));
         var processedQuery = ProjectProcessed(ApplyProcessedFilters(_storage.ProcessedTransactions.AsNoTracking(), request));
 
@@ -394,6 +402,24 @@ public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
         return query;
     }
 
+    internal static IQueryable<OracleTransaction> ApplyOracleFraudFilters(
+        IQueryable<OracleTransaction> query,
+        IQueryable<OracleFraudTransaction> fraudQuery,
+        GetTransactionsQuery request)
+    {
+        if (!string.IsNullOrWhiteSpace(request.FraudZone))
+        {
+            query = query.Where(x => fraudQuery.Any(f => f.Refnum == x.TxId && f.FraudZone == request.FraudZone));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.FraudRule))
+        {
+            query = query.Where(x => fraudQuery.Any(f => f.Refnum == x.TxId && f.Rules.Contains(request.FraudRule)));
+        }
+
+        return query;
+    }
+
     internal static IQueryable<FailedTransaction> ApplyFailedFilters(
         IQueryable<FailedTransaction> query,
         GetTransactionsQuery request)
@@ -557,7 +583,9 @@ public sealed class GetTransactionsQueryHandler(IStorageBroker storage)
     internal static bool HasOracleOnlyFilters(GetTransactionsQuery request) =>
         !string.IsNullOrWhiteSpace(request.LocalInstrument) ||
         !string.IsNullOrWhiteSpace(request.CategoryPurpose) ||
-        !string.IsNullOrWhiteSpace(request.TxSts);
+        !string.IsNullOrWhiteSpace(request.TxSts) ||
+        !string.IsNullOrWhiteSpace(request.FraudZone) ||
+        !string.IsNullOrWhiteSpace(request.FraudRule);
 }
 
 public sealed class GetTransactionsSummaryQueryHandler(IStorageBroker storage)
@@ -572,9 +600,13 @@ public sealed class GetTransactionsSummaryQueryHandler(IStorageBroker storage)
         var filter = ToTransactionsQuery(request);
         var kind = NormalizeKind(request.Kind);
 
+        var fraudRows = _storage.OracleFraudTransactions.AsNoTracking();
         var oracleQuery = ProjectOracleSummary(
-            GetTransactionsQueryHandler.ApplyOracleFilters(_storage.OracleTransactions.AsNoTracking(), filter),
-            _storage.OracleFraudTransactions.AsNoTracking());
+            GetTransactionsQueryHandler.ApplyOracleFraudFilters(
+                GetTransactionsQueryHandler.ApplyOracleFilters(_storage.OracleTransactions.AsNoTracking(), filter),
+                fraudRows,
+                filter),
+            fraudRows);
         var failedQuery = ProjectFailedSummary(GetTransactionsQueryHandler.ApplyFailedFilters(_storage.FailedTransactions.AsNoTracking(), filter));
         var processedQuery = ProjectProcessedSummary(GetTransactionsQueryHandler.ApplyProcessedFilters(_storage.ProcessedTransactions.AsNoTracking(), filter));
 
@@ -671,7 +703,9 @@ public sealed class GetTransactionsSummaryQueryHandler(IStorageBroker storage)
             request.CategoryPurpose,
             request.TxSts,
             request.Error,
-            request.FailureReason);
+            request.FailureReason,
+            request.FraudZone,
+            request.FraudRule);
 
     private static string NormalizeKind(string? kind)
     {
