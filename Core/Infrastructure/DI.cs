@@ -49,6 +49,7 @@ public static class DI
         services.AddSingleton<ITemplateRenderer, TemplateRendererService>();
 
         services.AddScoped<INSIEmailNotificationService, NSIEmailNotificationService>(); // Added registration
+        services.AddScoped<IOracleFailedTransactionNotificationService, OracleFailedTransactionNotificationService>();
         services.AddScoped<INSIGeneratorService, NSIGeneratorService>();
 
         services.AddScoped<ICertificateRetriever, LDAPCertificateFetcher>();
@@ -70,6 +71,10 @@ public static class DI
         var emailConfig = new EmailConfig();
         configuration.Bind(nameof(EmailConfig), emailConfig);
         services.AddSingleton(emailConfig);
+
+        var oracleFailedTransactionNotificationConfig = new OracleFailedTransactionNotificationConfig();
+        configuration.Bind("OracleFailedTransactionNotifications", oracleFailedTransactionNotificationConfig);
+        services.AddSingleton(oracleFailedTransactionNotificationConfig);
 
         var certificateExpirationNotificationConfig = new CertificateExpirationNotificationConfig();
         configuration.Bind("CertificateExpirationNotifications", certificateExpirationNotificationConfig);
@@ -110,6 +115,14 @@ public static class DI
             var nsi = new JobConfiguration();
             configuration.Bind("Jobs:NSI", nsi);
             services.AddCronJob<NSIMonitoring>(nsi);
+
+            var oracleFailedTransactionNotifications = new JobConfiguration();
+            configuration.Bind("Jobs:OracleFailedTransactionNotifications", oracleFailedTransactionNotifications);
+            if (oracleFailedTransactionNotificationConfig.Enabled)
+            {
+                services.AddCronJob<OracleFailedTransactionNotificationJob>(oracleFailedTransactionNotifications);
+            }
+
             services.AddHostedService<CertificateFetchingService>();
             services.AddHostedService<CertificateValidationService>();
             services.AddHostedService<ParticipantStatusUpdaterWorker>();

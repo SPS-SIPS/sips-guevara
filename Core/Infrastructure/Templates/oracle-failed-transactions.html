@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Daily Failed Transactions Report</title>
+    <style>
+      body { margin: 0; padding: 0; background: #f6f8fb; color: #1f2937; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+      .container { max-width: 680px; margin: 0 auto; padding: 28px 18px; }
+      .panel { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
+      .header { background: #0f4c81; color: #ffffff; padding: 22px 24px; }
+      .header h1 { margin: 0; font-size: 20px; line-height: 1.3; font-weight: 700; }
+      .header p { margin: 8px 0 0; color: #dbeafe; font-size: 13px; }
+      .content { padding: 24px; }
+      .summary { border: 1px solid #e5e7eb; border-radius: 8px; margin: 18px 0; }
+      .row { display: block; padding: 11px 14px; border-bottom: 1px solid #eef2f7; }
+      .row:last-child { border-bottom: 0; }
+      .label { display: inline-block; width: 150px; color: #64748b; font-size: 13px; }
+      .value { color: #111827; font-size: 14px; font-weight: 700; }
+      .note { color: #64748b; font-size: 12px; line-height: 1.6; }
+      .footer { padding: 0 24px 24px; color: #64748b; font-size: 12px; line-height: 1.6; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="panel">
+        <div class="header">
+          <h1>Daily Failed Transactions Report</h1>
+          <p>{{ReportDate}} | Institution {{BIC}}</p>
+        </div>
+        <div class="content">
+          <p>Dear {{ParticipantName}},</p>
+          <p>Please find attached the failed transactions report for your institution covering {{WindowDescription}}.</p>
+          <div class="summary">
+            <div class="row"><span class="label">Institution BIC:</span><span class="value">{{BIC}}</span></div>
+            <div class="row"><span class="label">Report window:</span><span class="value">{{From}} to {{To}}</span></div>
+            <div class="row"><span class="label">First transaction:</span><span class="value">{{FirstTransactionTime}}</span></div>
+            <div class="row"><span class="label">Last transaction:</span><span class="value">{{LastTransactionTime}}</span></div>
+            <div class="row"><span class="label">Failed transactions:</span><span class="value">{{TransactionCount}}</span></div>
+            <div class="row"><span class="label">Attachment:</span><span class="value">{{AttachmentName}}</span></div>
+          </div>
+          <p class="note">The attached CSV includes transaction id, end-to-end id, date time, sender account, receiver account, failure code, and failure reason.</p>
+        </div>
+        <div class="footer">
+          Regards,<br />
+          SPS Team
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
