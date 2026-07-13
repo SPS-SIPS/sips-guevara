@@ -58,18 +58,26 @@ public sealed class OracleFailedTransactionNotificationService(
     }
 
     public async Task NotifyAsync(DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken = default)
-        => await NotifyAsync(from, to, participantBic: null, recordWindow: true, cancellationToken);
+        => await NotifyAsync(from, to, participantBic: null, recordWindow: true, applyFirstWindowGuard: true, cancellationToken);
 
-    public async Task NotifyInstitutionAsync(string bic, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken = default)
-        => await NotifyAsync(from, to, bic, recordWindow: false, cancellationToken);
+    public async Task<OracleFailedTransactionNotificationResult> NotifyInstitutionAsync(string bic, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken = default)
+        => await NotifyAsync(from, to, bic, recordWindow: false, applyFirstWindowGuard: false, cancellationToken);
 
-    private async Task NotifyAsync(
+    private async Task<OracleFailedTransactionNotificationResult> NotifyAsync(
         DateTimeOffset from,
         DateTimeOffset to,
         string? participantBic,
         bool recordWindow,
+        bool applyFirstWindowGuard,
         CancellationToken cancellationToken = default)
     {
+        var result = new OracleFailedTransactionNotificationResult
+        {
+            Bic = participantBic ?? string.Empty,
+            From = from,
+            To = to
+        };
+
         if (from >= to)
         {
             throw new ArgumentException("Report window start must be before end.");
@@ -84,12 +92,14 @@ public sealed class OracleFailedTransactionNotificationService(
         if (failureStatuses.Count == 0)
         {
             _logger.LogWarning("Oracle failed transaction notification skipped because no failure statuses are configured.");
-            return;
+            result.Message = "No failure statuses are configured.";
+            return result;
         }
 
-        if (from < _config.FirstWindowStartAt)
+        if (applyFirstWindowGuard && from < _config.FirstWindowStartAt)
         {
             from = _config.FirstWindowStartAt;
+            result.From = from;
         }
 
         var transactions = await _storage.OracleTransactions
@@ -110,8 +120,11 @@ public sealed class OracleFailedTransactionNotificationService(
             {
                 await RecordWindowAsync(from, to, "EMPTY", 0, 0, 0, null, cancellationToken);
             }
-            return;
+            result.Message = "No failed Oracle transactions found for the selected window.";
+            return result;
         }
+
+        result.SourceRows = transactions.Count;
 
         var firstTransactionTime = transactions.Min(TransactionTime);
         var lastTransactionTime = transactions.Max(TransactionTime);
@@ -126,6 +139,7 @@ public sealed class OracleFailedTransactionNotificationService(
         if (!string.IsNullOrWhiteSpace(participantBic))
         {
             var selectedBic = NormalizeBic(participantBic.Trim());
+            result.Bic = selectedBic;
             participantBics = participantBics
                 .Where(x => string.Equals(x, selectedBic, StringComparison.OrdinalIgnoreCase))
                 .ToList();
@@ -137,7 +151,10 @@ public sealed class OracleFailedTransactionNotificationService(
                     selectedBic,
                     from,
                     to);
-                return;
+                result.Bic = selectedBic;
+                result.SourceRows = 0;
+                result.Message = $"No failed Oracle transactions found for selected BIC {selectedBic} in the selected window.";
+                return result;
             }
         }
 
@@ -202,6 +219,7 @@ public sealed class OracleFailedTransactionNotificationService(
 
                 await _emailSender.SendEmailAsync(participant.Email!, subject, htmlBody, tempPath, isHTML: true);
                 sentCount++;
+                result.SentCount++;
 
                 _logger.LogInformation(
                     "Sent Oracle failed transaction report to {Email} for BIC {BIC}. Rows={Rows}",
@@ -212,6 +230,7 @@ public sealed class OracleFailedTransactionNotificationService(
             catch (Exception ex)
             {
                 skipped.Add(bic);
+                result.SkippedCount++;
                 _logger.LogError(ex, "Failed to send Oracle failed transaction report for BIC {BIC}.", bic);
             }
             finally
@@ -229,6 +248,16 @@ public sealed class OracleFailedTransactionNotificationService(
             skipped.Count,
             string.Join(",", skipped));
 
+        result.SourceRows = participantBic is null
+            ? transactions.Count
+            : transactions.Count(t => MatchesBic(t.BankFrom, result.Bic) || MatchesBic(t.BankTo, result.Bic));
+        result.SkippedCount = Math.Max(result.SkippedCount, skipped.Count);
+        result.Message = result.Sent
+            ? $"Sent failed transaction notification for {result.Bic} with {result.SourceRows} transactions."
+            : skipped.Count > 0
+                ? $"Failed transaction notification was not sent for {result.Bic}. Skipped BICs: {string.Join(",", skipped)}"
+                : $"No failed transaction notification was sent for {result.Bic}.";
+
         if (recordWindow)
         {
             await RecordWindowAsync(
@@ -241,6 +270,8 @@ public sealed class OracleFailedTransactionNotificationService(
                 skipped.Count > 0 ? $"Skipped BICs: {string.Join(",", skipped)}" : null,
                 cancellationToken);
         }
+
+        return result;
     }
 
     private static OracleFailedTransactionCsvRow ToCsvRow(OracleTransaction transaction)

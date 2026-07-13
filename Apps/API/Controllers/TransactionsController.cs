@@ -33,26 +33,29 @@ public class TransactionsController : BaseController
         => await Mediator.Send(query, ct);
 
     [HttpPost("failed-notifications/manual")]
-    public async Task<Response<string>> SendManualFailedTransactionNotification(
+    public async Task<Response<OracleFailedTransactionNotificationResult>> SendManualFailedTransactionNotification(
         [FromBody] ManualOracleFailedTransactionNotificationRequest request,
         CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.Bic))
         {
-            return Response<string>.BadRequest("Institution BIC is required");
+            return Response<OracleFailedTransactionNotificationResult>.BadRequest("Institution BIC is required");
         }
 
         if (request.From >= request.To)
         {
-            return Response<string>.BadRequest("Window start must be before window end");
+            return Response<OracleFailedTransactionNotificationResult>.BadRequest("Window start must be before window end");
         }
 
-        await _oracleFailedTransactionNotificationService.NotifyInstitutionAsync(
+        var result = await _oracleFailedTransactionNotificationService.NotifyInstitutionAsync(
             request.Bic,
             request.From,
             request.To,
             ct);
 
-        return new Response<string>($"Manual failed transaction notification requested for {request.Bic} from {request.From:yyyy-MM-dd HH:mm:ss} UTC to {request.To:yyyy-MM-dd HH:mm:ss} UTC");
+        return new Response<OracleFailedTransactionNotificationResult>(result)
+        {
+            Message = result.Message
+        };
     }
 }
