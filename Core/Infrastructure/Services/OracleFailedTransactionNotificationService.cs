@@ -278,7 +278,7 @@ public sealed class OracleFailedTransactionNotificationService(
         => new()
         {
             TransactionId = transaction.TxId,
-            DateTime = TransactionTime(transaction),
+            DateTime = TransactionTime(transaction).ToString("yyyy-MM-dd HH:mm:ss 'UTC'"),
             SendingInstitution = transaction.BankFrom,
             ReceivingInstitution = transaction.BankTo,
             SenderAccount = transaction.DbtrAcctId ?? string.Empty,
@@ -358,7 +358,7 @@ sealed class OracleFailedTransactionCsvRow
     public string TransactionId { get; set; } = string.Empty;
 
     [Name("Date time")]
-    public DateTimeOffset DateTime { get; set; }
+    public string DateTime { get; set; } = string.Empty;
 
     [Name("Sending Institution")]
     public string SendingInstitution { get; set; } = string.Empty;
