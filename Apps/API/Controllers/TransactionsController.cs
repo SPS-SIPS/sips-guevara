@@ -7,6 +7,13 @@ namespace SPSS.API.Controllers;
 [Route("api/v1/[controller]")]
 public class TransactionsController : BaseController
 {
+    private readonly IOracleFailedTransactionNotificationService _oracleFailedTransactionNotificationService;
+
+    public TransactionsController(IOracleFailedTransactionNotificationService oracleFailedTransactionNotificationService)
+    {
+        _oracleFailedTransactionNotificationService = oracleFailedTransactionNotificationService;
+    }
+
     [HttpGet]
     public async Task<PagedResponse<TransactionRecordDto>> Get(
         [FromQuery] GetTransactionsQuery query,
@@ -24,4 +31,28 @@ public class TransactionsController : BaseController
         [FromQuery] GetOracleTransactionIngestionBatchesQuery query,
         CancellationToken ct)
         => await Mediator.Send(query, ct);
+
+    [HttpPost("failed-notifications/manual")]
+    public async Task<Response<string>> SendManualFailedTransactionNotification(
+        [FromBody] ManualOracleFailedTransactionNotificationRequest request,
+        CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(request.Bic))
+        {
+            return Response<string>.BadRequest("Institution BIC is required");
+        }
+
+        if (request.From >= request.To)
+        {
+            return Response<string>.BadRequest("Window start must be before window end");
+        }
+
+        await _oracleFailedTransactionNotificationService.NotifyInstitutionAsync(
+            request.Bic,
+            request.From,
+            request.To,
+            ct);
+
+        return new Response<string>($"Manual failed transaction notification requested for {request.Bic} from {request.From:yyyy-MM-dd HH:mm:ss} UTC to {request.To:yyyy-MM-dd HH:mm:ss} UTC");
+    }
 }

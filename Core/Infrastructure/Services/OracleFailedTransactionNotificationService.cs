@@ -58,6 +58,17 @@ public sealed class OracleFailedTransactionNotificationService(
     }
 
     public async Task NotifyAsync(DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken = default)
+        => await NotifyAsync(from, to, participantBic: null, recordWindow: true, cancellationToken);
+
+    public async Task NotifyInstitutionAsync(string bic, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken = default)
+        => await NotifyAsync(from, to, bic, recordWindow: false, cancellationToken);
+
+    private async Task NotifyAsync(
+        DateTimeOffset from,
+        DateTimeOffset to,
+        string? participantBic,
+        bool recordWindow,
+        CancellationToken cancellationToken = default)
     {
         if (from >= to)
         {
@@ -95,7 +106,10 @@ public sealed class OracleFailedTransactionNotificationService(
                 "No Oracle failed transactions found for notification window {From} to {To}.",
                 from,
                 to);
-            await RecordWindowAsync(from, to, "EMPTY", 0, 0, 0, null, cancellationToken);
+            if (recordWindow)
+            {
+                await RecordWindowAsync(from, to, "EMPTY", 0, 0, 0, null, cancellationToken);
+            }
             return;
         }
 
@@ -108,6 +122,24 @@ public sealed class OracleFailedTransactionNotificationService(
             .Select(NormalizeBic)
             .Distinct()
             .ToList();
+
+        if (!string.IsNullOrWhiteSpace(participantBic))
+        {
+            var selectedBic = NormalizeBic(participantBic.Trim());
+            participantBics = participantBics
+                .Where(x => string.Equals(x, selectedBic, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (participantBics.Count == 0)
+            {
+                _logger.LogInformation(
+                    "No Oracle failed transactions found for selected BIC {BIC} in notification window {From} to {To}.",
+                    selectedBic,
+                    from,
+                    to);
+                return;
+            }
+        }
 
         var participants = await _storage.Participants
             .Where(p => p.Active && p.DeletedOn == null && p.Email != null)
@@ -164,6 +196,7 @@ public sealed class OracleFailedTransactionNotificationService(
                     ["LastTransactionTime"] = lastTransactionTime.ToString("yyyy-MM-dd HH:mm:ss 'UTC'"),
                     ["ReportDate"] = to.ToString("yyyy-MM-dd"),
                     ["TransactionCount"] = rows.Count.ToString(),
+                    ["TotalRejectedAmount"] = rows.Sum(r => r.Amount).ToString("0.##"),
                     ["AttachmentName"] = fileName
                 }, cancellationToken);
 
@@ -196,15 +229,18 @@ public sealed class OracleFailedTransactionNotificationService(
             skipped.Count,
             string.Join(",", skipped));
 
-        await RecordWindowAsync(
-            from,
-            to,
-            skipped.Count == 0 ? "SUCCESS" : "PARTIAL",
-            transactions.Count,
-            sentCount,
-            skipped.Count,
-            skipped.Count > 0 ? $"Skipped BICs: {string.Join(",", skipped)}" : null,
-            cancellationToken);
+        if (recordWindow)
+        {
+            await RecordWindowAsync(
+                from,
+                to,
+                skipped.Count == 0 ? "SUCCESS" : "PARTIAL",
+                transactions.Count,
+                sentCount,
+                skipped.Count,
+                skipped.Count > 0 ? $"Skipped BICs: {string.Join(",", skipped)}" : null,
+                cancellationToken);
+        }
     }
 
     private static OracleFailedTransactionCsvRow ToCsvRow(OracleTransaction transaction)
@@ -212,8 +248,11 @@ public sealed class OracleFailedTransactionNotificationService(
         {
             TransactionId = transaction.TxId,
             DateTime = TransactionTime(transaction),
+            SendingInstitution = transaction.BankFrom,
+            ReceivingInstitution = transaction.BankTo,
             SenderAccount = transaction.DbtrAcctId ?? string.Empty,
             ReceiverAccount = transaction.CdtrAcctId ?? string.Empty,
+            Amount = transaction.AmountValue ?? transaction.IntrBkSttlmAtmValue ?? 0,
             FailureCode = FirstValue(transaction.Error, transaction.StsRsnInfRsn, transaction.TxSts, transaction.Status),
             FailureReason = FirstValue(transaction.ErrorReason, transaction.ErrDesc, transaction.StsRsnInfAddtlInf, transaction.Description)
         };
@@ -290,11 +329,20 @@ sealed class OracleFailedTransactionCsvRow
     [Name("Date time")]
     public DateTimeOffset DateTime { get; set; }
 
+    [Name("Sending Institution")]
+    public string SendingInstitution { get; set; } = string.Empty;
+
+    [Name("Receiving Institution")]
+    public string ReceivingInstitution { get; set; } = string.Empty;
+
     [Name("Sender Account")]
     public string SenderAccount { get; set; } = string.Empty;
 
     [Name("Receiver Account")]
     public string ReceiverAccount { get; set; } = string.Empty;
+
+    [Name("Amount")]
+    public decimal Amount { get; set; }
 
     [Name("Failure Code")]
     public string FailureCode { get; set; } = string.Empty;
