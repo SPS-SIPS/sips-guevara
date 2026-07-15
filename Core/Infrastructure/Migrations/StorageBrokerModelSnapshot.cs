@@ -754,6 +754,376 @@ namespace SPSS.Infrastructure.Migrations
                     b.ToTable("netsettlementheaders", (string)null);
                 });
 
+            modelBuilder.Entity("SPSS.Domain.Models.BL.OracleFailedAccountAnalytic", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AccountId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("accountid");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<DateTimeOffset?>("FirstTransactionAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("firsttransactionat");
+
+                    b.Property<string>("InstitutionBic")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("institutionbic");
+
+                    b.Property<DateTimeOffset?>("LastTransactionAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lasttransactionat");
+
+                    b.Property<string>("ReceivingInstitution")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("receivinginstitution");
+
+                    b.Property<long>("RunId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("runid");
+
+                    b.Property<string>("TopFailureCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("topfailurecode");
+
+                    b.Property<string>("TopFailureReason")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("topfailurereason");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("totalamount");
+
+                    b.Property<int>("TransactionCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("transactioncount");
+
+                    b.HasKey("Id")
+                        .HasName("pk_oraclefailedaccountanalytics");
+
+                    b.HasIndex("AccountId")
+                        .HasDatabaseName("ix_oraclefailedaccountanalytics_accountid");
+
+                    b.HasIndex("InstitutionBic")
+                        .HasDatabaseName("ix_oraclefailedaccountanalytics_institutionbic");
+
+                    b.HasIndex("ReceivingInstitution")
+                        .HasDatabaseName("ix_oraclefailedaccountanalytics_receivinginstitution");
+
+                    b.HasIndex("RunId")
+                        .HasDatabaseName("ix_oraclefailedaccountanalytics_runid");
+
+                    b.ToTable("oraclefailedaccountanalytics", (string)null);
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.OracleFailedInstitutionAnalytic", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<int>("DistinctDebtorAccounts")
+                        .HasColumnType("integer")
+                        .HasColumnName("distinctdebtoraccounts");
+
+                    b.Property<DateTimeOffset?>("FirstTransactionAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("firsttransactionat");
+
+                    b.Property<DateTimeOffset?>("LastTransactionAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lasttransactionat");
+
+                    b.Property<string>("ReceivingInstitution")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("receivinginstitution");
+
+                    b.Property<long>("RunId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("runid");
+
+                    b.Property<string>("SendingInstitution")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("sendinginstitution");
+
+                    b.Property<string>("TopFailureCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("topfailurecode");
+
+                    b.Property<string>("TopFailureReason")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("topfailurereason");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("totalamount");
+
+                    b.Property<int>("TransactionCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("transactioncount");
+
+                    b.HasKey("Id")
+                        .HasName("pk_oraclefailedinstitutionanalytics");
+
+                    b.HasIndex("ReceivingInstitution")
+                        .HasDatabaseName("ix_oraclefailedinstitutionanalytics_receivinginstitution");
+
+                    b.HasIndex("RunId")
+                        .HasDatabaseName("ix_oraclefailedinstitutionanalytics_runid");
+
+                    b.HasIndex("SendingInstitution")
+                        .HasDatabaseName("ix_oraclefailedinstitutionanalytics_sendinginstitution");
+
+                    b.ToTable("oraclefailedinstitutionanalytics", (string)null);
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.OracleFailedRejectionTypeAnalytic", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("FailureCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("failurecode");
+
+                    b.Property<string>("FailureReason")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("failurereason");
+
+                    b.Property<string>("ReceivingInstitution")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("receivinginstitution");
+
+                    b.Property<long>("RunId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("runid");
+
+                    b.Property<string>("SendingInstitution")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("sendinginstitution");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("totalamount");
+
+                    b.Property<int>("TransactionCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("transactioncount");
+
+                    b.HasKey("Id")
+                        .HasName("pk_oraclefailedrejectiontypeanalytics");
+
+                    b.HasIndex("FailureCode")
+                        .HasDatabaseName("ix_oraclefailedrejectiontypeanalytics_failurecode");
+
+                    b.HasIndex("ReceivingInstitution")
+                        .HasDatabaseName("ix_oraclefailedrejectiontypeanalytics_receivinginstitution");
+
+                    b.HasIndex("RunId")
+                        .HasDatabaseName("ix_oraclefailedrejectiontypeanalytics_runid");
+
+                    b.HasIndex("SendingInstitution")
+                        .HasDatabaseName("ix_oraclefailedrejectiontypeanalytics_sendinginstitution");
+
+                    b.ToTable("oraclefailedrejectiontypeanalytics", (string)null);
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.OracleFailedTransactionAnalyticsRun", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("errormessage");
+
+                    b.Property<DateTimeOffset>("GeneratedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("generatedat");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("status");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("totalamount");
+
+                    b.Property<int>("TotalTransactions")
+                        .HasColumnType("integer")
+                        .HasColumnName("totaltransactions");
+
+                    b.Property<int>("UniqueAccounts")
+                        .HasColumnType("integer")
+                        .HasColumnName("uniqueaccounts");
+
+                    b.Property<int>("UniqueReceivingInstitutions")
+                        .HasColumnType("integer")
+                        .HasColumnName("uniquereceivinginstitutions");
+
+                    b.Property<int>("UniqueSendingInstitutions")
+                        .HasColumnType("integer")
+                        .HasColumnName("uniquesendinginstitutions");
+
+                    b.Property<DateTimeOffset>("WindowEnd")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("windowend");
+
+                    b.Property<DateTimeOffset>("WindowStart")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("windowstart");
+
+                    b.HasKey("Id")
+                        .HasName("pk_oraclefailedtransactionanalyticsruns");
+
+                    b.HasIndex("GeneratedAt")
+                        .HasDatabaseName("ix_oraclefailedtransactionanalyticsruns_generatedat");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_oraclefailedtransactionanalyticsruns_status");
+
+                    b.HasIndex("WindowStart", "WindowEnd")
+                        .HasDatabaseName("ix_oraclefailedtransactionanalyticsruns_windowstart_windowend");
+
+                    b.ToTable("oraclefailedtransactionanalyticsruns", (string)null);
+                });
+
+            modelBuilder.Entity("SPSS.Domain.Models.BL.OracleFailedTrendAnalytic", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<DateTimeOffset>("BucketStart")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("bucketstart");
+
+                    b.Property<string>("BucketType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("buckettype");
+
+                    b.Property<string>("FailureCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("failurecode");
+
+                    b.Property<string>("ReceivingInstitution")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("receivinginstitution");
+
+                    b.Property<long>("RunId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("runid");
+
+                    b.Property<string>("SendingInstitution")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("sendinginstitution");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("totalamount");
+
+                    b.Property<int>("TransactionCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("transactioncount");
+
+                    b.HasKey("Id")
+                        .HasName("pk_oraclefailedtrendanalytics");
+
+                    b.HasIndex("BucketStart")
+                        .HasDatabaseName("ix_oraclefailedtrendanalytics_bucketstart");
+
+                    b.HasIndex("ReceivingInstitution")
+                        .HasDatabaseName("ix_oraclefailedtrendanalytics_receivinginstitution");
+
+                    b.HasIndex("RunId")
+                        .HasDatabaseName("ix_oraclefailedtrendanalytics_runid");
+
+                    b.HasIndex("SendingInstitution")
+                        .HasDatabaseName("ix_oraclefailedtrendanalytics_sendinginstitution");
+
+                    b.ToTable("oraclefailedtrendanalytics", (string)null);
+                });
+
             modelBuilder.Entity("SPSS.Domain.Models.BL.OracleFraudTransaction", b =>
                 {
                     b.Property<long>("Id")
