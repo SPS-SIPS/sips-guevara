@@ -50,6 +50,7 @@ public static class DI
 
         services.AddScoped<INSIEmailNotificationService, NSIEmailNotificationService>(); // Added registration
         services.AddScoped<IOracleFailedTransactionNotificationService, OracleFailedTransactionNotificationService>();
+        services.AddScoped<IOracleFailedTransactionAnalyticsService, OracleFailedTransactionAnalyticsService>();
         services.AddScoped<INSIGeneratorService, NSIGeneratorService>();
 
         services.AddScoped<ICertificateRetriever, LDAPCertificateFetcher>();
@@ -75,6 +76,11 @@ public static class DI
         var oracleFailedTransactionNotificationConfig = new OracleFailedTransactionNotificationConfig();
         configuration.Bind("OracleFailedTransactionNotifications", oracleFailedTransactionNotificationConfig);
         services.AddSingleton(oracleFailedTransactionNotificationConfig);
+
+        var oracleFailedTransactionAnalyticsConfig = new OracleFailedTransactionAnalyticsConfig();
+        configuration.Bind("OracleFailedTransactionAnalytics", oracleFailedTransactionAnalyticsConfig);
+        services.AddSingleton(oracleFailedTransactionAnalyticsConfig);
+        services.Configure<OracleFailedTransactionAnalyticsConfig>(configuration.GetSection("OracleFailedTransactionAnalytics"));
 
         var certificateExpirationNotificationConfig = new CertificateExpirationNotificationConfig();
         configuration.Bind("CertificateExpirationNotifications", certificateExpirationNotificationConfig);
@@ -128,6 +134,10 @@ public static class DI
             services.AddHostedService<ParticipantStatusUpdaterWorker>();
             services.AddHostedService<MonitHistoryCleanupWorker>();
             services.AddHostedService<TransactionRetentionCleanupWorker>();
+            if (oracleFailedTransactionAnalyticsConfig.Enabled)
+            {
+                services.AddHostedService<OracleFailedTransactionAnalyticsWorker>();
+            }
         }
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>

@@ -28,6 +28,11 @@ public interface IStorageBroker
     DbSet<OracleTransaction> OracleTransactions { get; set; }
     DbSet<OracleFraudTransactionIngestionBatch> OracleFraudTransactionIngestionBatches { get; set; }
     DbSet<OracleFraudTransaction> OracleFraudTransactions { get; set; }
+    DbSet<OracleFailedTransactionAnalyticsRun> OracleFailedTransactionAnalyticsRuns { get; set; }
+    DbSet<OracleFailedInstitutionAnalytic> OracleFailedInstitutionAnalytics { get; set; }
+    DbSet<OracleFailedAccountAnalytic> OracleFailedAccountAnalytics { get; set; }
+    DbSet<OracleFailedRejectionTypeAnalytic> OracleFailedRejectionTypeAnalytics { get; set; }
+    DbSet<OracleFailedTrendAnalytic> OracleFailedTrendAnalytics { get; set; }
     DbSet<NetSettlementHeader> NetSettlementHeaders { get; set; }
     DbSet<NetSettlementDetail> NetSettlementDetails { get; set; }
     DbSet<BicStatistic> BicStatistics { get; set; }
