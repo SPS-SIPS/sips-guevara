@@ -10,6 +10,16 @@ public sealed record GetOracleFailedAnalyticsRunsQuery(
     DateTimeOffset? To) : PaginationFilter, IRequest<PagedResponse<OracleFailedTransactionAnalyticsRunDto>>;
 
 [Authorize(Roles = QueryTransactions)]
+public sealed record GetOracleFailedAnalyticsSummaryQuery(
+    long? RunId,
+    DateTimeOffset? From,
+    DateTimeOffset? To,
+    string? SendingInstitution,
+    string? ReceivingInstitution,
+    string? RejectionCategory,
+    string? FailureCode) : IRequest<Response<OracleFailedTransactionAnalyticsSummaryDto>>;
+
+[Authorize(Roles = QueryTransactions)]
 public sealed record GetOracleFailedInstitutionAnalyticsQuery(
     long? RunId,
     DateTimeOffset? From,
@@ -81,6 +91,52 @@ public sealed class GetOracleFailedAnalyticsRunsQueryHandler(IStorageBroker stor
                 }),
             request,
             cancellationToken);
+    }
+}
+
+public sealed class GetOracleFailedAnalyticsSummaryQueryHandler(IStorageBroker storage)
+    : IRequestHandler<GetOracleFailedAnalyticsSummaryQuery, Response<OracleFailedTransactionAnalyticsSummaryDto>>
+{
+    public async ValueTask<Response<OracleFailedTransactionAnalyticsSummaryDto>> Handle(
+        GetOracleFailedAnalyticsSummaryQuery request,
+        CancellationToken cancellationToken)
+    {
+        var runIds = await OracleFailedAnalyticsQueryHelpers.ResolveRunIdsAsync(storage, request.RunId, request.From, request.To, cancellationToken);
+        var rejectionQuery = storage.OracleFailedRejectionTypeAnalytics.AsNoTracking().Where(x => runIds.Contains(x.RunId));
+        var accountQuery = storage.OracleFailedAccountAnalytics.AsNoTracking().Where(x => runIds.Contains(x.RunId));
+
+        if (!string.IsNullOrWhiteSpace(request.SendingInstitution))
+        {
+            rejectionQuery = rejectionQuery.Where(x => x.SendingInstitution == request.SendingInstitution);
+            accountQuery = accountQuery.Where(x => x.InstitutionBic == request.SendingInstitution);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.ReceivingInstitution))
+        {
+            rejectionQuery = rejectionQuery.Where(x => x.ReceivingInstitution == request.ReceivingInstitution);
+            accountQuery = accountQuery.Where(x => x.ReceivingInstitution == request.ReceivingInstitution);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.RejectionCategory))
+        {
+            rejectionQuery = rejectionQuery.Where(x => x.RejectionCategory == request.RejectionCategory);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.FailureCode))
+        {
+            rejectionQuery = rejectionQuery.Where(x => x.FailureCode == request.FailureCode);
+        }
+
+        var summary = new OracleFailedTransactionAnalyticsSummaryDto
+        {
+            TotalTransactions = await rejectionQuery.SumAsync(x => (int?)x.TransactionCount, cancellationToken) ?? 0,
+            TotalAmount = await rejectionQuery.SumAsync(x => (decimal?)x.TotalAmount, cancellationToken) ?? 0,
+            UniqueSendingInstitutions = await rejectionQuery.Select(x => x.SendingInstitution).Where(x => x != string.Empty).Distinct().CountAsync(cancellationToken),
+            UniqueReceivingInstitutions = await rejectionQuery.Select(x => x.ReceivingInstitution).Where(x => x != string.Empty).Distinct().CountAsync(cancellationToken),
+            UniqueAccounts = await accountQuery.Select(x => x.AccountId).Where(x => x != string.Empty).Distinct().CountAsync(cancellationToken)
+        };
+
+        return new Response<OracleFailedTransactionAnalyticsSummaryDto>(summary);
     }
 }
 

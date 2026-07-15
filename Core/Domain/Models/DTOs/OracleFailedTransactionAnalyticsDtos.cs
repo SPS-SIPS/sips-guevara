@@ -15,6 +15,15 @@ public sealed class OracleFailedTransactionAnalyticsRunDto
     public string? ErrorMessage { get; set; }
 }
 
+public sealed class OracleFailedTransactionAnalyticsSummaryDto
+{
+    public int TotalTransactions { get; set; }
+    public decimal TotalAmount { get; set; }
+    public int UniqueSendingInstitutions { get; set; }
+    public int UniqueReceivingInstitutions { get; set; }
+    public int UniqueAccounts { get; set; }
+}
+
 public sealed class OracleFailedInstitutionAnalyticDto
 {
     public long RunId { get; set; }

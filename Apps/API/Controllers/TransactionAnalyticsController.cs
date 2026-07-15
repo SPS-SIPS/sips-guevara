@@ -13,6 +13,12 @@ public sealed class TransactionAnalyticsController : BaseController
         CancellationToken ct)
         => await Mediator.Send(query, ct);
 
+    [HttpGet("summary")]
+    public async Task<Response<OracleFailedTransactionAnalyticsSummaryDto>> GetSummary(
+        [FromQuery] GetOracleFailedAnalyticsSummaryQuery query,
+        CancellationToken ct)
+        => await Mediator.Send(query, ct);
+
     [HttpGet("institutions")]
     public async Task<PagedResponse<OracleFailedInstitutionAnalyticDto>> GetInstitutions(
         [FromQuery] GetOracleFailedInstitutionAnalyticsQuery query,
