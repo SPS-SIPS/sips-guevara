@@ -98,9 +98,15 @@ public sealed class OracleFailedTransactionAnalyticsService(
                     Amount = x.AmountValue ?? x.IntrBkSttlmAtmValue ?? 0,
                     DebtorAccount = x.DbtrAcctId,
                     FailureCode = x.Error ?? x.StsRsnInfRsn ?? x.TxSts ?? x.Status,
-                    FailureReason = x.ErrorReason ?? x.ErrDesc ?? x.StsRsnInfAddtlInf ?? x.Description ?? x.Error ?? x.Status
+                    FailureReason = x.ErrorReason ?? x.ErrDesc ?? x.StsRsnInfAddtlInf ?? x.Description ?? x.Error ?? x.Status,
+                    HasFraudHit = _storage.OracleFraudTransactions.Any(f => f.Refnum == x.TxId)
                 })
                 .ToListAsync(cancellationToken);
+
+            foreach (var row in rows)
+            {
+                row.RejectionCategory = ResolveRejectionCategory(row);
+            }
 
             run.TotalTransactions = rows.Count;
             run.TotalAmount = rows.Sum(x => x.Amount);
@@ -235,12 +241,13 @@ public sealed class OracleFailedTransactionAnalyticsService(
 
     private static IEnumerable<OracleFailedRejectionTypeAnalytic> BuildRejectionAnalytics(long runId, List<AnalyticsSourceRow> rows)
         => rows
-            .GroupBy(x => new { x.SendingInstitution, x.ReceivingInstitution, x.FailureCode, x.FailureReason })
+            .GroupBy(x => new { x.SendingInstitution, x.ReceivingInstitution, x.RejectionCategory, x.FailureCode, x.FailureReason })
             .Select(group => new OracleFailedRejectionTypeAnalytic
             {
                 RunId = runId,
                 SendingInstitution = group.Key.SendingInstitution,
                 ReceivingInstitution = group.Key.ReceivingInstitution,
+                RejectionCategory = group.Key.RejectionCategory,
                 FailureCode = group.Key.FailureCode,
                 FailureReason = group.Key.FailureReason,
                 TransactionCount = group.Count(),
@@ -254,6 +261,7 @@ public sealed class OracleFailedTransactionAnalyticsService(
                 BucketStart = new DateTimeOffset(x.TransactionAt.UtcDateTime.Date, TimeSpan.Zero),
                 x.SendingInstitution,
                 x.ReceivingInstitution,
+                x.RejectionCategory,
                 x.FailureCode
             })
             .Select(group => new OracleFailedTrendAnalytic
@@ -263,6 +271,7 @@ public sealed class OracleFailedTransactionAnalyticsService(
                 BucketType = "DAY",
                 SendingInstitution = group.Key.SendingInstitution,
                 ReceivingInstitution = group.Key.ReceivingInstitution,
+                RejectionCategory = group.Key.RejectionCategory,
                 FailureCode = group.Key.FailureCode,
                 TransactionCount = group.Count(),
                 TotalAmount = group.Sum(x => x.Amount)
@@ -277,6 +286,33 @@ public sealed class OracleFailedTransactionAnalyticsService(
 
     private static bool HasValue(string? value) => !string.IsNullOrWhiteSpace(value);
 
+    private static string ResolveRejectionCategory(AnalyticsSourceRow row)
+    {
+        if (IsLimitExceeded(row.FailureCode) || IsLimitExceeded(row.FailureReason))
+        {
+            return "IPS_LIMIT_EXCEEDED";
+        }
+
+        if (row.HasFraudHit)
+        {
+            return "FM_REJECTED";
+        }
+
+        return "IPS_REJECTED";
+    }
+
+    private static bool IsLimitExceeded(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        var normalized = value.Trim().ToUpperInvariant();
+        return normalized.Contains("LIMIT") &&
+               (normalized.Contains("EXCEED") || normalized.Contains("EXCEEDED") || normalized.Contains("EXCESS"));
+    }
+
     private sealed class AnalyticsSourceRow
     {
         public string SendingInstitution { get; set; } = string.Empty;
@@ -286,5 +322,7 @@ public sealed class OracleFailedTransactionAnalyticsService(
         public string? DebtorAccount { get; set; }
         public string FailureCode { get; set; } = string.Empty;
         public string FailureReason { get; set; } = string.Empty;
+        public bool HasFraudHit { get; set; }
+        public string RejectionCategory { get; set; } = string.Empty;
     }
 }

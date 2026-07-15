@@ -33,6 +33,7 @@ public sealed record GetOracleFailedRejectionTypeAnalyticsQuery(
     DateTimeOffset? To,
     string? SendingInstitution,
     string? ReceivingInstitution,
+    string? RejectionCategory,
     string? FailureCode) : PaginationFilter, IRequest<PagedResponse<OracleFailedRejectionTypeAnalyticDto>>;
 
 [Authorize(Roles = QueryTransactions)]
@@ -40,6 +41,7 @@ public sealed record GetOracleFailedTrendAnalyticsQuery(
     long? RunId,
     string? SendingInstitution,
     string? ReceivingInstitution,
+    string? RejectionCategory,
     string? FailureCode,
     DateTimeOffset? From,
     DateTimeOffset? To) : PaginationFilter, IRequest<PagedResponse<OracleFailedTrendAnalyticDto>>;
@@ -193,6 +195,11 @@ public sealed class GetOracleFailedRejectionTypeAnalyticsQueryHandler(IStorageBr
             query = query.Where(x => x.ReceivingInstitution == request.ReceivingInstitution);
         }
 
+        if (!string.IsNullOrWhiteSpace(request.RejectionCategory))
+        {
+            query = query.Where(x => x.RejectionCategory == request.RejectionCategory);
+        }
+
         if (!string.IsNullOrWhiteSpace(request.FailureCode))
         {
             query = query.Where(x => x.FailureCode == request.FailureCode);
@@ -200,12 +207,13 @@ public sealed class GetOracleFailedRejectionTypeAnalyticsQueryHandler(IStorageBr
 
         return await PaginationHelper<OracleFailedRejectionTypeAnalyticDto>.CreateAsync(
             query
-                .GroupBy(x => new { x.SendingInstitution, x.ReceivingInstitution, x.FailureCode, x.FailureReason })
+                .GroupBy(x => new { x.SendingInstitution, x.ReceivingInstitution, x.RejectionCategory, x.FailureCode, x.FailureReason })
                 .Select(group => new OracleFailedRejectionTypeAnalyticDto
                 {
                     RunId = 0,
                     SendingInstitution = group.Key.SendingInstitution,
                     ReceivingInstitution = group.Key.ReceivingInstitution,
+                    RejectionCategory = group.Key.RejectionCategory,
                     FailureCode = group.Key.FailureCode,
                     FailureReason = group.Key.FailureReason,
                     TransactionCount = group.Sum(x => x.TransactionCount),
@@ -238,6 +246,11 @@ public sealed class GetOracleFailedTrendAnalyticsQueryHandler(IStorageBroker sto
             query = query.Where(x => x.ReceivingInstitution == request.ReceivingInstitution);
         }
 
+        if (!string.IsNullOrWhiteSpace(request.RejectionCategory))
+        {
+            query = query.Where(x => x.RejectionCategory == request.RejectionCategory);
+        }
+
         if (!string.IsNullOrWhiteSpace(request.FailureCode))
         {
             query = query.Where(x => x.FailureCode == request.FailureCode);
@@ -255,7 +268,7 @@ public sealed class GetOracleFailedTrendAnalyticsQueryHandler(IStorageBroker sto
 
         return await PaginationHelper<OracleFailedTrendAnalyticDto>.CreateAsync(
             query
-                .GroupBy(x => new { x.BucketStart, x.BucketType, x.SendingInstitution, x.ReceivingInstitution, x.FailureCode })
+                .GroupBy(x => new { x.BucketStart, x.BucketType, x.SendingInstitution, x.ReceivingInstitution, x.RejectionCategory, x.FailureCode })
                 .Select(group => new OracleFailedTrendAnalyticDto
                 {
                     RunId = 0,
@@ -263,6 +276,7 @@ public sealed class GetOracleFailedTrendAnalyticsQueryHandler(IStorageBroker sto
                     BucketType = group.Key.BucketType,
                     SendingInstitution = group.Key.SendingInstitution,
                     ReceivingInstitution = group.Key.ReceivingInstitution,
+                    RejectionCategory = group.Key.RejectionCategory,
                     FailureCode = group.Key.FailureCode,
                     TransactionCount = group.Sum(x => x.TransactionCount),
                     TotalAmount = group.Sum(x => x.TotalAmount)

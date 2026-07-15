@@ -48,6 +48,7 @@ public sealed class OracleFailedRejectionTypeAnalyticDto
     public long RunId { get; set; }
     public string SendingInstitution { get; set; } = string.Empty;
     public string ReceivingInstitution { get; set; } = string.Empty;
+    public string RejectionCategory { get; set; } = string.Empty;
     public string FailureCode { get; set; } = string.Empty;
     public string FailureReason { get; set; } = string.Empty;
     public int TransactionCount { get; set; }
@@ -61,6 +62,7 @@ public sealed class OracleFailedTrendAnalyticDto
     public string BucketType { get; set; } = "DAY";
     public string SendingInstitution { get; set; } = string.Empty;
     public string ReceivingInstitution { get; set; } = string.Empty;
+    public string RejectionCategory { get; set; } = string.Empty;
     public string FailureCode { get; set; } = string.Empty;
     public int TransactionCount { get; set; }
     public decimal TotalAmount { get; set; }

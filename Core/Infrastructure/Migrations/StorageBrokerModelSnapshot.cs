@@ -943,6 +943,12 @@ namespace SPSS.Infrastructure.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("receivinginstitution");
 
+                    b.Property<string>("RejectionCategory")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("rejectioncategory");
+
                     b.Property<long>("RunId")
                         .HasColumnType("bigint")
                         .HasColumnName("runid");
@@ -970,6 +976,9 @@ namespace SPSS.Infrastructure.Migrations
 
                     b.HasIndex("ReceivingInstitution")
                         .HasDatabaseName("ix_oraclefailedrejectiontypeanalytics_receivinginstitution");
+
+                    b.HasIndex("RejectionCategory")
+                        .HasDatabaseName("ix_oraclefailedrejectiontypeanalytics_rejectioncategory");
 
                     b.HasIndex("RunId")
                         .HasDatabaseName("ix_oraclefailedrejectiontypeanalytics_runid");
@@ -1087,6 +1096,12 @@ namespace SPSS.Infrastructure.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("receivinginstitution");
 
+                    b.Property<string>("RejectionCategory")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("rejectioncategory");
+
                     b.Property<long>("RunId")
                         .HasColumnType("bigint")
                         .HasColumnName("runid");
@@ -1114,6 +1129,9 @@ namespace SPSS.Infrastructure.Migrations
 
                     b.HasIndex("ReceivingInstitution")
                         .HasDatabaseName("ix_oraclefailedtrendanalytics_receivinginstitution");
+
+                    b.HasIndex("RejectionCategory")
+                        .HasDatabaseName("ix_oraclefailedtrendanalytics_rejectioncategory");
 
                     b.HasIndex("RunId")
                         .HasDatabaseName("ix_oraclefailedtrendanalytics_runid");

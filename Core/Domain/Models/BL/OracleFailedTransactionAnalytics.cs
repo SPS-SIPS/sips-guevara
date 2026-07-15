@@ -47,6 +47,7 @@ public sealed class OracleFailedRejectionTypeAnalytic : BaseEntity<long>
     public long RunId { get; set; }
     public string SendingInstitution { get; set; } = string.Empty;
     public string ReceivingInstitution { get; set; } = string.Empty;
+    public string RejectionCategory { get; set; } = string.Empty;
     public string FailureCode { get; set; } = string.Empty;
     public string FailureReason { get; set; } = string.Empty;
     public int TransactionCount { get; set; }
@@ -60,6 +61,7 @@ public sealed class OracleFailedTrendAnalytic : BaseEntity<long>
     public string BucketType { get; set; } = "DAY";
     public string SendingInstitution { get; set; } = string.Empty;
     public string ReceivingInstitution { get; set; } = string.Empty;
+    public string RejectionCategory { get; set; } = string.Empty;
     public string FailureCode { get; set; } = string.Empty;
     public int TransactionCount { get; set; }
     public decimal TotalAmount { get; set; }
@@ -127,12 +129,14 @@ public sealed class OracleFailedRejectionTypeAnalyticConfiguration : IEntityType
         builder.Property(e => e.Id).ValueGeneratedOnAdd();
         builder.Property(e => e.SendingInstitution).HasMaxLength(20).IsRequired();
         builder.Property(e => e.ReceivingInstitution).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.RejectionCategory).HasMaxLength(50).IsRequired();
         builder.Property(e => e.FailureCode).HasMaxLength(100);
         builder.Property(e => e.FailureReason).HasMaxLength(250);
         builder.Property(e => e.TotalAmount).HasPrecision(18, 2);
         builder.HasIndex(e => e.RunId);
         builder.HasIndex(e => e.SendingInstitution);
         builder.HasIndex(e => e.ReceivingInstitution);
+        builder.HasIndex(e => e.RejectionCategory);
         builder.HasIndex(e => e.FailureCode);
     }
 }
@@ -147,11 +151,13 @@ public sealed class OracleFailedTrendAnalyticConfiguration : IEntityTypeConfigur
         builder.Property(e => e.BucketType).HasMaxLength(20).IsRequired();
         builder.Property(e => e.SendingInstitution).HasMaxLength(20).IsRequired();
         builder.Property(e => e.ReceivingInstitution).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.RejectionCategory).HasMaxLength(50).IsRequired();
         builder.Property(e => e.FailureCode).HasMaxLength(100);
         builder.Property(e => e.TotalAmount).HasPrecision(18, 2);
         builder.HasIndex(e => e.RunId);
         builder.HasIndex(e => e.BucketStart);
         builder.HasIndex(e => e.SendingInstitution);
         builder.HasIndex(e => e.ReceivingInstitution);
+        builder.HasIndex(e => e.RejectionCategory);
     }
 }
