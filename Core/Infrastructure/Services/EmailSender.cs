@@ -24,12 +24,17 @@ public class EmailSender(EmailConfig config, ILogger<EmailSender> logger) : IEma
             IsBodyHtml = isHTML,
         };
         
-        foreach (var cc in _config.CC)
+        mailMessage.To.Add(toEmail);
+
+        foreach (var cc in (_config.CC ?? string.Empty)
+                     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                     .Where(x => !string.IsNullOrWhiteSpace(x))
+                     .Select(x => x.Trim())
+                     .Distinct(StringComparer.OrdinalIgnoreCase)
+                     .Where(x => !string.Equals(x, toEmail, StringComparison.OrdinalIgnoreCase)))
         {
             mailMessage.CC.Add(new MailAddress(cc));
         }
-
-        mailMessage.To.Add(toEmail);
 
         if (!string.IsNullOrEmpty(attachmentPath) && File.Exists(attachmentPath))
         {
@@ -39,8 +44,8 @@ public class EmailSender(EmailConfig config, ILogger<EmailSender> logger) : IEma
 
         try
         {
-            _logger.LogInformation("SMTP sending: server={Server}, port={Port}, ssl={SSL}, from={From}, to={To}, subject={Subject}, attachment={Attachment}",
-                _config.Server, _config.Port, _config.IsSSL, _config.Username, toEmail, subject, Path.GetFileName(attachmentPath ?? string.Empty));
+            _logger.LogInformation("SMTP sending: server={Server}, port={Port}, ssl={SSL}, from={From}, to={To}, ccCount={CcCount}, subject={Subject}, attachment={Attachment}",
+                _config.Server, _config.Port, _config.IsSSL, _config.Username, toEmail, mailMessage.CC.Count, subject, Path.GetFileName(attachmentPath ?? string.Empty));
 
             await smtpClient.SendMailAsync(mailMessage);
 
