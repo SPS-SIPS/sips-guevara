@@ -50,6 +50,279 @@ flowchart LR
     Guevara --> Alerts["Alerts, Thresholds, Compliance Evidence"]
 ```
 
+## Subsystems
+
+guevara is made of several operational subsystems. Together they make it the real operational surface for SOMALI PAYMENT SWITCH (SPS) LTD: the place where switch activity becomes supervision, settlement evidence, participant governance, liquidity control, and executive/regulatory intelligence.
+
+### 1. Identity, Access, and Authorization
+
+This subsystem controls who can enter the operational surface and what each user can do.
+
+Key areas:
+
+- Authentication and token lifecycle.
+- Users, roles, claims, and permissions.
+- Access boundaries for operational, administrative, reporting, and regulatory users.
+- Query permissions for sensitive transaction, participant, certificate, NSI, and report data.
+
+Primary modules:
+
+- `Auth`
+- `Users`
+- `Roles`
+- `Claims`
+- `Permissions`
+
+Strategic role: protects the national switch operating surface from becoming a flat dashboard. Sensitive functions are separated by responsibility and authority.
+
+### 2. Participant Registry and Governance
+
+This subsystem manages the institutions connected to the national switch and keeps participant identity available to the rest of the system.
+
+Key areas:
+
+- Participant records and lookup APIs.
+- Live participant visibility.
+- Participant-specific balance and operational status.
+- Participant administration for scheme operations.
+
+Primary modules:
+
+- `Participants`
+- `ParticipantThresholds`
+- `Certificates`
+
+Strategic role: turns participant management into an active governance function rather than a static directory.
+
+### 3. Liquidity and Balance Monitoring
+
+This subsystem receives settlement-balance snapshots from the external balance-monitoring service and evaluates them against configured participant thresholds.
+
+Key areas:
+
+- Balance webhook ingestion.
+- Participant balance status.
+- Liquidity zones and threshold evaluation.
+- Evidence for participant follow-up and operational escalation.
+
+Primary modules:
+
+- `Balance`
+- `Thresholds`
+- `Participants`
+
+Strategic role: gives SPS early warning of liquidity stress before it becomes a settlement or service-continuity incident.
+
+### 4. Transaction Ingestion and Outcome Tracking
+
+This subsystem records transaction outcomes from the switch-adjacent Oracle sources and webhook feeds.
+
+Key areas:
+
+- Processed transaction ingestion.
+- Failed transaction ingestion.
+- Oracle transaction batch ingestion.
+- Fraud/rejected transaction ingestion.
+- Transaction summary ingestion.
+
+Primary modules and controllers:
+
+- `BalanceController`
+- `FailedTransactionsController`
+- `ProcessedTransactionsController`
+- `TransactionsController`
+
+Strategic role: gives SPS a consolidated view of what succeeded, what failed, what was rejected, and where transaction risk is concentrating.
+
+### 5. Failed Transaction Intelligence and Analytics
+
+This subsystem turns failed/rejected transaction records into supervisory intelligence.
+
+Key areas:
+
+- Failed transaction listing and classification.
+- Oracle failed transaction analytics.
+- Institution, account, rejection-type, and trend analytics.
+- Manual failed transaction notification workflows.
+- Compliance-oriented failure reporting.
+
+Primary modules:
+
+- `TransactionAnalytics`
+- `FailedTransactions`
+- Oracle failed transaction analytics services and workers.
+
+Strategic role: supports fraud operations, participant remediation, compliance monitoring, and evidence-based conversations with institutions.
+
+### 6. Regulator Dashboard
+
+This subsystem exposes the supervisory endpoints intended for regulator and high-level oversight surfaces.
+
+Key areas:
+
+- Real-time monitoring cards.
+- Hourly transaction volume.
+- Velocity alerts.
+- Alert heatmaps.
+- Participant availability dashboards.
+
+Primary module:
+
+- `RegulatorDashboard`
+
+Strategic role: gives regulators a structured, current view of systemic performance, participant availability, and risk signals.
+
+### 7. Board and Executive Dashboard
+
+This subsystem supports executive-level visibility into the health, scale, and performance of the national payment ecosystem.
+
+Key areas:
+
+- Operational dashboard APIs.
+- Board-level summaries.
+- Transaction and participant performance indicators.
+- Management reporting views.
+
+Primary modules:
+
+- `Dashboard`
+- `Reports`
+
+Strategic role: converts operational records into leadership intelligence for policy, investment, participant engagement, and national payments strategy.
+
+### 8. NSI, Net Settlement, and RTGS File Operations
+
+This subsystem connects instant-payment activity to formal settlement and reconciliation processes.
+
+Key areas:
+
+- NSI file listing and download.
+- Settlement-day information.
+- Settlement summary files.
+- Participant-specific settlement detail files.
+- Manual NSI creation.
+- RTGS XML generation.
+
+Primary modules:
+
+- `NSI`
+- `Downloads`
+- Net settlement services and models.
+
+Strategic role: provides the settlement evidence layer that connects switch operations to final settlement obligations.
+
+### 9. Certificate and Trust Material Governance
+
+This subsystem manages certificate visibility, download, and lifecycle workflows used by participants and operators.
+
+Key areas:
+
+- Certificate listing and details.
+- Certificate download workflows.
+- Certificate updates and removal.
+- Expiration notification support.
+
+Primary module:
+
+- `Certificates`
+
+Strategic role: supports the trust fabric around participant connectivity, secure operations, and scheme governance.
+
+### 10. Monitoring History and Participant Availability
+
+This subsystem stores operational monitoring pushed from external endpoint/component monitoring services.
+
+Key areas:
+
+- Institution endpoint availability history.
+- Participant status history.
+- Monitoring ingestion.
+- Historical availability review.
+
+Primary modules:
+
+- `History`
+- `Participants`
+- Monitoring-related persistence models.
+
+Strategic role: provides the audit trail for availability, downtime, and SLA discussions across the national payments ecosystem.
+
+### 11. Reports and Market Intelligence
+
+This subsystem produces richer analytical views over switch activity and participant behavior.
+
+Key areas:
+
+- System overview reports.
+- Participant summaries.
+- League tables.
+- Directional flow analysis.
+- Counterparty analysis.
+- Fee distribution.
+- Net position reporting.
+- Concentration analysis.
+- Trend packs and matrices.
+
+Primary module:
+
+- `Reports`
+
+Strategic role: gives SPS the analytical layer needed to understand adoption, concentration, corridor behavior, participant performance, and market evolution.
+
+### 12. Downloads and Evidence Distribution
+
+This subsystem governs access to generated artifacts and operational evidence.
+
+Key areas:
+
+- Download records.
+- NSI and settlement file delivery.
+- Summary and participant-specific files.
+- Controlled artifact retrieval.
+
+Primary module:
+
+- `Downloads`
+
+Strategic role: makes evidence distribution controlled, auditable, and repeatable instead of manual and informal.
+
+### 13. Audit, History, and Operational Traceability
+
+This subsystem records operational history and supports traceability across user actions, monitoring events, and system workflows.
+
+Key areas:
+
+- History records.
+- Auditable entities.
+- Operational logs and persisted event traces.
+- Token invalidation background work.
+
+Primary modules:
+
+- `History`
+- Auditing models and persistence interceptors.
+- Background workers.
+
+Strategic role: gives SPS the record-keeping foundation needed for accountability, post-incident review, and regulator confidence.
+
+### 14. API Gateway Surface
+
+This subsystem is the external HTTP boundary for the operational platform.
+
+Key areas:
+
+- Versioned API endpoints.
+- MediatR command/query routing.
+- API response wrapping.
+- Swagger/OpenAPI exposure.
+- Request logging and exception handling.
+
+Primary layer:
+
+- `Apps/API`
+
+Strategic role: presents guevara as a controlled institutional API surface rather than a collection of disconnected services.
+
 ## Core Capabilities
 
 ### 1. Liquidity and Settlement Risk Control
