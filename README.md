@@ -4,9 +4,9 @@
 
 ## Ownership and Stewardship
 
-guevara is owned by Somali Payment Switch. The system was designed, built, and maintained on behalf of the Somali Payment Switch ecosystem.
+guevara is owned by SOMALI PAYMENT SWITCH (SPS) LTD. The system was designed, built, and maintained on behalf of the SOMALI PAYMENT SWITCH (SPS) LTD ecosystem.
 
-Any public release, licensing decision, or third-party distribution should be made by Somali Payment Switch or by parties formally authorized by Somali Payment Switch.
+Any public release, licensing decision, or third-party distribution should be made by SOMALI PAYMENT SWITCH (SPS) LTD or by parties formally authorized by SOMALI PAYMENT SWITCH (SPS) LTD.
 
 ## Executive Summary
 
@@ -182,17 +182,17 @@ In short, guevara strengthens the national switch as trusted financial-market in
 
 ## Licensing Recommendation
 
-Recommended license: Apache License 2.0, provided Somali Payment Switch formally owns the code and authorizes its open-source release.
+Recommended license: Apache License 2.0, provided SOMALI PAYMENT SWITCH (SPS) LTD formally owns the code and authorizes its open-source release.
 
 Apache-2.0 fits guevara because it is enterprise-friendly, widely understood, permits commercial adoption, preserves attribution through a `NOTICE` file, includes an explicit patent grant, limits trademark permission, and includes warranty and liability disclaimers.
 
-Why Apache-2.0 fits Somali Payment Switch:
+Why Apache-2.0 fits SOMALI PAYMENT SWITCH (SPS) LTD:
 
 - Banks and integrators can adopt it without opening their entire technology stack.
-- Somali Payment Switch remains visibly attributed.
+- SOMALI PAYMENT SWITCH (SPS) LTD remains visibly attributed.
 - Contributors provide explicit copyright and patent permissions.
 - Recipients must preserve relevant notices.
-- Somali Payment Switch names and trademarks are not freely licensed.
+- SOMALI PAYMENT SWITCH (SPS) LTD names and trademarks are not freely licensed.
 - It supports national and regional ecosystem adoption with low procurement friction.
 
 The trade-off is important: third parties may fork, modify, and commercially deploy the software without returning their improvements.
@@ -204,7 +204,7 @@ The trade-off is important: third parties may fork, modify, and commercially dep
 | Require hosted/network modifications to be published | AGPL-3.0 |
 | Public evidence only; no permission to reuse | No license / all rights reserved |
 
-MPL-2.0 is the second-best option if Somali Payment Switch wants file-level improvements shared while still allowing banks to combine the platform with proprietary systems. AGPL-3.0 is not recommended for this ecosystem because many banks and enterprise vendors treat its network-source requirement as procurement friction.
+MPL-2.0 is the second-best option if SOMALI PAYMENT SWITCH (SPS) LTD wants file-level improvements shared while still allowing banks to combine the platform with proprietary systems. AGPL-3.0 is not recommended for this ecosystem because many banks and enterprise vendors treat its network-source requirement as procurement friction.
 
 Apache-2.0 is preferred over MIT for this project because Apache provides explicit patent terms, structured attribution, and trademark boundaries, which are useful for mission-critical payment infrastructure.
 
@@ -212,7 +212,7 @@ Apache-2.0 is preferred over MIT for this project because Apache provides explic
 
 Do not add the license under an individual maintainer's personal name. The licensor must be the actual copyright owner or an entity authorized by that owner. Apache-2.0 grants perpetual, worldwide, and effectively irrevocable rights to released versions, so this decision should not be treated as a reversible experiment.
 
-Before licensing, Somali Payment Switch should verify:
+Before licensing, SOMALI PAYMENT SWITCH (SPS) LTD should verify:
 
 - Written institutional authorization to open-source the repository.
 - Copyright ownership of employee and contractor contributions.
@@ -220,16 +220,16 @@ Before licensing, Somali Payment Switch should verify:
 - Licensing rights for ISO 20022 schemas and generated artifacts.
 - Compatibility of all third-party dependencies.
 - No credentials, production data, or sensitive history.
-- Correct Somali Payment Switch legal entity name for copyright notices.
+- Correct SOMALI PAYMENT SWITCH (SPS) LTD legal entity name for copyright notices.
 
 Until that review is complete, leaving the repository without an open-source license is safer because default copyright restrictions continue to apply.
 
 ## Files to Add Before Open Source Release
 
-If Somali Payment Switch approves open-source release under Apache-2.0, the repository should include:
+If SOMALI PAYMENT SWITCH (SPS) LTD approves open-source release under Apache-2.0, the repository should include:
 
 - `LICENSE` — unmodified Apache License 2.0 text.
-- `NOTICE` — Somali Payment Switch legal name, copyright years, and attribution.
+- `NOTICE` — SOMALI PAYMENT SWITCH (SPS) LTD legal name, copyright years, and attribution.
 - `THIRD_PARTY_NOTICES.md` — third-party components and their licenses.
 - `SECURITY.md` — private vulnerability-reporting process.
 - `CONTRIBUTING.md` — contribution and ownership rules.
@@ -239,7 +239,7 @@ Suggested `NOTICE` foundation:
 
 ```text
 guevara
-Copyright 2024-2026 [Full legal name of Somali Payment Switch]
+Copyright 2024-2026 SOMALI PAYMENT SWITCH (SPS) LTD
 
 Developed and maintained as part of the Somali Instant Payment System
 technology ecosystem.
