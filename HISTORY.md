@@ -35,7 +35,9 @@ The raw legacy repository was not imported directly. Before preservation, obviou
 - RTGS XML artifacts.
 - Legacy operational documentation containing concrete production endpoint examples or sample webhook credentials.
 
-This preserves the engineering timeline for reviewers while avoiding unnecessary exposure of operational configuration and sensitive historical material.
+During the preservation work, the current guevara history was also sanitized for the same configuration and sample HTTP files. This keeps the combined reviewer history useful while avoiding unnecessary exposure of operational configuration and sensitive historical material.
+
+Application settings should be supplied through deployment configuration, environment variables, or non-committed local files. Public examples should use placeholders only.
 
 ## Ownership
 
