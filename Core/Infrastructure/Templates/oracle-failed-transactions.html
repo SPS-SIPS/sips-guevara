@@ -39,9 +39,11 @@
             <div class="row"><span class="label">Last transaction:</span><span class="value">{{LastTransactionTime}}</span></div>
             <div class="row"><span class="label">Failed transactions:</span><span class="value">{{TransactionCount}}</span></div>
             <div class="row"><span class="label">Total rejected:</span><span class="value">{{TotalRejectedAmount}}</span></div>
+            <div class="row"><span class="label">As sender:</span><span class="value">{{SendingFailureCount}} transactions | {{SendingFailureAmount}}</span></div>
+            <div class="row"><span class="label">As receiver:</span><span class="value">{{ReceivingFailureCount}} transactions | {{ReceivingFailureAmount}}</span></div>
             <div class="row"><span class="label">Attachment:</span><span class="value">{{AttachmentName}}</span></div>
           </div>
-          <p class="note">The attached CSV includes transaction id, date time, sending institution, receiving institution, sender account, receiver account, amount, failure code, and failure reason.</p>
+          <p class="note">The totals above separate failures where your institution was the sending institution from failures where your institution was the receiving institution. The attached CSV includes transaction id, date time, sending institution, receiving institution, sender account, receiver account, amount, failure code, and failure reason.</p>
         </div>
         <div class="footer">
           Regards,<br />

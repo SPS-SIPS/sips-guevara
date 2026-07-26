@@ -189,6 +189,13 @@ public sealed class OracleFailedTransactionNotificationService(
                 continue;
             }
 
+            var sendingRows = rows
+                .Where(r => MatchesBic(r.SendingInstitution, bic))
+                .ToList();
+            var receivingRows = rows
+                .Where(r => MatchesBic(r.ReceivingInstitution, bic))
+                .ToList();
+
             var fileName = $"Failed_Transactions_{from:yyyyMMdd}_{to:yyyyMMdd}_{bic}.csv";
             var tempPath = Path.Combine(Path.GetTempPath(), fileName);
 
@@ -214,6 +221,10 @@ public sealed class OracleFailedTransactionNotificationService(
                     ["ReportDate"] = to.ToString("yyyy-MM-dd"),
                     ["TransactionCount"] = rows.Count.ToString(),
                     ["TotalRejectedAmount"] = rows.Sum(r => r.Amount).ToString("0.##"),
+                    ["SendingFailureCount"] = sendingRows.Count.ToString(),
+                    ["SendingFailureAmount"] = sendingRows.Sum(r => r.Amount).ToString("0.##"),
+                    ["ReceivingFailureCount"] = receivingRows.Count.ToString(),
+                    ["ReceivingFailureAmount"] = receivingRows.Sum(r => r.Amount).ToString("0.##"),
                     ["AttachmentName"] = fileName
                 }, cancellationToken);
 
