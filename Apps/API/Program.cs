@@ -35,9 +35,21 @@ if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
 
 builder.Host.UseSerilog((context, configuration) =>
 {
-    configuration
-        .ReadFrom.Configuration(context.Configuration)
-        .Enrich.FromLogContext();
+    try
+    {
+        configuration
+            .ReadFrom.Configuration(context.Configuration)
+            .Enrich.FromLogContext();
+    }
+    catch (Exception ex) when (ex is InvalidOperationException or FormatException or ArgumentException)
+    {
+        Console.Error.WriteLine($"Serilog configuration is invalid; falling back to console logging. {ex.Message}");
+
+        configuration
+            .MinimumLevel.Information()
+            .WriteTo.Console()
+            .Enrich.FromLogContext();
+    }
 });
 
 builder.Services.AddHttpClient();
