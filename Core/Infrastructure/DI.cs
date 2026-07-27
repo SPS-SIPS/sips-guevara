@@ -154,11 +154,8 @@ public static class DI
 
         services.AddSingleton(TokenValidationParameters);
 
-        var apiAuthConfig = configuration.GetSection("ApiAuth").Get<List<ApiClient>>();
-        if (apiAuthConfig != null && apiAuthConfig.Count != 0)
-        {
-            services.AddSingleton(apiAuthConfig);
-        }
+        var apiAuthConfig = configuration.GetSection("ApiAuth").Get<List<ApiClient>>() ?? [];
+        services.AddSingleton(apiAuthConfig);
 
         return services;
     }
