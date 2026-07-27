@@ -16,10 +16,25 @@ public static class ScheduledServiceExtensions
         }
 
         config.CronExpression = option.Expression;
-        config.TimeZoneInfo = option.TimeZoneInfo == "Utc" ? TimeZoneInfo.Utc : TimeZoneInfo.Local;
+        config.TimeZoneInfo = ResolveTimeZone(option.TimeZoneInfo);
 
         services.AddSingleton<IScheduleConfig<T>>(config);
         services.AddHostedService<T>();
         return services;
+    }
+
+    private static TimeZoneInfo ResolveTimeZone(string? timeZoneId)
+    {
+        if (string.IsNullOrWhiteSpace(timeZoneId))
+        {
+            return TimeZoneInfo.Utc;
+        }
+
+        if (string.Equals(timeZoneId, "Utc", StringComparison.OrdinalIgnoreCase))
+        {
+            return TimeZoneInfo.Utc;
+        }
+
+        return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
     }
 }

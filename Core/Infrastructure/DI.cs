@@ -116,15 +116,22 @@ public static class DI
 
         if (!isOpenApiExport)
         {
-            services.AddCronJob<BackupJob>(new JobConfiguration { Expression = backupConfiguration.Expression, TimeZoneInfo = backupConfiguration.TimeZoneInfo });
+            var backupJob = new JobConfiguration { Expression = backupConfiguration.Expression, TimeZoneInfo = backupConfiguration.TimeZoneInfo };
+            if (HasCronExpression(backupJob))
+            {
+                services.AddCronJob<BackupJob>(backupJob);
+            }
 
             var nsi = new JobConfiguration();
             configuration.Bind("Jobs:NSI", nsi);
-            services.AddCronJob<NSIMonitoring>(nsi);
+            if (HasCronExpression(nsi))
+            {
+                services.AddCronJob<NSIMonitoring>(nsi);
+            }
 
             var oracleFailedTransactionNotifications = new JobConfiguration();
             configuration.Bind("Jobs:OracleFailedTransactionNotifications", oracleFailedTransactionNotifications);
-            if (oracleFailedTransactionNotificationConfig.Enabled)
+            if (oracleFailedTransactionNotificationConfig.Enabled && HasCronExpression(oracleFailedTransactionNotifications))
             {
                 services.AddCronJob<OracleFailedTransactionNotificationJob>(oracleFailedTransactionNotifications);
             }
@@ -156,17 +163,19 @@ public static class DI
         return services;
     }
 
+    private static bool HasCronExpression(JobConfiguration configuration)
+        => !string.IsNullOrWhiteSpace(configuration.Expression);
+
     private static void CreateHome(NSI file)
     {
-        // Create directory if not exists
-        if (!Directory.Exists(file.Directory))
+        if (string.IsNullOrWhiteSpace(file.Directory))
         {
-            Directory.CreateDirectory(file.Directory);
-
-            // Create subdirectories: input, output, backup
-            Directory.CreateDirectory(Path.Combine(file.Directory, "input"));
-            Directory.CreateDirectory(Path.Combine(file.Directory, "output"));
-            Directory.CreateDirectory(Path.Combine(file.Directory, "backup"));
+            return;
         }
+
+        Directory.CreateDirectory(file.Directory);
+        Directory.CreateDirectory(Path.Combine(file.Directory, "input"));
+        Directory.CreateDirectory(Path.Combine(file.Directory, "output"));
+        Directory.CreateDirectory(Path.Combine(file.Directory, "backup"));
     }
 }

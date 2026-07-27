@@ -23,7 +23,9 @@ public abstract class CronJobService(string cronExpression, TimeZoneInfo timeZon
             var delay = next.Value - DateTimeOffset.UtcNow;
             if (delay.TotalMilliseconds <= 0)   // prevent non-positive values from being passed into Timer
             {
+                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
                 await ScheduleJob(cancellationToken);
+                return;
             }
             _timer = new System.Timers.Timer(delay.TotalMilliseconds);
             _timer.Elapsed += async (sender, args) =>

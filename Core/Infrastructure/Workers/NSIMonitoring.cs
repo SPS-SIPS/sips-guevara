@@ -47,6 +47,8 @@ public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMon
                 Directory.CreateDirectory(output);
             }
 
+            Directory.CreateDirectory(backup);
+
             var files = Directory.GetFiles(input, "*.rtgs.xml");
 
             // Check if there are any files in the input directory
@@ -69,7 +71,12 @@ public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMon
                 // sleep for 2 seconds to avoid overloading the database
                 await Task.Delay(2000, cancellationToken);
 
-                await NSIService.GenerateRTGSFiles(storage, msgId.Value, output, nsi.FeeTTC!, nsi.TxnTTC!, _logger, cancellationToken);
+                var generated = await NSIService.GenerateRTGSFiles(storage, msgId.Value, output, nsi.FeeTTC!, nsi.TxnTTC!, _logger, cancellationToken);
+                if (!generated)
+                {
+                    _logger.LogError("NSI Monitoring Job: Failed to generate RTGS files for imported file {file}", file);
+                    continue;
+                }
 
                 // sleep for 2 seconds to avoid overloading the database
                 await Task.Delay(2000, cancellationToken);
@@ -80,7 +87,7 @@ public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMon
                 await notifier.NotifyAsync(msgId.Value, cancellationToken);
 
                 var fileName = Path.GetFileName(file);
-                var destination = Path.Combine(backup, fileName);
+                var destination = GetBackupPath(backup, fileName);
                 File.Move(file, destination);
             }
         }
@@ -94,6 +101,19 @@ public class NSIMonitoring(IScheduleConfig<NSIMonitoring> config, ILogger<NSIMon
     {
         _logger.LogInformation($"NIS Monitoring Job stopped...");
         return base.StopAsync(cancellationToken);
+    }
+
+    private static string GetBackupPath(string backupDirectory, string fileName)
+    {
+        var destination = Path.Combine(backupDirectory, fileName);
+        if (!File.Exists(destination))
+        {
+            return destination;
+        }
+
+        var name = Path.GetFileNameWithoutExtension(fileName);
+        var extension = Path.GetExtension(fileName);
+        return Path.Combine(backupDirectory, $"{name}_{DateTimeOffset.UtcNow:yyyyMMddHHmmssfff}{extension}");
     }
 
 }
