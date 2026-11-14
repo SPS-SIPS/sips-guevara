@@ -25,7 +25,7 @@ public sealed class RefreshCommandHandler(IStorageBroker storage, ITokenService 
             throw new InvalidTokenException("Can't parse token");
         }
         var storedRefreshToken = await _storage.Tokens
-        .Where(x => x.Id.Equals(request.RefreshToken))
+        .Where(x => x.Id.Equals(request.RefreshToken) && x.UserId == userId && x.TokenType == TokenType.Refresh)
         .SingleOrDefaultAsync(cancellationToken) ?? throw new InvalidTokenException("Can't find refresh token");
 
         if (DateTimeOffset.UtcNow > storedRefreshToken.ExpiresOn)
@@ -42,19 +42,20 @@ public sealed class RefreshCommandHandler(IStorageBroker storage, ITokenService 
             throw new InvalidTokenException("Token Jti doesn't match");
         }
 
-        storedRefreshToken.Used = true;
-        _storage.Tokens.Update(storedRefreshToken);
-        await _storage.SaveChangesAsync(cancellationToken);
-
         var user = await _storage.Users
         .Where(x => x.Id.Equals(userId))
         .Include(x => x.Participant)
         .SingleOrDefaultAsync(cancellationToken) ?? throw new InvalidTokenException("Can't find user");
-        if (!user.Active)
+        if (!user.Active || user.DeletedOn != null)
         {
             throw new InvalidTokenException("User is not active");
         }
 
+        var principal = _tokenService.GetClaimsPrincipalFromToken(request.AccessToken);
+        if (principal?.FindFirst("security_stamp")?.Value != user.SecurityStamp || user.SecurityStamp.StartsWith("bootstrap:", StringComparison.Ordinal))
+            throw new InvalidTokenException("Session is no longer valid");
+        if (!await _storage.TryConsumeRefreshTokenAsync(storedRefreshToken.Id, cancellationToken))
+            throw new InvalidTokenException("Token Invalidated or Used");
         var result = await _tokenService.GenerateToken(user, _storage, cancellationToken);
 
         return new Response<LoginDto>(result);

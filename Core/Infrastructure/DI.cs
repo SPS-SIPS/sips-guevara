@@ -63,6 +63,9 @@ public static class DI
 
         var jwtSettings = new JwtSettings();
         configuration.Bind(nameof(JwtSettings), jwtSettings);
+        if (!isOpenApiExport && (Encoding.UTF8.GetByteCount(jwtSettings.Secret) < 32 || string.IsNullOrWhiteSpace(jwtSettings.Issuer) ||
+            string.IsNullOrWhiteSpace(jwtSettings.Audience) || jwtSettings.TokenLifetime <= TimeSpan.Zero || jwtSettings.TokenLifetime > TimeSpan.FromMinutes(30)))
+            throw new InvalidOperationException("Configure a JWT signing secret of at least 32 bytes, issuer, audience and an access lifetime of at most 30 minutes.");
         services.AddSingleton(jwtSettings);
 
         var appSettings = new AppSettings();
@@ -108,7 +111,8 @@ public static class DI
             ValidateAudience = true,
             RequireExpirationTime = true,
             ValidateLifetime = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.Secret)),
+            ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
             ValidIssuer = jwtSettings.Issuer,
             ValidAudience = jwtSettings.Audience,
             ClockSkew = TimeSpan.FromSeconds(5)
@@ -150,6 +154,21 @@ public static class DI
             .AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = TokenValidationParameters;
+                options.MapInboundClaims = false;
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = async context =>
+                    {
+                        var options = new DbContextOptionsBuilder<StorageBroker>()
+                            .UseNpgsql(connectionString).UseLowerCaseNamingConvention().Options;
+                        await using var storage = new StorageBroker(options);
+                        if (context.Principal is null || !await SessionValidation.ValidateAsync(storage, context.Principal, context.HttpContext.RequestAborted))
+                            context.Fail("Session is no longer valid.");
+                        else if (context.Principal.FindFirstValue("security_stamp")?.StartsWith("bootstrap:", StringComparison.Ordinal) == true &&
+                                 !context.Request.Path.Equals(new PathString("/api/v1/Auth/changePassword")))
+                            context.Fail("The bootstrap password must be changed.");
+                    }
+                };
             });
 
         services.AddSingleton(TokenValidationParameters);

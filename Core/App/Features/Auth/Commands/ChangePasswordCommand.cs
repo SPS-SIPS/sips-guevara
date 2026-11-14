@@ -7,8 +7,8 @@ public sealed class ChangePasswordCommandValidator : AbstractValidator<ChangePas
 {
     public ChangePasswordCommandValidator()
     {
-        RuleFor(x => x.CurrentPassword);
-        RuleFor(x => x.NewPassword).Password()
+        RuleFor(x => x.CurrentPassword).NotEmpty().MaximumLength(1024);
+        RuleFor(x => x.NewPassword).NotEmpty().MaximumLength(1024).Password()
             .NotEqual(e => e.CurrentPassword).WithMessage("New password must be different from current password");
     }
 }

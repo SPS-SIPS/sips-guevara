@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Claim = SPSS.Domain.Models.Identity.Claim;
 namespace SPSS.Infrastructure.Persistence;
 
-public sealed partial class StorageBrokerInitializer(ILogger<StorageBrokerInitializer> logger, IStorageBroker broker, IPasswordHash hash) : IStorageBrokerInitializer
+public sealed partial class StorageBrokerInitializer(ILogger<StorageBrokerInitializer> logger, IStorageBroker broker, IPasswordHash hash, IConfiguration configuration) : IStorageBrokerInitializer
 {
     private readonly ILogger<StorageBrokerInitializer> _logger = logger;
     private readonly IStorageBroker _broker = broker;
@@ -68,20 +68,28 @@ public sealed partial class StorageBrokerInitializer(ILogger<StorageBrokerInitia
         }
         if (!_broker.Users.Any(x => x.Username.Equals("admin")))
         {
+            var bootstrapPassword = configuration["Bootstrap:AdminPassword"];
+            if (!configuration.GetValue<bool>("Bootstrap:Enabled"))
+            {
+                _logger.LogWarning("No administrator exists. Use the explicit bootstrap procedure to create one.");
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(bootstrapPassword) || bootstrapPassword.Length < 16)
+                throw new InvalidOperationException("Bootstrap:AdminPassword must contain at least 16 characters.");
             var masterRole = _broker.Roles.SingleOrDefault(x => x.Name.Equals("Admin"));
             var user = new User
             {
                 Username = "admin",
                 Phone = "01",
                 Active = true,
-                SecurityStamp = Guid.NewGuid().ToString(),
+                SecurityStamp = "bootstrap:" + Guid.NewGuid().ToString(),
                 Email = "admin@sps.com",
             };
             user.Roles.Add(new UserRole
             {
                 RoleId = masterRole!.Id
             });
-            user.PasswordHash = _hash.HashPassword(user, "REDACTED_SECRET");
+            user.PasswordHash = _hash.HashPassword(user, bootstrapPassword);
 
             await _broker.Users.AddAsync(user, cancellationToken);
             await _broker.SaveChangesAsync(cancellationToken);

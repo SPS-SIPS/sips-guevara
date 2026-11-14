@@ -16,7 +16,7 @@ public sealed class TokenService(JwtSettings settings, TokenValidationParameters
     public async Task<LoginDto> GenerateToken(User user, IStorageBroker storage, CancellationToken cancellationToken)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_settings.Secret);
+        var key = Encoding.UTF8.GetBytes(_settings.Secret);
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -28,6 +28,7 @@ public sealed class TokenService(JwtSettings settings, TokenValidationParameters
                 new System.Security.Claims.Claim(JwtRegisteredClaimNames.Aud, _settings.Audience),
                 new System.Security.Claims.Claim(JwtRegisteredClaimNames.Name, user.Username),
                 new System.Security.Claims.Claim("tenantId", user.Participant?.BicNo ?? ""),
+                new System.Security.Claims.Claim("security_stamp", user.SecurityStamp),
             ]),
             Expires = DateTime.UtcNow.Add(_settings.TokenLifetime),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
@@ -114,36 +115,20 @@ public sealed class TokenService(JwtSettings settings, TokenValidationParameters
 
     public ClaimsPrincipal? ValidateJwt(string token)
     {
-        var claimsPrincipal = GetClaimsPrincipalFromToken(token);
-        if (claimsPrincipal == null)
-        {
-            return null;
-        }
-
-        var expiryDateUnix = long.Parse(claimsPrincipal.Claims.Single(x => x.Type.Equals(JwtRegisteredClaimNames.Exp)).Value);
-
-        var expiryDateTimeUtc = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-        .AddSeconds(expiryDateUnix);
-
-        if (expiryDateTimeUtc < DateTime.UtcNow)
-        {
-            return null;
-        }
-        return claimsPrincipal;
+        return ValidateToken(token, validateLifetime: true);
     }
+
     public ClaimsPrincipal? GetClaimsPrincipalFromToken(string token)
+        => ValidateToken(token, validateLifetime: false);
+
+    private ClaimsPrincipal? ValidateToken(string token, bool validateLifetime)
     {
-        var @params = _validationParams;
-        @params.ValidateLifetime = false;
-        var tokenHandler = new JwtSecurityTokenHandler();
+        var parameters = _validationParams.Clone();
+        parameters.ValidateLifetime = validateLifetime;
         try
         {
-            var principal = tokenHandler.ValidateToken(token, @params, out var validatedToken);
-            if (!IsJwtWithValidSecurityAlgorithm(validatedToken))
-            {
-                return null;
-            }
-            return principal;
+            var principal = new JwtSecurityTokenHandler().ValidateToken(token, parameters, out var validatedToken);
+            return IsJwtWithValidSecurityAlgorithm(validatedToken) ? principal : null;
         }
         catch (Exception)
         {
@@ -158,7 +143,7 @@ public sealed class TokenService(JwtSettings settings, TokenValidationParameters
 
     public async Task<(int otp, Guid refreshTokenId)> GenerateOTP(User user, IStorageBroker storage, CancellationToken cancellationToken)
     {
-        var otp = new Random().Next(1000, 9999);
+        var otp = System.Security.Cryptography.RandomNumberGenerator.GetInt32(100000, 1000000);
         var (ip, _, browser, os) = GetClientInfo();
 
         var refreshToken = new Token
@@ -181,7 +166,7 @@ public sealed class TokenService(JwtSettings settings, TokenValidationParameters
 
     public async Task<(int otp, Guid refreshTokenId)> GenerateOTP(Token token, IStorageBroker storage, CancellationToken cancellationToken)
     {
-        var otp = new Random().Next(1000, 9999);
+        var otp = System.Security.Cryptography.RandomNumberGenerator.GetInt32(100000, 1000000);
         var (ip, _, browser, os) = GetClientInfo();
 
         var refreshToken = new Token

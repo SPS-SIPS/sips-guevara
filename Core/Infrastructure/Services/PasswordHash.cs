@@ -12,7 +12,7 @@ public sealed class PasswordHash : IPasswordHash
     public PasswordHash()
     {
         _rng = RandomNumberGenerator.Create();
-        _iterCount = 10000;
+        _iterCount = 600000;
     }
 
     public string HashPassword(User user, string password)
@@ -45,6 +45,16 @@ public sealed class PasswordHash : IPasswordHash
         return outputBytes;
     }
 
+    public static bool NeedsRehash(string hash)
+    {
+        try
+        {
+            var bytes = Convert.FromBase64String(hash);
+            return bytes.Length < 13 || bytes[0] != 1 || ReadNetworkByteOrder(bytes, 5) < 600000;
+        }
+        catch (FormatException) { return true; }
+    }
+
     private static uint ReadNetworkByteOrder(byte[] buffer, int offset)
     {
         return ((uint)(buffer[offset + 0]) << 24)
@@ -63,10 +73,12 @@ public sealed class PasswordHash : IPasswordHash
             throw new ArgumentNullException(nameof(providedPassword));
         }
 
-        byte[] decodedHashedPassword = Convert.FromBase64String(hashedPassword);
+        byte[] decodedHashedPassword;
+        try { decodedHashedPassword = Convert.FromBase64String(hashedPassword); }
+        catch (FormatException) { return PasswordVerificationResult.Failed; }
 
         // read the format marker from the hashed password
-        if (decodedHashedPassword.Length == 0)
+        if (decodedHashedPassword.Length < 13 || decodedHashedPassword[0] != 0x01)
         {
             return PasswordVerificationResult.Failed;
         }

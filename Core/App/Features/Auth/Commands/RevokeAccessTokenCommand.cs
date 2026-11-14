@@ -1,13 +1,13 @@
 namespace SPSS.App.Features.Auth.Commands;
 
 [Authorize]
-public sealed record RevokeAccessTokenCommand(int Id) : IRequest<Response<string>>;
+public sealed record RevokeAccessTokenCommand(Guid Id) : IRequest<Response<string>>;
 
 public sealed class RevokeAccessTokenCommandValidator : AbstractValidator<RevokeAccessTokenCommand>
 {
     public RevokeAccessTokenCommandValidator()
     {
-        RuleFor(x => x.Id).NotEmpty().NotEqual(default(int));
+        RuleFor(x => x.Id).NotEmpty();
     }
 }
 

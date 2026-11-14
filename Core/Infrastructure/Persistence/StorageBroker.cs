@@ -46,6 +46,10 @@ public sealed class StorageBroker(DbContextOptions<StorageBroker> options) : DbC
         return base.SaveChanges();
     }
 
+    public async Task<bool> TryConsumeRefreshTokenAsync(Guid id, CancellationToken cancellationToken)
+        => await Tokens.Where(x => x.Id == id && !x.Used && !x.Invalidated)
+            .ExecuteUpdateAsync(set => set.SetProperty(x => x.Used, true), cancellationToken) == 1;
+
     public Task<int> ExecuteSqlRawAsync(string query, CancellationToken cancellationToken)
     {
         return Database.ExecuteSqlRawAsync(query, cancellationToken);

@@ -16,6 +16,6 @@ public class AppsInstaller : IInstaller
             });
         });
         services.AddInfrastructure(configuration);
-        services.AddApp();
+        services.AddApp(configuration["AutoMapper:LicenseKey"]);
     }
 }

@@ -25,7 +25,7 @@ public sealed class EditRoleCommandHandler(IStorageBroker storage, IRolesCache r
     {
         var role = await _storage.Roles.Include(x => x.RoleClaims).SingleOrDefaultAsync(x => x.Id.Equals(request.Id), cancellationToken) ?? throw new NotFoundException("Can't find the selected role!");
 
-        if (_appSettings.RestrictedRoles.Contains(role.Name))
+        if (role.Super || role.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase) || _appSettings.RestrictedRoles.Contains(role.Name, StringComparer.OrdinalIgnoreCase))
         {
             throw new BadRequestException("You can't modify this role!");
         }

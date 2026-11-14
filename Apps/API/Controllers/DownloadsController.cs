@@ -47,7 +47,7 @@ public class DownloadsController : BaseController
         Response.Headers.Append("Content-Disposition", $"attachment; filename=\"{fileName}\"");
         Response.Headers.Append("Content-Type", contentType);
         Response.Headers.Append("Content-Length", fileBytes.Length.ToString());
-        Response.Headers.Append("Cache-Control", "public, max-age=3600");
+        Response.Headers.Append("Cache-Control", "no-store");
         return File(fileBytes, contentType, fileName);
     }
 
@@ -111,7 +111,7 @@ public class DownloadsController : BaseController
         Response.Headers.Append("Content-Disposition", $"attachment; filename=\"{fileName}\"");
         Response.Headers.Append("Content-Type", contentType);
         Response.Headers.Append("Content-Length", fileBytes.Length.ToString());
-        Response.Headers.Append("Cache-Control", "public, max-age=3600");
+        Response.Headers.Append("Cache-Control", "no-store");
         return File(fileBytes, contentType, fileName);
     }
 }

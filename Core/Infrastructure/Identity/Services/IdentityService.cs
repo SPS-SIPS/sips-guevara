@@ -36,21 +36,10 @@ public sealed class IdentityService : IIdentityService
             return false;
         }
 
-        // JWT Bearer authentication
-        if (_context.Request.Headers.TryGetValue("Authorization", out var authHeader))
+        // Bearer authentication (including live session validation) is performed by middleware.
+        if (_context.Request.Headers.ContainsKey("Authorization"))
         {
-            var accessToken = authHeader.ToString().Split(' ').Last();
-            var principal = _tokenService.ValidateJwt(accessToken);
-            if (principal != null)
-            {
-                var ticket = new AuthenticationTicket(principal, policyName);
-                var result = AuthenticateResult.Success(ticket);
-                if (result.Succeeded)
-                {
-                    _context.User = result.Principal;
-                }
-                return result.Succeeded;
-            }
+            return _context.User.Identity?.IsAuthenticated == true;
         }
 
         // API Key & Secret authentication
@@ -59,7 +48,8 @@ public sealed class IdentityService : IIdentityService
         {
             var apiKey = apiKeyHeader.ToString();
             var apiSecret = apiSecretHeader.ToString();
-            var client = _apiClients.FirstOrDefault(x => x.ClientId == apiKey && x.ClientSecret == apiSecret);
+            var client = _apiClients.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.ClientId) && !string.IsNullOrWhiteSpace(x.ClientSecret) &&
+                SecretEquals(x.ClientId, apiKey) && SecretEquals(x.ClientSecret, apiSecret));
             if (client != null)
             {
                 var claims = new[]
@@ -89,6 +79,11 @@ public sealed class IdentityService : IIdentityService
 
         return false;
     }
+
+    private static bool SecretEquals(string expected, string actual)
+        => System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(
+            System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(expected)),
+            System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(actual)));
 
     public int Id { get; }
 

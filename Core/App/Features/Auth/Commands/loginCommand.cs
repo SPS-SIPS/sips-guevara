@@ -1,17 +1,18 @@
 namespace SPSS.App.Features.Auth.Commands;
 
-public record LoginCommand(string Username, string Password, string? OTP) : IRequest<Response<LoginDto>>;
+public record LoginCommand(string Username, string Password, string? OTP = null) : IRequest<Response<LoginDto>>;
 
 public sealed class LoginCommandValidator : AbstractValidator<LoginCommand>
 {
     public LoginCommandValidator()
     {
-        RuleFor(x => x.Username).NotEmpty();
-        RuleFor(x => x.Password).NotEmpty();
+        RuleFor(x => x.Username).NotEmpty().MaximumLength(50);
+        RuleFor(x => x.Password).NotEmpty().MaximumLength(1024);
+        RuleFor(x => x.OTP).Empty().WithMessage("OTP login is not supported.");
     }
 }
 
-public sealed class LoginCommandHandler(IStorageBroker storage, ITokenService tokenService, IPasswordManager passwordManager) : IRequestHandler<LoginCommand, Response<LoginDto>>
+public sealed class LoginCommandHandler(IStorageBroker storage, ITokenService tokenService, IPasswordManager passwordManager, SPSS.App.Features.Auth.LoginAttemptLimiter attempts) : IRequestHandler<LoginCommand, Response<LoginDto>>
 {
     private readonly IStorageBroker _storage = storage;
     private readonly ITokenService _tokenService = tokenService;
@@ -19,8 +20,10 @@ public sealed class LoginCommandHandler(IStorageBroker storage, ITokenService to
 
     public async ValueTask<Response<LoginDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
+        if (attempts.IsBlocked(request.Username))
+            return new Response<LoginDto>(default!) { IsSuccess = false, StatusCode = 429, Message = "Too many login attempts. Try again later." };
         var user = await _storage.Users
-        .Where(x => x.Phone.Equals(request.Username) || x.Username.Equals(request.Username.ToLower()))
+        .Where(x => x.DeletedOn == null && (x.Phone.Equals(request.Username) || x.Username.Equals(request.Username.ToLower())))
         .Include(x => x.Participant)
         .SingleOrDefaultAsync(cancellationToken);
 
@@ -39,6 +42,7 @@ public sealed class LoginCommandHandler(IStorageBroker storage, ITokenService to
             return Response<LoginDto>.BadRequest("Your account is locked or not allowed to login!");
         }
 
+        if (string.IsNullOrEmpty(user.SecurityStamp)) user.SecurityStamp = Guid.NewGuid().ToString();
         await _storage.SaveChangesAsync(cancellationToken);
 
         var result = await _tokenService.GenerateToken(user, _storage, cancellationToken);

@@ -25,10 +25,8 @@ public sealed class PasswordManager(IPasswordHash hash) : IPasswordManager
         var result = VerifyPasswordHash(user, password);
 
         var success = result != PasswordVerificationResult.Failed;
-        if (!success)
-        {
-            // we can log this bad request if we want to.
-        }
+        if (success && PasswordHash.NeedsRehash(user.PasswordHash))
+            user.PasswordHash = _hash.HashPassword(user, password);
         return success;
     }
 }

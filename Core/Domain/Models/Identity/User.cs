@@ -8,7 +8,7 @@ public sealed class User : BaseEntity<int>, IAuditableEntity, ISoftDelete, IVers
     public string Email { get; set; } = string.Empty;
     public string Photo { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
-    public string SecurityStamp { get; set; } = string.Empty;
+    public string SecurityStamp { get; set; } = Guid.NewGuid().ToString();
     public string CreatedBy { get; set; } = string.Empty;
     public DateTimeOffset CreatedOn { get; set; }
     public string? LastModifiedBy { get; set; }

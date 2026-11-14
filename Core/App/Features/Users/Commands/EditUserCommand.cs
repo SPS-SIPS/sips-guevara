@@ -14,6 +14,7 @@ public sealed class EditUserCommandValidator : AbstractValidator<EditUserCommand
         RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(50);
         RuleFor(x => x.Username).MaximumLength(50);
         RuleFor(x => x.Roles).NotEmpty();
+        RuleFor(x => x.Password!).Password().MaximumLength(1024).When(x => !string.IsNullOrEmpty(x.Password));
     }
 }
 
@@ -25,13 +26,19 @@ public sealed class EditUserCommandHandler(IStorageBroker storage, IPasswordHash
     public async ValueTask<Response<int>> Handle(EditUserCommand request, CancellationToken cancellationToken)
     {
         var entity = await _storage.Users
-        .Include(x => x.Roles)
+        .Include(x => x.Roles).ThenInclude(x => x.Role)
         .SingleOrDefaultAsync(x => x.Id.Equals(request.Id), cancellationToken);
 
         if (entity == null)
         {
             throw new NotFoundException(nameof(entity), request.Id);
         }
+
+        if (entity.Roles.Any(x => x.Role.Super || x.Role.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
+            _appSettings.RestrictedRoles.Contains(x.Role.Name, StringComparer.OrdinalIgnoreCase)))
+            throw new ForbiddenAccessException("Protected accounts cannot be edited through user administration.");
+
+        if (entity.DeletedOn != null) throw new NotFoundException("User", request.Id);
 
         if (entity.Phone != request.Phone)
         {
@@ -84,7 +91,7 @@ public sealed class EditUserCommandHandler(IStorageBroker storage, IPasswordHash
         {
             var role = await _storage.Roles.Where(x => x.Id.Equals(roleId)).Include(x => x.RoleClaims).FirstOrDefaultAsync(cancellationToken: cancellationToken) ?? throw new NotFoundException("Role", roleId);
 
-            if (_appSettings.RestrictedRoles.Contains(role.Name))
+            if (role.Super || role.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase) || _appSettings.RestrictedRoles.Contains(role.Name, StringComparer.OrdinalIgnoreCase))
             {
                 throw new BadRequestException("You can't add Users to the admin role");
             }
@@ -96,6 +103,9 @@ public sealed class EditUserCommandHandler(IStorageBroker storage, IPasswordHash
             });
         }
 
+        entity.SecurityStamp = Guid.NewGuid().ToString();
+        var sessions = await _storage.Tokens.Where(x => x.UserId == entity.Id && !x.Invalidated).ToListAsync(cancellationToken);
+        foreach (var session in sessions) session.Invalidated = true;
         await _storage.SaveChangesAsync(cancellationToken);
 
         return new Response<int>(entity.Id);

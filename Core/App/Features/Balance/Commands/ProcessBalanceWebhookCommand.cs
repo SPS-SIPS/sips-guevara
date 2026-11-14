@@ -4,6 +4,7 @@ using SPSS.Domain.Services;
 
 namespace SPSS.App.Features.Balance.Commands;
 
+[Authorize(Roles = CreateMonitHistory)]
 public sealed record ProcessBalanceWebhookCommand(BalanceWebhookDto Data) : IRequest<Response<string>>;
 
 public sealed class ProcessBalanceWebhookCommandHandler(
@@ -33,19 +34,6 @@ public sealed class ProcessBalanceWebhookCommandHandler(
             "Balance webhook received at {Timestamp} with {TotalCount} participants",
             data.Timestamp,
             data.TotalCount);
-
-        foreach (var participant in data.Participants)
-        {
-            _logger.LogInformation(
-                "Received balance data: BIC={Bic}, Name={Name}, Balance={Balance:N2} {Currency}, Status={Status}, AccountNumber={AccountNumber}, CheckedAt={CheckedAt}",
-                participant.Bic,
-                participant.ParticipantName,
-                participant.RemainingNetDebitCap,
-                participant.Currency,
-                participant.Status,
-                participant.AccountNumber,
-                participant.CheckedAt);
-        }
 
         var processedCount = 0;
         var skippedCount = 0;

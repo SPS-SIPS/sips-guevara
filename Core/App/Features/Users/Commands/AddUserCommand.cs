@@ -58,7 +58,7 @@ public sealed class AddUserCommandHandler(IStorageBroker storage, IPasswordHash 
         {
             var role = await _storage.Roles.Where(x => x.Id.Equals(item)).Include(x => x.RoleClaims).FirstOrDefaultAsync(cancellationToken: cancellationToken) ?? throw new NotFoundException("Role", request.Roles);
 
-            if (_appSettings.RestrictedRoles.Contains(role.Name))
+            if (role.Super || role.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase) || _appSettings.RestrictedRoles.Contains(role.Name, StringComparer.OrdinalIgnoreCase))
             {
                 throw new BadRequestException("You can't add Users to the admin role");
             }

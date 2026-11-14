@@ -53,9 +53,8 @@ public class CorsAndSwagger : IInstaller
              options.AddPolicy("default",
              builder =>
              {
-                 builder.AllowAnyOrigin()
-                 .AllowAnyMethod()
-                 .AllowAnyHeader();
+                 if (corsPolicy.Origins is { Length: > 0 })
+                     builder.WithOrigins(corsPolicy.Origins).AllowAnyMethod().AllowAnyHeader();
              });
          });
     }

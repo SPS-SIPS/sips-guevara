@@ -35,11 +35,7 @@ public class SoftDeleteEntityInterceptor(IIdentityService identity, TimeProvider
                 entry.Entity.DeletedOn = _DateTimeOffset.GetUtcNow();
             }
 
-            else if (entry.State == EntityState.Modified || entry.State == EntityState.Unchanged)
-            {
-                entry.Entity.DeletedBy = null;
-                entry.Entity.DeletedOn = null;
-            }
+
         }
     }
 }

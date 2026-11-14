@@ -1,4 +1,8 @@
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
+using System.Net;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.DataProtection;
 using SPSS.API.Installers;
 using SPSS.API.Jobs;
@@ -14,6 +18,22 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     options.SuppressModelStateInvalidFilter = true;
 });
 builder.Services.AddHttpContextAccessor();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    foreach (var proxy in builder.Configuration.GetSection("Security:TrustedProxies").Get<string[]>() ?? [])
+        options.KnownProxies.Add(IPAddress.Parse(proxy));
+});
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("authentication", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new FixedWindowRateLimiterOptions
+        { PermitLimit = 20, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+    options.AddPolicy("reports", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.User.FindFirst("sub")?.Value ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new FixedWindowRateLimiterOptions
+        { PermitLimit = 1, Window = TimeSpan.FromMinutes(5), QueueLimit = 0 }));
+});
 var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"];
 if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
 {
@@ -60,6 +80,7 @@ if (!isOpenApiExport)
 }
 
 var app = builder.Build();
+app.UseForwardedHeaders();
 
 if (app.Environment.IsDevelopment())
 {
@@ -87,15 +108,32 @@ else
     app.UseHsts();
 }
 
+if (!app.Environment.IsDevelopment())
+{
+    app.Use(async (context, next) =>
+    {
+        if (!context.Request.IsHttps) { context.Response.StatusCode = StatusCodes.Status426UpgradeRequired; return; }
+        await next();
+    });
+}
 app.UseRouting();
 
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.CacheControl = "no-store";
+    context.Response.Headers.XContentTypeOptions = "nosniff";
+    context.Response.Headers["X-Frame-Options"] = "DENY";
+    await next();
+});
+app.UseCors("default");
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.UseMiddleware<RequestLoggingMiddleware>();
 
-app.UseCors("default");
-
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }

@@ -13,7 +13,8 @@ public sealed class StorageBrokerFactory : IDesignTimeDbContextFactory<StorageBr
         }
         else
         {
-            connectionString = "Server=localhost;Port=5432;Database=spss;User Id=postgres;Password=REDACTED_SECRET;";
+            connectionString = Environment.GetEnvironmentVariable("SPSS_DESIGN_TIME_CONNECTION_STRING")
+                ?? throw new InvalidOperationException("Set SPSS_DESIGN_TIME_CONNECTION_STRING or provide a connection string to the design-time factory.");
         }
 
         var optionsBuilder = new DbContextOptionsBuilder<StorageBroker>();

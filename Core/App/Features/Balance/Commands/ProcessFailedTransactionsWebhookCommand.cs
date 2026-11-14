@@ -2,6 +2,7 @@ using SPSS.Domain.Models.DTOs;
 
 namespace SPSS.App.Features.Balance.Commands;
 
+[Authorize(Roles = CreateMonitHistory)]
 public sealed record ProcessFailedTransactionsWebhookCommand(FailedTransactionsWebhookDto Data) : IRequest<Response<string>>;
 
 public sealed class ProcessFailedTransactionsWebhookCommandHandler(

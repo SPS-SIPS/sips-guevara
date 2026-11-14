@@ -4,14 +4,16 @@ namespace SPSS.App;
 
 public static class DI
 {
-    public static IServiceCollection AddApp(this IServiceCollection services)
+    public static IServiceCollection AddApp(this IServiceCollection services, string? mapperLicenseKey = null)
     {
+        services.AddSingleton<SPSS.App.Features.Auth.LoginAttemptLimiter>();
         services.AddMediator(o =>
         {
             o.ServiceLifetime = ServiceLifetime.Scoped;
         });
         services.AddAutoMapper(c =>
         {
+            c.LicenseKey = mapperLicenseKey;
             c.AddProfile<Mappings>();
         });
 

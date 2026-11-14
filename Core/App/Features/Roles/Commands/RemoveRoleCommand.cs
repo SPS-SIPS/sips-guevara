@@ -12,7 +12,7 @@ public sealed class RemoveRoleCommandValidator : AbstractValidator<RemoveRoleCom
     }
 }
 
-public sealed class RemoveRoleCommandHandler(IStorageBroker storage, IRolesCache rolesCache) : IRequestHandler<RemoveRoleCommand, Response<Guid>>
+public sealed class RemoveRoleCommandHandler(IStorageBroker storage, IRolesCache rolesCache, AppSettings settings) : IRequestHandler<RemoveRoleCommand, Response<Guid>>
 {
     private readonly IStorageBroker _storage = storage;
     private readonly IRolesCache _rolesCache = rolesCache;
@@ -21,6 +21,8 @@ public sealed class RemoveRoleCommandHandler(IStorageBroker storage, IRolesCache
     {
         var role = await _storage.Roles.SingleOrDefaultAsync(x => x.Id.Equals(request.Id), cancellationToken) ?? throw new NotFoundException("Can't find the selected role!");
 
+        if (role.Super || role.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase) || settings.RestrictedRoles.Contains(role.Name, StringComparer.OrdinalIgnoreCase))
+            throw new ForbiddenAccessException("Protected roles cannot be removed.");
         _storage.Roles.Remove(role);
 
         await _storage.SaveChangesAsync(cancellationToken);

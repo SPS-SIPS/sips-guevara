@@ -1,10 +1,12 @@
 using SPSS.App.Features.Auth.Commands;
+using Microsoft.AspNetCore.RateLimiting;
 using SPSS.App.Features.Auth.Queries;
 
 namespace SPSS.API.Controllers;
 [ApiController]
 [Produces("application/json")]
 [Route("api/v1/[controller]")]
+[EnableRateLimiting("authentication")]
 public class AuthController : BaseController
 {
     [HttpGet]
@@ -12,8 +14,7 @@ public class AuthController : BaseController
     => await Mediator.Send(new GetMeQuery(), ct);
 
     [HttpPost("Resend")]
-    public async Task<Response<Guid>> Resend([FromBody] ResendOTPCommand cmd, CancellationToken ct)
-    => await Mediator.Send(cmd, ct);
+    public IActionResult Resend() => BadRequest("OTP login is not supported.");
 
     [HttpPost("login")]
     public async Task<Response<LoginDto>> Login([FromBody] LoginCommand cmd, CancellationToken ct)
