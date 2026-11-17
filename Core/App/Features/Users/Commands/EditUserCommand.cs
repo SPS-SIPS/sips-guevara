@@ -1,3 +1,4 @@
+using SPSS.App.Security;
 
 using SPSS.Domain.Models.Identity;
 
@@ -18,7 +19,7 @@ public sealed class EditUserCommandValidator : AbstractValidator<EditUserCommand
     }
 }
 
-public sealed class EditUserCommandHandler(IStorageBroker storage, IPasswordHash password, AppSettings appSettings) : IRequestHandler<EditUserCommand, Response<int>>
+public sealed class EditUserCommandHandler(IStorageBroker storage, IPasswordHash password, AppSettings appSettings, IIdentityService identity) : IRequestHandler<EditUserCommand, Response<int>>
 {
     private readonly IStorageBroker _storage = storage;
     private readonly IPasswordHash _password = password;
@@ -26,7 +27,7 @@ public sealed class EditUserCommandHandler(IStorageBroker storage, IPasswordHash
     public async ValueTask<Response<int>> Handle(EditUserCommand request, CancellationToken cancellationToken)
     {
         var entity = await _storage.Users
-        .Include(x => x.Roles).ThenInclude(x => x.Role)
+        .Include(x => x.Roles).ThenInclude(x => x.Role).ThenInclude(x => x.RoleClaims)
         .SingleOrDefaultAsync(x => x.Id.Equals(request.Id), cancellationToken);
 
         if (entity == null)
@@ -37,6 +38,8 @@ public sealed class EditUserCommandHandler(IStorageBroker storage, IPasswordHash
         if (entity.Roles.Any(x => x.Role.Super || x.Role.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
             _appSettings.RestrictedRoles.Contains(x.Role.Name, StringComparer.OrdinalIgnoreCase)))
             throw new ForbiddenAccessException("Protected accounts cannot be edited through user administration.");
+
+        PermissionDelegation.EnsureWithinAuthority(identity, entity.Roles.SelectMany(x => x.Role.RoleClaims).Select(x => x.Type));
 
         if (entity.DeletedOn != null) throw new NotFoundException("User", request.Id);
 
@@ -96,6 +99,7 @@ public sealed class EditUserCommandHandler(IStorageBroker storage, IPasswordHash
                 throw new BadRequestException("You can't add Users to the admin role");
             }
 
+            PermissionDelegation.EnsureWithinAuthority(identity, role.RoleClaims.Select(x => x.Type));
             entity.Roles.Add(new UserRole
             {
                 RoleId = roleId,

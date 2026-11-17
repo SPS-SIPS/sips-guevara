@@ -23,7 +23,7 @@ public sealed class GetSettlementDetailsFileQueryHandler(IStorageBroker storage,
 
     public async ValueTask<Response<(MemoryStream, string)>> Handle(GetSettlementDetailsFileQuery request, CancellationToken cancellationToken)
     {
-        var party = _identity.IsInRole(QueryParticipantNSI)
+        var party = !string.IsNullOrWhiteSpace(_identity.TenantId)
             ? _identity.TenantId
             : request.Party;
 

@@ -7,7 +7,16 @@ public sealed class AuthorizationBehavior<TMessage, TResponse>(IIdentityService 
 
     public async ValueTask<TResponse> Handle(TMessage message, MessageHandlerDelegate<TMessage, TResponse> next, CancellationToken cancellationToken)
     {
-        var authorizeAttributes = message.GetType().GetCustomAttributes<AuthorizeAttribute>();
+        var authorizeAttributes = message.GetType().GetCustomAttributes<AuthorizeAttribute>().ToArray();
+        if (message.GetType().IsDefined(typeof(SPSS.Domain.Security.PublicRequestAttribute), false))
+            return await next(message, cancellationToken);
+        if (!authorizeAttributes.Any())
+            throw new ForbiddenAccessException("This operation has no explicit authorization policy.");
+        // Participant identities must never inherit supervisor-wide permissions by role assignment.
+        if (!string.IsNullOrWhiteSpace(_identity.TenantId) &&
+            authorizeAttributes.Any(a => !string.IsNullOrWhiteSpace(a.Roles)) &&
+            !authorizeAttributes.Any(a => a.Roles == QueryParticipantNSI && _identity.IsInRole(QueryParticipantNSI)))
+            throw new ForbiddenAccessException("This operation is restricted to SPS staff.");
 
         if (authorizeAttributes.Any())
         {

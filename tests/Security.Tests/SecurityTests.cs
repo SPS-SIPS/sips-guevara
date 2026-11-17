@@ -155,7 +155,7 @@ public sealed class SecurityUnitTests
         var user = new User { Username = "admin", CreatedBy = "test", PasswordHash = "unchanged" };
         user.Roles.Add(new UserRole { User=user,Role=adminRole,RoleId=adminRole.Id });
         db.Users.Add(user);await db.SaveChangesAsync();
-        var handler = new EditUserCommandHandler(db,new PasswordHash(),new AppSettings());
+        var handler = new EditUserCommandHandler(db,new PasswordHash(),new AppSettings(),new TestIdentity("", "UUA"));
         await Assert.ThrowsAsync<ForbiddenAccessException>(async () => await handler.Handle(
             new EditUserCommand(user.Id,"123456789","admin@example.test","admin","NewPassword@123",[adminRole.Id]),default));
         Assert.Equal("unchanged",user.PasswordHash);
@@ -173,7 +173,7 @@ public sealed class SecurityUnitTests
     {
         await using var db=Database();var (user,session,_)=Session();
         db.Users.Add(user);db.Tokens.Add(session);await db.SaveChangesAsync();
-        var handler=new SPSS.App.Features.Users.Commands.DeleteUserCommandHandler(db,new AppSettings());
+        var handler=new SPSS.App.Features.Users.Commands.DeleteUserCommandHandler(db,new AppSettings(),new TestIdentity("", "DUA"));
         await handler.Handle(new SPSS.App.Features.Users.Commands.DeleteUserCommand(user.Id),default);
         Assert.False(user.Active);Assert.True(session.Invalidated);Assert.NotEqual("stamp",user.SecurityStamp);
     }

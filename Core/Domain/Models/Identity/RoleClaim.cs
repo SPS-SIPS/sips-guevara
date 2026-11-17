@@ -15,6 +15,8 @@ public sealed class RoleClaimConfigurations : IEntityTypeConfiguration<RoleClaim
         builder.HasKey(e => new { e.Type, e.RoleId });
 
         builder.HasOne(e => e.Role).WithMany(e => e.RoleClaims).HasForeignKey(e => e.RoleId).IsRequired();
-        builder.HasOne(e => e.Claim).WithMany(e => e.RoleClaims).HasForeignKey(e => e.Type).IsRequired();
+        // Preserve the deployed constraint name while updating the EF provider.
+        builder.HasOne(e => e.Claim).WithMany(e => e.RoleClaims).HasForeignKey(e => e.Type).IsRequired()
+            .Metadata.SetAnnotation("Relational:Name", "fk_roleclaims_claims_claimtempid");
     }
 }

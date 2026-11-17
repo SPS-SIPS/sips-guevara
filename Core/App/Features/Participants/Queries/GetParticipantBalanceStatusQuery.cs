@@ -3,6 +3,7 @@ using SPSS.Domain.Models.Enums;
 
 namespace SPSS.App.Features.Participants.Queries;
 
+[Authorize]
 public sealed record GetParticipantBalanceStatusQuery() : IRequest<Response<ParticipantBalanceStatusDto>>;
 
 public sealed class GetParticipantBalanceStatusQueryHandler(IStorageBroker storage, IIdentityService identity, ILogger<GetParticipantBalanceStatusQueryHandler> logger) 

@@ -3,7 +3,6 @@ namespace SPSS.Domain.Models.Identity;
 public sealed class Token : BaseEntity<Guid>
 {
     public Guid Jti { get; set; }
-    public int Value { get; set; }  // Only For OTP Tokens
     public DateTimeOffset CreatedOn { get; set; }
     public DateTimeOffset ExpiresOn { get; set; }
     public bool Used { get; set; } = false;

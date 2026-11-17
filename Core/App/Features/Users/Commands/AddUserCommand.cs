@@ -1,3 +1,4 @@
+using SPSS.App.Security;
 namespace SPSS.App.Features.Users.Queries;
 
 using SPSS.Domain.Models.Identity;
@@ -17,7 +18,7 @@ public sealed class AddUserCommandValidator : AbstractValidator<AddUserCommand>
     }
 }
 
-public sealed class AddUserCommandHandler(IStorageBroker storage, IPasswordHash password, AppSettings appSettings) : IRequestHandler<AddUserCommand, Response<int>>
+public sealed class AddUserCommandHandler(IStorageBroker storage, IPasswordHash password, AppSettings appSettings, IIdentityService identity) : IRequestHandler<AddUserCommand, Response<int>>
 {
     private readonly IStorageBroker _storage = storage;
     private readonly IPasswordHash _password = password;
@@ -63,6 +64,7 @@ public sealed class AddUserCommandHandler(IStorageBroker storage, IPasswordHash 
                 throw new BadRequestException("You can't add Users to the admin role");
             }
 
+            PermissionDelegation.EnsureWithinAuthority(identity, role.RoleClaims.Select(x => x.Type));
             entity.Roles.Add(new UserRole
             {
                 RoleId = role.Id,

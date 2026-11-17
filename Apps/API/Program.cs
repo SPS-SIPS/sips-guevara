@@ -18,6 +18,13 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     options.SuppressModelStateInvalidFilter = true;
 });
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+        .RequireAssertion(context => context.Resource is HttpContext http &&
+            http.RequestServices.GetRequiredService<SPSS.Domain.Interfaces.IIdentityService>().IsAuthenticated)
+        .Build();
+});
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -38,6 +45,8 @@ var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"];
 if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
 {
     Directory.CreateDirectory(dataProtectionKeysPath);
+    if (!OperatingSystem.IsWindows())
+        File.SetUnixFileMode(dataProtectionKeysPath, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
     var dataProtectionBuilder = builder.Services
         .AddDataProtection()
         .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath))
@@ -47,9 +56,10 @@ if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
     if (!string.IsNullOrWhiteSpace(dataProtectionCertificatePath))
     {
         var dataProtectionCertificatePassword = builder.Configuration["DataProtection:CertificatePassword"];
-        dataProtectionBuilder.ProtectKeysWithCertificate(new X509Certificate2(
-            dataProtectionCertificatePath,
-            dataProtectionCertificatePassword));
+        var certificate = X509Certificate2.GetCertContentType(dataProtectionCertificatePath) == X509ContentType.Pkcs12
+            ? X509CertificateLoader.LoadPkcs12FromFile(dataProtectionCertificatePath, dataProtectionCertificatePassword)
+            : X509CertificateLoader.LoadCertificateFromFile(dataProtectionCertificatePath);
+        dataProtectionBuilder.ProtectKeysWithCertificate(certificate);
     }
 }
 

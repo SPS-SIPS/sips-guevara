@@ -39,7 +39,7 @@ public sealed class TokenService(JwtSettings settings, TokenValidationParameters
             .Select(x => x.RoleId)
             .ToListAsync(cancellationToken);
 
-        if (userRolesIds != null)
+        if (!user.SecurityStamp.StartsWith("bootstrap:", StringComparison.Ordinal) && userRolesIds != null)
         {
             var roles = await _roles.GetRoles([.. userRolesIds]);
             foreach (var role in roles)
@@ -59,6 +59,8 @@ public sealed class TokenService(JwtSettings settings, TokenValidationParameters
         var (ip, device, browser, os) = GetClientInfo();
         var refreshToken = new Token
         {
+            // Refresh credentials must retain random UUIDv4 entropy across provider upgrades.
+            Id = Guid.NewGuid(),
             Jti = Guid.Parse(token.Id),
             UserId = user.Id,
             CreatedOn = DateTime.UtcNow,
@@ -141,49 +143,4 @@ public sealed class TokenService(JwtSettings settings, TokenValidationParameters
         return (validatedToken is JwtSecurityToken JwtSecurityToken) && JwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase);
     }
 
-    public async Task<(int otp, Guid refreshTokenId)> GenerateOTP(User user, IStorageBroker storage, CancellationToken cancellationToken)
-    {
-        var otp = System.Security.Cryptography.RandomNumberGenerator.GetInt32(100000, 1000000);
-        var (ip, _, browser, os) = GetClientInfo();
-
-        var refreshToken = new Token
-        {
-            Jti = Guid.NewGuid(),
-            UserId = user.Id,
-            CreatedOn = DateTime.UtcNow,
-            ExpiresOn = DateTime.UtcNow.Add(_settings.OTPTokenLifeTime),
-            TokenType = TokenType.OTP,
-            Value = otp,
-            IPAddress = ip,
-            UserAgent = $"{browser}",
-            OS = os
-        };
-        await storage.Tokens.AddAsync(refreshToken, cancellationToken);
-        await storage.SaveChangesAsync(cancellationToken);
-
-        return (otp, refreshToken.Id);
-    }
-
-    public async Task<(int otp, Guid refreshTokenId)> GenerateOTP(Token token, IStorageBroker storage, CancellationToken cancellationToken)
-    {
-        var otp = System.Security.Cryptography.RandomNumberGenerator.GetInt32(100000, 1000000);
-        var (ip, _, browser, os) = GetClientInfo();
-
-        var refreshToken = new Token
-        {
-            Jti = Guid.NewGuid(),
-            UserId = token.UserId,
-            CreatedOn = DateTime.UtcNow,
-            ExpiresOn = DateTime.UtcNow.Add(_settings.OTPTokenLifeTime),
-            TokenType = TokenType.OTP,
-            Value = otp,
-            IPAddress = ip,
-            UserAgent = $"{browser}",
-            OS = os
-        };
-        await storage.Tokens.AddAsync(refreshToken, cancellationToken);
-        await storage.SaveChangesAsync(cancellationToken);
-
-        return (otp, refreshToken.Id);
-    }
 }

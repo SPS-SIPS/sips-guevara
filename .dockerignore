@@ -1,0 +1,14 @@
+# Only application source and build inputs enter the image build context.
+**
+!global.json
+!Core/
+!Core/**/
+!Core/**/*.cs
+!Core/**/*.csproj
+!Core/**/*.html
+!Apps/
+!Apps/**/
+!Apps/**/*.cs
+!Apps/**/*.csproj
+**/bin/
+**/obj/

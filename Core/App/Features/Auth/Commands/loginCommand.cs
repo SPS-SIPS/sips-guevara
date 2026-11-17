@@ -1,6 +1,7 @@
 namespace SPSS.App.Features.Auth.Commands;
 
-public record LoginCommand(string Username, string Password, string? OTP = null) : IRequest<Response<LoginDto>>;
+[SPSS.Domain.Security.PublicRequest]
+public record LoginCommand(string Username, string Password) : IRequest<Response<LoginDto>>;
 
 public sealed class LoginCommandValidator : AbstractValidator<LoginCommand>
 {
@@ -8,7 +9,6 @@ public sealed class LoginCommandValidator : AbstractValidator<LoginCommand>
     {
         RuleFor(x => x.Username).NotEmpty().MaximumLength(50);
         RuleFor(x => x.Password).NotEmpty().MaximumLength(1024);
-        RuleFor(x => x.OTP).Empty().WithMessage("OTP login is not supported.");
     }
 }
 
@@ -31,6 +31,10 @@ public sealed class LoginCommandHandler(IStorageBroker storage, ITokenService to
         {
             return Response<LoginDto>.BadRequest("Invalid username or password!");
         }
+
+        // Reserve an attempt atomically in the shared database before checking the password.
+        if (!await _storage.TryReserveLoginAttemptAsync(user.Id, cancellationToken))
+            return new Response<LoginDto>(default!) { IsSuccess = false, StatusCode = 429, Message = "Too many login attempts. Try again later." };
 
         if (!_passwordManager.CheckPassword(user, request.Password))
         {

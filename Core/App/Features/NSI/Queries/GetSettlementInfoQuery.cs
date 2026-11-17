@@ -24,7 +24,7 @@ public sealed class GetSettlementInfoQueryValidator : AbstractValidator<GetSettl
         return DateTimeOffset.TryParseExact(dateString, formats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out _);
     }
 }
-public sealed class GetSettlementInfoQueryHandler(IStorageBroker storage, IMapper mapper) : IRequestHandler<GetSettlementInfoQuery, Response<List<NetSettlementHeaderSimpleDto>>>
+public sealed class GetSettlementInfoQueryHandler(IStorageBroker storage, IMapper mapper, IIdentityService identity) : IRequestHandler<GetSettlementInfoQuery, Response<List<NetSettlementHeaderSimpleDto>>>
 {
     private readonly IStorageBroker _storage = storage;
     private readonly IMapper _mapper = mapper;
@@ -49,6 +49,11 @@ public sealed class GetSettlementInfoQueryHandler(IStorageBroker storage, IMappe
         var query = _storage.NetSettlementHeaders.AsNoTracking()
             .Where(x => x.CredDtTm.Date == parsedDate.Date);
 
+        if (!string.IsNullOrWhiteSpace(identity.TenantId))
+        {
+            var tenant = identity.TenantId;
+            query = query.Where(x => x.NetSettlementDetails.Any(d => d.DebtorBic == tenant || d.CreditorBic == tenant));
+        }
         var result = await query.ProjectTo<NetSettlementHeaderSimpleDto>(_mapper.ConfigurationProvider).ToListAsync(cancellationToken);
 
         return Response<List<NetSettlementHeaderSimpleDto>>.Success(result, 0);

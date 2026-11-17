@@ -19,10 +19,11 @@ public static class SessionValidation
             string.IsNullOrEmpty(user.SecurityStamp) ||
             principal.FindFirstValue("security_stamp") != user.SecurityStamp) return false;
 
+        if (user.Participant != null && (user.Participant.DeletedOn != null || string.IsNullOrWhiteSpace(user.Participant.BicNo))) return false;
         var now = DateTimeOffset.UtcNow;
-        if (!await storage.Tokens.AsNoTracking().AnyAsync(x => x.UserId == userId && x.Jti == jti &&
-                x.TokenType == SPSS.Domain.Enums.TokenType.Refresh && !x.Invalidated && !x.Used && x.ExpiresOn > now, ct))
-            return false;
+        var session = await storage.Tokens.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == userId && x.Jti == jti &&
+                x.TokenType == SPSS.Domain.Enums.TokenType.Refresh && !x.Invalidated && !x.Used && x.ExpiresOn > now, ct);
+        if (session is null) return false;
 
         // Use current permissions and tenant membership, rather than a stale JWT snapshot.
         var identity = (ClaimsIdentity)principal.Identity!;

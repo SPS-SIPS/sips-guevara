@@ -1,0 +1,51 @@
+name: Security verification
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 5 * * 1'
+permissions:
+  contents: read
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: spss_security_tests
+          POSTGRES_USER: test_runner
+          POSTGRES_PASSWORD: local_ci_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      SPSS_SECURITY_TEST_CONNECTION: Host=localhost;Port=5432;Database=spss_security_tests;Username=test_runner;Password=local_ci_only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - run: dotnet restore backend.sln
+      - run: dotnet test tests/Security.Tests/Security.Tests.csproj --no-restore --configuration Release
+      - run: dotnet list backend.sln package --vulnerable --include-transitive --format json > dependency-audit.json
+      - run: python3 tools/check-dependency-audit.py dependency-audit.json
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build supported runtime image
+        run: docker build --pull -f Apps/API/Dockerfile -t spss-security-review:ci .
+      - name: Scan OS and application dependencies
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.76.2
+          image-ref: spss-security-review:ci
+          scanners: vuln
+          format: json
+          output: container-audit.json
+          exit-code: '0'
+      - run: python3 tools/check-container-audit.py container-audit.json

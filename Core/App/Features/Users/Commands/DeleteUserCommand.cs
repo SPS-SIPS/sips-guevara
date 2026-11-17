@@ -1,3 +1,4 @@
+using SPSS.App.Security;
 namespace SPSS.App.Features.Users.Commands;
 
 using static SPSS.Domain.Common.KnownClaims;
@@ -12,14 +13,14 @@ public sealed class DeleteUserCommandValidator : AbstractValidator<DeleteUserCom
     }
 }
 
-public sealed class DeleteUserCommandHandler(IStorageBroker storage, AppSettings settings) : IRequestHandler<DeleteUserCommand, Response<int>>
+public sealed class DeleteUserCommandHandler(IStorageBroker storage, AppSettings settings, IIdentityService identity) : IRequestHandler<DeleteUserCommand, Response<int>>
 {
     private readonly IStorageBroker _storage = storage;
 
     public async ValueTask<Response<int>> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
     {
         var User = await _storage.Users
-        .Include(x => x.Roles).ThenInclude(x => x.Role)
+        .Include(x => x.Roles).ThenInclude(x => x.Role).ThenInclude(x => x.RoleClaims)
         .SingleOrDefaultAsync(x => x.Id.Equals(request.Id), cancellationToken);
 
         if (User == null)
@@ -28,6 +29,8 @@ public sealed class DeleteUserCommandHandler(IStorageBroker storage, AppSettings
         }
         if (User.Roles.Any(x => x.Role.Super || x.Role.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase) || settings.RestrictedRoles.Contains(x.Role.Name, StringComparer.OrdinalIgnoreCase)))
             throw new ForbiddenAccessException("Protected accounts cannot be deleted through user administration.");
+
+        PermissionDelegation.EnsureWithinAuthority(identity, User.Roles.SelectMany(x => x.Role.RoleClaims).Select(x => x.Type));
 
         User.Active = false;
         User.SecurityStamp = Guid.NewGuid().ToString();

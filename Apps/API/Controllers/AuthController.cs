@@ -13,13 +13,12 @@ public class AuthController : BaseController
     public async Task<Response<UserDto>> Profile(CancellationToken ct)
     => await Mediator.Send(new GetMeQuery(), ct);
 
-    [HttpPost("Resend")]
-    public IActionResult Resend() => BadRequest("OTP login is not supported.");
-
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
     [HttpPost("login")]
     public async Task<Response<LoginDto>> Login([FromBody] LoginCommand cmd, CancellationToken ct)
     => await Mediator.Send(cmd, ct);
 
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
     [HttpPost("refresh")]
     public async Task<Response<LoginDto>> Refresh([FromBody] RefreshCommand cmd, CancellationToken ct)
     => await Mediator.Send(cmd, ct);

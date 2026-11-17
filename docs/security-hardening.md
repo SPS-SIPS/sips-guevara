@@ -7,7 +7,7 @@ and a reporting window of at most seven days. All production API requests requir
 JWT configuration requires a signing secret of at least 32 UTF-8 bytes, issuer/audience, and an
 access-token lifetime of at most 30 minutes. Users must log in again after this update. Account
 state, session revocation, current permissions and tenant membership are checked on each request.
-Logout accepts a GUID session ID. OTP resend is disabled. Authentication and reports are rate limited.
+Logout accepts a GUID session ID. Login accepts username and password only. Authentication and reports are rate limited.
 
 Administrator creation requires explicit `Bootstrap:Enabled` and `Bootstrap:AdminPassword` settings.
 The password must contain at least 16 characters and must be changed through the password-change

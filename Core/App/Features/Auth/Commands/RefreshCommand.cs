@@ -1,5 +1,6 @@
 namespace SPSS.App.Features.Auth.Commands;
 
+[SPSS.Domain.Security.PublicRequest]
 public sealed record RefreshCommand(string AccessToken, Guid RefreshToken) : IRequest<Response<LoginDto>>;
 
 public sealed class RefreshCommandValidator : AbstractValidator<RefreshCommand>

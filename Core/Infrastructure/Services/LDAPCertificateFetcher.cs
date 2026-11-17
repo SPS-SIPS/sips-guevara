@@ -24,16 +24,21 @@ public sealed class LDAPCertificateFetcher(IConfiguration configuration, ILogger
 
     private async Task GetCertificateByDN(string dn)
     {
-        // Establish LDAP connection
-        LdapDirectoryIdentifier identifier = new(_ldapServer, 389, false, false);  // For plain LDAP
-
-        NetworkCredential credential = new(_ldapUser, _ldapPassword);
-        LdapConnection connection = new(identifier, credential, AuthType.Basic);
-
-        // Set LDAP Protocol Version
+        // TLS is mandatory; never bind credentials before the secure channel exists.
+        var mode = configuration["LDAP:Transport"] ?? "Ldaps";
+        if (mode is not ("Ldaps" or "StartTls"))
+            throw new InvalidOperationException("LDAP:Transport must be Ldaps or StartTls.");
+        var port = configuration.GetValue<int?>("LDAP:Port") ?? (mode == "Ldaps" ? 636 : 389);
+        using var connection = new LdapConnection(new LdapDirectoryIdentifier(_ldapServer, port),
+            new NetworkCredential(_ldapUser, _ldapPassword), AuthType.Basic);
+        connection.AutoBind = false;
+        connection.Timeout = TimeSpan.FromSeconds(30);
         connection.SessionOptions.ProtocolVersion = 3;
-        // Disable referral chasing
         connection.SessionOptions.ReferralChasing = ReferralChasingOptions.None;
+        // Platform trust and hostname validation remain enabled. There is no certificate bypass.
+        if (mode == "Ldaps") connection.SessionOptions.SecureSocketLayer = true;
+        else connection.SessionOptions.StartTransportLayerSecurity(null);
+        connection.Bind();
 
         // Enable paging by setting up PageResultRequestControl
         const int pageSize = 1000;  // Set page size (adjust based on your server's limits)

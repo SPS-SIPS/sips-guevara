@@ -18,7 +18,7 @@ namespace SPSS.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.0")
+                .HasAnnotation("ProductVersion", "8.0.34")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -2364,10 +2364,6 @@ namespace SPSS.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("userid");
 
-                    b.Property<int>("Value")
-                        .HasColumnType("integer")
-                        .HasColumnName("value");
-
                     b.HasKey("Id")
                         .HasName("pk_tokens");
 
@@ -2431,6 +2427,14 @@ namespace SPSS.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("LastModifiedOn")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("lastmodifiedon");
+
+                    b.Property<int>("LoginAttemptCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("loginattemptcount");
+
+                    b.Property<DateTimeOffset?>("LoginWindowStart")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("loginwindowstart");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()

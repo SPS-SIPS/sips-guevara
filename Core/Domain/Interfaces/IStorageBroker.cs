@@ -39,6 +39,7 @@ public interface IStorageBroker
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     int SaveChanges();
+    Task<bool> TryReserveLoginAttemptAsync(int userId, CancellationToken cancellationToken);
     Task<bool> TryConsumeRefreshTokenAsync(Guid id, CancellationToken cancellationToken);
     Task<int> ExecuteSqlRawAsync(string query, CancellationToken cancellationToken);
     bool IsRelational();

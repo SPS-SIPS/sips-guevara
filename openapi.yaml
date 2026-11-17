@@ -16,30 +16,6 @@ paths:
                 $ref: '#/components/schemas/UserDtoResponse'
       security:
       - Bearer: []
-  /api/v1/Auth/Resend:
-    post:
-      tags:
-      - Auth
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ResendOTPCommand'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/ResendOTPCommand'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/ResendOTPCommand'
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GuidResponse'
-      security:
-      - Bearer: []
   /api/v1/Auth/login:
     post:
       tags:
@@ -3393,9 +3369,6 @@ components:
         password:
           type: string
           nullable: true
-        otp:
-          type: string
-          nullable: true
       additionalProperties: false
     LoginDto:
       type: object
@@ -4684,16 +4657,6 @@ components:
         burstP2M:
           type: integer
           format: int32
-      additionalProperties: false
-    ResendOTPCommand:
-      type: object
-      properties:
-        username:
-          type: string
-          nullable: true
-        connection:
-          type: string
-          format: uuid
       additionalProperties: false
     RevokeAccessTokenCommand:
       type: object

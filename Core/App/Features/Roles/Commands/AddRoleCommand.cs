@@ -1,3 +1,4 @@
+using SPSS.App.Security;
 namespace SPSS.App.Features.Roles.Commands;
 
 using SPSS.Domain.Models.Identity;
@@ -14,7 +15,7 @@ public sealed class AddRoleCommandValidator : AbstractValidator<AddRoleCommand>
     }
 }
 
-public sealed class AddRoleCommandHandler(IStorageBroker storage, IRolesCache rolesCache) : IRequestHandler<AddRoleCommand, Response<Guid>>
+public sealed class AddRoleCommandHandler(IStorageBroker storage, IRolesCache rolesCache, IIdentityService identity) : IRequestHandler<AddRoleCommand, Response<Guid>>
 {
     private readonly IStorageBroker _storage = storage;
     private readonly IRolesCache _rolesCache = rolesCache;
@@ -22,6 +23,7 @@ public sealed class AddRoleCommandHandler(IStorageBroker storage, IRolesCache ro
     public async ValueTask<Response<Guid>> Handle(AddRoleCommand request, CancellationToken cancellationToken)
     {
 
+        PermissionDelegation.EnsureWithinAuthority(identity, request.Claims);
         if (await _storage.Roles.AnyAsync(x => x.NormalizedName.Equals(request.Name.ToUpperInvariant()), cancellationToken: cancellationToken))
         {
             throw new BadRequestException("Role already exists");

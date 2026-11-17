@@ -1,3 +1,4 @@
+using SPSS.App.Security;
 namespace SPSS.App.Features.Roles.Commands;
 
 using SPSS.Domain.Models.Identity;
@@ -15,7 +16,7 @@ public sealed class EditRoleCommandValidator : AbstractValidator<EditRoleCommand
     }
 }
 
-public sealed class EditRoleCommandHandler(IStorageBroker storage, IRolesCache rolesCache, AppSettings appSettings) : IRequestHandler<EditRoleCommand, Response<Guid>>
+public sealed class EditRoleCommandHandler(IStorageBroker storage, IRolesCache rolesCache, AppSettings appSettings, IIdentityService identity) : IRequestHandler<EditRoleCommand, Response<Guid>>
 {
     private readonly IStorageBroker _storage = storage;
     private readonly IRolesCache _rolesCache = rolesCache;
@@ -30,6 +31,8 @@ public sealed class EditRoleCommandHandler(IStorageBroker storage, IRolesCache r
             throw new BadRequestException("You can't modify this role!");
         }
 
+        PermissionDelegation.EnsureWithinAuthority(identity, role.RoleClaims.Select(x => x.Type));
+        PermissionDelegation.EnsureWithinAuthority(identity, request.Claims);
         role.Name = request.Name;
         role.NormalizedName = request.Name.ToUpperInvariant();
 

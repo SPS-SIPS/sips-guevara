@@ -46,6 +46,17 @@ public sealed class StorageBroker(DbContextOptions<StorageBroker> options) : DbC
         return base.SaveChanges();
     }
 
+    public async Task<bool> TryReserveLoginAttemptAsync(int userId, CancellationToken cancellationToken)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var cutoff = now.AddMinutes(-15);
+        return await Users.Where(x => x.Id == userId && x.Active && x.DeletedOn == null &&
+                (x.LoginWindowStart == null || x.LoginWindowStart <= cutoff || x.LoginAttemptCount < 5))
+            .ExecuteUpdateAsync(set => set
+                .SetProperty(x => x.LoginAttemptCount, x => x.LoginWindowStart == null || x.LoginWindowStart <= cutoff ? 1 : x.LoginAttemptCount + 1)
+                .SetProperty(x => x.LoginWindowStart, x => x.LoginWindowStart == null || x.LoginWindowStart <= cutoff ? now : x.LoginWindowStart), cancellationToken) == 1;
+    }
+
     public async Task<bool> TryConsumeRefreshTokenAsync(Guid id, CancellationToken cancellationToken)
         => await Tokens.Where(x => x.Id == id && !x.Used && !x.Invalidated)
             .ExecuteUpdateAsync(set => set.SetProperty(x => x.Used, true), cancellationToken) == 1;
